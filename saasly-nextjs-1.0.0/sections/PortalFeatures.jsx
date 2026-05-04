@@ -149,7 +149,7 @@ const features = [
 
 export default function PortalFeatures() {
   return (
-    <section id="features" className="py-20 bg-white">
+    <section id="features" className="py-5 bg-white">
     <>
       <SectionTitle
         text1="Product"

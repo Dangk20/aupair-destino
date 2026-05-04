@@ -12,8 +12,8 @@ export default function Page() {
     return (
         <>
             <HeroSection1 />
+            <TrustedCompanies />
             <FeaturesSection />
-            <PortalFeatures />
             <Testimonials />
             <Pricing />
             <FaqSection />

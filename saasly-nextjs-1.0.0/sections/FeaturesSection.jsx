@@ -1,113 +1,145 @@
 import SectionTitle from "@/components/SectionTitle";
 import Image from "next/image";
-import { BarChart2, Users, FileText } from "lucide-react";
+import { PlayCircle, Unlock, FileText, Users, Heart, Infinity } from "lucide-react";
 
 const features = [
   {
-    icon: BarChart2,
-    title: "Feedback Analyser",
-    description: "Turn client responses into actionable insights with real-time sentiment tracking and visual reports.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
-    accent: "bg-cyan-600",
-    badge: "Analytics",
+    icon: PlayCircle,
+    title: "Sesiones en video",
+    description: "8 videos cortos y directos. Aprende a tu propio ritmo, desde donde estés.",
+    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80",
+    accent: "bg-[#a0435f]",
+    badge: "Contenido",
   },
   {
-    icon: Users,
-    title: "User Management",
-    description: "Assign roles, manage permissions, and keep your entire team aligned — all from one place.",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80",
-    accent: "bg-violet-600",
-    badge: "Team",
+    icon: Unlock,
+    title: "Avance progresivo",
+    description: "Cada sesión se desbloquea al completar la anterior. Sin saltar pasos, sin perderse.",
+    image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80",
+    accent: "bg-[#e8849a]",
+    badge: "Estructura",
   },
   {
     icon: FileText,
-    title: "Better Invoicing",
-    description: "Generate professional invoices in seconds, track payment status, and send automated reminders.",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80",
-    accent: "bg-emerald-600",
-    badge: "Finance",
+    title: "Documentación clara",
+    description: "Visa, cartas de presentación, contratos — todo explicado paso a paso.",
+    image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80",
+    accent: "bg-[#2d1a22]",
+    badge: "Documentos",
+  },
+  {
+    icon: Users,
+    title: "Comunidad exclusiva",
+    description: "Al terminar el programa, accedes a la comunidad privada de au pairs en proceso.",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
+    accent: "bg-[#5a8a3a]",
+    badge: "Comunidad",
+  },
+  {
+    icon: Heart,
+    title: "Acompañamiento real",
+    description: "Al finalizar, agenda tu revisión directa con Jennifer y Tati. No estás sola.",
+    image: "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=600&q=80",
+    accent: "bg-[#c9607a]",
+    badge: "Mentoring",
+  },
+  {
+    icon: Infinity,
+    title: "Acceso de por vida",
+    description: "Vuelve cuando quieras. El contenido siempre estará disponible para ti.",
+    image: "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=600&q=80",
+    accent: "bg-[#8a3550]",
+    badge: "Acceso",
   },
 ];
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-white">
-    <>
+    <section id="features" className="py-16 bg-[#fff8f9]">
+
       <SectionTitle
-        text1="Features"
-        text2="Everything You Need to Deliver"
-        text3="A complete toolkit for contractors — built to save time, impress clients, and grow your business."
+        text1="El programa"
+        text2="Todo lo que necesitas para llegar preparada"
+        text3="No es solo información — es un proceso diseñado para que tomes la mejor decisión y llegues lista."
       />
 
-      <div className="mt-16 max-w-5xl mx-auto w-full px-4">
+      <div className="mt-10 max-w-5xl mx-auto w-full px-4">
 
-        {/* Hero banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-600 to-cyan-500 p-8 md:p-12 mb-8 shadow-lg shadow-cyan-200">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-20 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+        {/* Banner principal */}
+          <div className="relative overflow-hidden rounded-3xl bg-[#a0435f] p-8 md:p-12 mb-10 shadow-2xl shadow-[#a0435f]/25">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-10 w-48 h-48 bg-white/5 rounded-full translate-y-1/2" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dots2" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1.2" fill="white" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots2)" />
+          </svg>
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
             <div className="flex-1">
-              <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
-                All-in-one Platform
+              <span className="inline-block bg-[#e8849a]/20 text-white text-[11px] font-semibold px-3 py-1 rounded-full mb-5 tracking-widest uppercase border border-[#e8849a]/30">
+                Plataforma PRO
               </span>
-              <h3 className="text-white text-2xl md:text-3xl font-bold leading-snug mb-3">
-                Run your entire contracting<br className="hidden md:block" /> business from one dashboard.
+              <h3 className="text-white text-2xl md:text-3xl font-serif font-bold leading-snug mb-4">
+                Un proceso guiado, no<br className="hidden md:block" />
+                una biblioteca de videos.
               </h3>
-              <p className="text-cyan-100 text-sm leading-relaxed max-w-md">
-                From first estimate to final payment — manage projects, clients, documents, and your team without switching tabs.
+              <p className="text-white/60 text-[14px] leading-relaxed max-w-md">
+                Corto, claro, premium y acompañado. Diseñado para que avances
+                paso a paso y llegues al final con claridad y confianza.
               </p>
             </div>
             <div className="flex gap-4 md:flex-col md:items-end shrink-0">
               {[
-                { value: "10k+", label: "Active users" },
-                { value: "98%", label: "Satisfaction rate" },
+                { value: "8", label: "Sesiones en total" },
+                { value: "+500", label: "Au pairs preparadas" },
               ].map((s, i) => (
-                <div key={i} className="bg-white/15 rounded-2xl px-6 py-4 text-center backdrop-blur-sm">
-                  <p className="text-white text-2xl font-bold">{s.value}</p>
-                  <p className="text-cyan-100 text-xs mt-0.5">{s.label}</p>
+                <div key={i} className="bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-center backdrop-blur-sm">
+                  <p className="text-[#f0a0b4] font-serif text-2xl font-bold">{s.value}</p>
+                  <p className="text-white/50 text-[11px] mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 3 cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 6 cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <div
                 key={index}
-                className="bg-white rounded-2xl overflow-hidden max-w-sm w-full shadow-md shadow-slate-200/80 border border-slate-100 hover:shadow-lg hover:shadow-slate-200 hover:-translate-y-1 transition-all duration-300"
+                className="bg-white rounded-2xl overflow-hidden border border-[#f0dde2] shadow-md shadow-[#e8b0bc]/20 hover:shadow-xl hover:shadow-[#e8b0bc]/30 hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Image with icon overlay */}
-                <div className="relative h-48 w-full">
+                <div className="relative h-44 w-full">
                   <Image
                     src={feature.image}
                     alt={feature.title}
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full border border-white/30">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#2d1a22]/60 to-transparent" />
+                  <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-1 rounded-full border border-white/30 tracking-wide">
                     {feature.badge}
                   </span>
-                  <div className={`absolute bottom-3 right-3 w-10 h-10 ${feature.accent} rounded-xl flex items-center justify-center shadow-lg`}>
-                    <Icon size={18} className="text-white" />
+                  <div className={`absolute bottom-3 right-3 w-9 h-9 ${feature.accent} rounded-xl flex items-center justify-center shadow-lg`}>
+                    <Icon size={16} className="text-white" />
                   </div>
                 </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-slate-800 font-semibold text-base mb-2">{feature.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{feature.description}</p>
+                <div className="p-5">
+                  <h3 className="text-[#2d1a22] font-semibold text-[15px] mb-1.5">{feature.title}</h3>
+                  <p className="text-[#7a4a54] text-[13px] leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
-    </>
-   </section>
+    </section>
   );
 }

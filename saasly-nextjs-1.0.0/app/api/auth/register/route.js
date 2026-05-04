@@ -1,68 +1,56 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
 import bcrypt from "bcryptjs";
+import dbAupair from "@/lib/db-aupair";
+import { createToken } from "@/lib/session-aupair";
 
 export async function POST(req) {
   try {
-    const { fullName, lastName, companyName, nit, phone, country, city, email, password } = await req.json();
+    const { fullName, lastName, email, password } = await req.json();
 
-    // Validar campos requeridos
     if (!fullName || !lastName || !email || !password) {
-      return NextResponse.json({ error: "Full name, last name, email and password are required." }, { status: 400 });
+      return NextResponse.json({ error: "Todos los campos son obligatorios." }, { status: 400 });
     }
 
     // Verificar si el email ya existe
-    const [existing] = await db.query("SELECT id_usuario FROM usuarios WHERE email = ?", [email]);
-    if (existing.length > 0) {
-      return NextResponse.json({ error: "Email already registered." }, { status: 409 });
-    }
-
-    // Obtener rol por defecto: 'Admin Empresa'
-    const [roles] = await db.query("SELECT id_rol FROM roles WHERE nombre_rol = 'Admin Empresa' LIMIT 1");
-    if (roles.length === 0) {
-      return NextResponse.json({ error: "Default role not found. Please seed the roles table." }, { status: 500 });
-    }
-    const id_rol = roles[0].id_rol;
-
-    // Obtener plan activo más barato (free o trial)
-    const [planes] = await db.query("SELECT id FROM planes WHERE estado = 'activo' ORDER BY precio_mensual ASC LIMIT 1");
-    const id_plan = planes.length > 0 ? planes[0].id : null;
-
-    // Crear empresa
-    const direccion = [city, country].filter(Boolean).join(", ") || null;
-    const [empresaResult] = await db.query(
-      `INSERT INTO empresas (nombre, nit, email, telefono, direccion, id_plan, estado)
-       VALUES (?, ?, ?, ?, ?, ?, 'activa')`,
-      [companyName || `${fullName} ${lastName}'s Company`, nit || null, email, phone || null, direccion, id_plan]
+    const [existing] = await dbAupair.query(
+      "SELECT id FROM usuarios WHERE email = ?", [email]
     );
-    const id_empresa = empresaResult.insertId;
-
-    // Crear suscripción si hay plan
-    if (id_plan) {
-      const today = new Date().toISOString().split("T")[0];
-      const fechaFin = new Date();
-      fechaFin.setFullYear(fechaFin.getFullYear() + 1);
-      await db.query(
-        `INSERT INTO suscripciones (id_empresa, id_plan, fecha_inicio, fecha_fin, estado)
-         VALUES (?, ?, ?, ?, 'activa')`,
-        [id_empresa, id_plan, today, fechaFin.toISOString().split("T")[0]]
-      );
+    if (existing.length > 0) {
+      return NextResponse.json({ error: "Ya existe una cuenta con ese correo." }, { status: 409 });
     }
 
-    // Encriptar contraseña
-    const password_hash = await bcrypt.hash(password, 12);
+    // Hash de la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Crear usuario
-    await db.query(
-      `INSERT INTO usuarios (id_empresa, id_rol, nombre, apellido, email, password_hash, telefono, estado)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')`,
-      [id_empresa, id_rol, fullName, lastName, email, password_hash, phone || null]
+    const [result] = await dbAupair.query(
+      "INSERT INTO usuarios (nombre, apellido, email, password, tiene_acceso) VALUES (?, ?, ?, ?, FALSE)",
+      [fullName, lastName, email, hashedPassword]
     );
 
-    return NextResponse.json({ message: "Account created successfully." }, { status: 201 });
+    const newUser = {
+      id: result.insertId,
+      nombre: fullName,
+      apellido: lastName,
+      email,
+      rol: "usuaria",
+      tiene_acceso: false,
+    };
 
-  } catch (error) {
-    console.error("Register error:", error);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    // Crear token y cookie
+    const token = createToken(newUser);
+    const response = NextResponse.json({ ok: true, redirect: "/dashboard" });
+    response.cookies.set("dap_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 días
+      path: "/",
+    });
+
+    return response;
+  } catch (err) {
+    console.error("Register error:", err);
+    return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
   }
 }

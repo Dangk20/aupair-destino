@@ -8,8 +8,8 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-    title: "Project Center",
-    description: "Project Center is an all-in-one solution for planning, tracking, and optimizing projects, built to boost productivity and business growth.",
+    title: "Destino Au Pair",
+    description: "Descubre el mundo como Au Pair. Vive una experiencia única de intercambio cultural, aprende idiomas y crea recuerdos inolvidables en el extranjero.",
 };
 
 export default function RootLayout({ children }) {

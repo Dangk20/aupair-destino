@@ -12,10 +12,13 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [form, setForm] = useState({
-    fullName: "", lastName: "", companyName: "", nit: "",
-    phone: "", country: "", city: "",
-    email: "", password: "", confirmPassword: "",
+    fullName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,11 +28,11 @@ export default function RegisterPage() {
     setError("");
 
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
     if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
@@ -39,159 +42,156 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-        fullName: form.fullName,
-        lastName: form.lastName,
-        companyName: form.companyName,
-        nit: form.nit,
-        phone: form.phone,
-        country: form.country,
-        city: form.city,
-        email: form.email,
-        password: form.password,
-      }),
+          fullName: form.fullName,
+          lastName: form.lastName,
+          email: form.email,
+          password: form.password,
+        }),
       });
 
       const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Something went wrong.");
+        setError(data.error || "Algo salió mal. Intenta de nuevo.");
       } else {
-        router.push("/login?registered=true");
+        router.push("/dashboard");
       }
     } catch {
-      setError("Connection error. Please try again.");
+      setError("Error de conexión. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
+  const inputClass =
+    "w-full border border-[#f0dde2] rounded-xl px-4 py-3 text-[14px] text-[#2d1a22] bg-[#fff8f9] placeholder:text-[#c0909a] focus:outline-none focus:ring-2 focus:ring-[#e8849a] focus:border-transparent transition";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="bg-white p-8 rounded-2xl shadow-md shadow-slate-200/80 border border-slate-100 w-full max-w-lg">
+    <div className="min-h-screen flex bg-[#fff8f9]">
 
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <Image src="/assets/project-center.svg" alt="Project Center" width={140} height={40} priority />
-        </div>
+      {/* LEFT decorativo */}
+      <div className="hidden lg:flex w-[45%] bg-[#a0435f] relative overflow-hidden flex-col items-center justify-center p-12">
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="dotsreg" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.2" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dotsreg)" />
+        </svg>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-[#2d1a22]/20 rounded-full translate-y-1/2 -translate-x-1/2" />
 
-        <h2 className="text-2xl font-bold text-center text-slate-800 mb-1">Create your account</h2>
-        <p className="text-sm text-slate-500 text-center mb-8">Start managing your projects in minutes</p>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* First + Last Name */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">First Name</label>
-              <input name="fullName" type="text" placeholder="Juan" value={form.fullName} onChange={handleChange} required
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">Last Name</label>
-              <input name="lastName" type="text" placeholder="Pablo" value={form.lastName} onChange={handleChange} required
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-            </div>
-          </div>
-
-          {/* Company + NIT */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">Company Name</label>
-              <input name="companyName" type="text" placeholder="Project Center LLC" value={form.companyName} onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">NIT / Tax ID</label>
-              <input name="nit" type="text" placeholder="900.123.456-7" value={form.nit} onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-            </div>
-          </div>
-
-          {/* Phone + Country */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">Phone</label>
-              <input name="phone" type="tel" placeholder="+1 (555) 000-0000" value={form.phone} onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-1 block">Country</label>
-              <select name="country" value={form.country} onChange={handleChange}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition bg-white">
-                <option value="">Select country</option>
-                <option>United States</option>
-                <option>Colombia</option>
-                <option>Mexico</option>
-                <option>Canada</option>
-                <option>Spain</option>
-                <option>Argentina</option>
-                <option>Other</option>
-              </select>
-            </div>
-          </div>
-
-          {/* City */}
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">City</label>
-            <input name="city" type="text" placeholder="Bogotá" value={form.city} onChange={handleChange}
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Email</label>
-            <input name="email" type="email" placeholder="you@company.com" value={form.email} onChange={handleChange} required
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Password</label>
-            <div className="relative">
-              <input name="password" type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" value={form.password} onChange={handleChange} required
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Confirm Password</label>
-            <div className="relative">
-              <input name="confirmPassword" type={showConfirm ? "text" : "password"} placeholder="Repeat your password" value={form.confirmPassword} onChange={handleChange} required
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent transition" />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                {showConfirm ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Terms */}
-          <div className="flex items-start gap-2 pt-1">
-            <input type="checkbox" id="terms" required className="mt-0.5 accent-cyan-600 cursor-pointer" />
-            <label htmlFor="terms" className="text-xs text-slate-500 cursor-pointer">
-              I agree to the <span className="text-cyan-600 hover:underline">Terms of Service</span> and <span className="text-cyan-600 hover:underline">Privacy Policy</span>
-            </label>
-          </div>
-
-          <button type="submit" disabled={loading}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white py-2.5 rounded-lg font-medium transition mt-2">
-            {loading ? "Creating account..." : "Create Account"}
-          </button>
-
-          <p className="text-center text-sm text-slate-500 pt-1">
-            Already have an account?{" "}
-            <Link href="/login" className="text-cyan-600 font-medium hover:underline">Sign in</Link>
+        <div className="relative z-10 text-center">
+          <Image
+            src="/assets/destino-aupair-logo.svg"
+            alt="Destino Au Pair"
+            width={90} height={90}
+            className="mx-auto mb-8 brightness-0 invert"
+          />
+          <h2 className="font-serif text-white text-[32px] font-bold leading-tight mb-4">
+            Tu aventura<br />
+            <span className="italic text-[#fce8ed]">empieza aquí.</span>
+          </h2>
+          <p className="text-white/60 text-[14px] leading-relaxed max-w-xs mx-auto mb-10">
+            Regístrate gratis y accede a la sesión de bienvenida. Sin tarjeta de crédito.
           </p>
-        </form>
+          <div className="flex flex-col gap-4 text-left max-w-xs mx-auto">
+            {[
+              { num: "01", text: "Crea tu cuenta gratis" },
+              { num: "02", text: "Ve la sesión de bienvenida" },
+              { num: "03", text: "Desbloquea el programa completo" },
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <span className="font-serif text-[#fce8ed] text-[13px] font-bold w-6 shrink-0">{step.num}</span>
+                <div className="flex-1 h-px bg-white/20" />
+                <span className="text-white/70 text-[13px]">{step.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT formulario */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md">
+
+          <div className="flex justify-center mb-8 lg:hidden">
+            <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={64} height={64} />
+          </div>
+
+          <h2 className="font-serif text-[28px] font-bold text-[#2d1a22] mb-1">Crea tu cuenta</h2>
+          <p className="text-[13px] text-[#9a6672] mb-8">Es gratis — sin tarjeta de crédito requerida.</p>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-xl mb-5">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[12px] font-semibold text-[#2d1a22] mb-1.5 block tracking-wide uppercase">Nombre</label>
+                <input name="fullName" type="text" placeholder="María" value={form.fullName} onChange={handleChange} required className={inputClass} />
+              </div>
+              <div>
+                <label className="text-[12px] font-semibold text-[#2d1a22] mb-1.5 block tracking-wide uppercase">Apellido</label>
+                <input name="lastName" type="text" placeholder="García" value={form.lastName} onChange={handleChange} required className={inputClass} />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[12px] font-semibold text-[#2d1a22] mb-1.5 block tracking-wide uppercase">Correo electrónico</label>
+              <input name="email" type="email" placeholder="tu@correo.com" value={form.email} onChange={handleChange} required className={inputClass} />
+            </div>
+
+            <div>
+              <label className="text-[12px] font-semibold text-[#2d1a22] mb-1.5 block tracking-wide uppercase">Contraseña</label>
+              <div className="relative">
+                <input name="password" type={showPassword ? "text" : "password"} placeholder="Mínimo 8 caracteres"
+                  value={form.password} onChange={handleChange} required className={`${inputClass} pr-11`} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c0909a] hover:text-[#a0435f] transition">
+                  {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[12px] font-semibold text-[#2d1a22] mb-1.5 block tracking-wide uppercase">Confirmar contraseña</label>
+              <div className="relative">
+                <input name="confirmPassword" type={showConfirm ? "text" : "password"} placeholder="Repite tu contraseña"
+                  value={form.confirmPassword} onChange={handleChange} required className={`${inputClass} pr-11`} />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c0909a] hover:text-[#a0435f] transition">
+                  {showConfirm ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 pt-1">
+              <input type="checkbox" id="terms" required className="mt-0.5 w-4 h-4 rounded accent-[#a0435f] cursor-pointer shrink-0" />
+              <label htmlFor="terms" className="text-[12px] text-[#9a6672] cursor-pointer leading-relaxed">
+                Acepto los{" "}
+                <Link href="/terminos" className="text-[#a0435f] hover:underline">Términos de uso</Link>
+                {" "}y la{" "}
+                <Link href="/privacidad" className="text-[#a0435f] hover:underline">Política de privacidad</Link>
+              </label>
+            </div>
+
+            <button type="submit" disabled={loading}
+              className="w-full bg-[#a0435f] hover:bg-[#8a3550] disabled:bg-[#a0435f]/50 text-white font-medium text-[14px] py-3.5 rounded-xl transition shadow-lg shadow-[#a0435f]/20 mt-2">
+              {loading ? "Creando tu cuenta..." : "Comenzar gratis →"}
+            </button>
+
+            <p className="text-center text-[13px] text-[#9a6672] pt-1">
+              ¿Ya tienes cuenta?{" "}
+              <Link href="/login" className="text-[#a0435f] font-medium hover:underline">Iniciar sesión</Link>
+            </p>
+
+          </form>
+        </div>
       </div>
     </div>
   );
