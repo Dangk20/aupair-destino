@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [frase] = useState(() => FRASES[Math.floor(Math.random() * FRASES.length)]);
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
 
   useEffect(() => {
     fetch("/api/dashboard/sesiones")
@@ -31,7 +32,11 @@ export default function DashboardPage() {
 
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => setUser(d.user));
+      .then((d) => {
+        setUser(d.user);
+        // Mostrar solo si NO ha visto la bienvenida
+      if (!d.user?.vio_bienvenida) setMostrarBienvenida(true);
+  });
   }, []);
 
   if (loading) {
@@ -53,6 +58,11 @@ export default function DashboardPage() {
     : 0;
   const sesionesCompletadas = sesiones.filter(s => s.estado === "completed");
   const ultimaSesion = sesionesCompletadas.slice(-1)[0];
+  const cerrarBienvenida = async () => {
+    setMostrarBienvenida(false);
+    // Marcar en BD que ya la vio
+    await fetch("/api/dashboard/bienvenida", { method: "POST" });
+  };
 
   return (
     <div className="min-h-screen bg-[#fff8f9]">
@@ -112,7 +122,7 @@ export default function DashboardPage() {
                   <SparklesIcon size={13} className="text-[#fce8ed]" />
                   <p className="text-[#fce8ed] text-[11px] font-semibold tracking-wide uppercase">Desbloquea todo</p>
                 </div>
-                <p className="text-white text-[13px]">7 sesiones por <span className="text-[#fce8ed] font-semibold">$97 USD</span></p>
+                <p className="text-white text-[13px]">7 sesiones por <span className="text-[#fce8ed] font-semibold">$29 USD</span></p>
               </div>
               <Link href="/pago" className="shrink-0 bg-white hover:bg-[#fef0f3] text-[#a0435f] text-[13px] font-medium px-5 py-2.5 rounded-xl transition whitespace-nowrap">
                 Pagar →
@@ -299,6 +309,45 @@ export default function DashboardPage() {
 
         </aside>
       </div>
+      {mostrarBienvenida && user && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={cerrarBienvenida} />
+    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="h-2 bg-gradient-to-r from-[#2d1a22] via-[#e8849a] to-[#2d1a22]" />
+      <div className="p-7 text-center">
+        <div className="text-5xl mb-4">🌍✈️</div>
+        <h2 className="font-serif text-[26px] font-bold text-[#2d1a22] mb-2">
+          ¡Bienvenida,<br />
+          <span className="italic text-[#a0435f]">{user.nombre}!</span>
+        </h2>
+        <p className="text-[13px] text-[#7a4a54] leading-relaxed mb-6">
+          Tu aventura au pair empieza hoy. Comienza con la sesión de bienvenida — es gratis y te tomará solo unos minutos. 💕
+        </p>
+        <div className="bg-[#fff8f9] border border-[#f0dde2] rounded-2xl p-4 mb-6 text-left">
+          <p className="text-[12px] text-[#7a4a54] italic leading-relaxed mb-3">
+            "Estamos muy emocionadas de tenerte aquí. Este programa lo creamos con todo el amor para que llegues preparada y segura a tu familia anfitriona."
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1">
+              <div className="w-7 h-7 rounded-full bg-[#fce8ed] border-2 border-white flex items-center justify-center">
+                <span className="text-[#a0435f] text-[10px] font-serif font-bold">J</span>
+              </div>
+              <div className="w-7 h-7 rounded-full bg-[#e8e0f8] border-2 border-white flex items-center justify-center">
+                <span className="text-[#6b4f9e] text-[10px] font-serif font-bold">T</span>
+              </div>
+            </div>
+            <p className="text-[11px] font-semibold text-[#a0435f]">Jennifer y Tati 💕</p>
+          </div>
+        </div>
+        <button onClick={cerrarBienvenida}
+          className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px] py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20">
+          ¡Empezar mi aventura! 🚀
+        </button>
+        <p className="text-[11px] text-[#9a6672] mt-3">Tu primera sesión es completamente gratis 🎉</p>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

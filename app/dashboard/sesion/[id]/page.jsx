@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckIcon, ChevronLeftIcon, LockIcon, PlayCircleIcon } from "lucide-react";
+import confetti from "canvas-confetti";
 
 const VIDEO_DEMO =  "/assets/Bienvenida.mp4";
 
@@ -47,7 +48,35 @@ export default function SesionPage() {
       });
       if (res.ok) {
         setYaCompletada(true);
-        setTimeout(() => router.push("/dashboard"), 1500);
+
+         // 🎉 Confetti
+        confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#a0435f", "#e8849a", "#fce8ed", "#2d1a22", "#f0b8c4"],
+        });
+
+        // Segunda ráfaga
+        setTimeout(() => {
+          confetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ["#a0435f", "#e8849a", "#fce8ed"],
+         });
+          confetti({
+          particleCount: 60,
+         angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ["#a0435f", "#e8849a", "#fce8ed"],
+         });
+        }, 300);
+
+        setTimeout(() => router.push("/dashboard"), 2500);
+        
       } else {
         const data = await res.json();
         setError(data.error || "No se pudo completar la sesión.");
