@@ -8,7 +8,7 @@ export async function GET(req) {
 
   try {
     const [rows] = await dbAupair.query(
-      "SELECT id, nombre, apellido, email, tiene_acceso, created_at FROM usuarios WHERE id = ?",
+      "SELECT id, nombre, apellido, email, tiene_acceso, perfil_habilitado, foto_url, ciudad, pais, created_at FROM usuarios WHERE id = ?",
       [session.id]
     );
     if (rows.length === 0) return NextResponse.json({ user: null }, { status: 404 });

@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
- 
+
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
- 
+
   const [usuarias] = await dbAupair.query(`
-    SELECT u.id, u.nombre, u.apellido, u.email, u.tiene_acceso, u.created_at,
+    SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url,
+      u.tiene_acceso, u.perfil_habilitado, u.created_at,
       COUNT(p.id) as sesiones_completadas,
       ROUND(COUNT(p.id) / (SELECT COUNT(*) FROM sesiones) * 100) as porcentaje
     FROM usuarios u
@@ -16,6 +17,6 @@ export async function GET(req) {
     GROUP BY u.id
     ORDER BY u.created_at DESC
   `);
- 
+
   return NextResponse.json({ usuarias });
 }

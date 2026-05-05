@@ -33,10 +33,10 @@ export default function DashboardLayout({ children }) {
   };
 
   const navItems = [
-    { label: "Mi ruta",     href: "/dashboard",             locked: false },
-    { label: "Mi perfil", href: "/dashboard/perfil", locked: !user?.tiene_acceso },
-    { label: "Comunidad",   href: "/dashboard/comunidad",   locked: !user?.tiene_acceso },
-    { label: "Certificado", href: "/dashboard/certificado", locked: !todasCompletadas },
+    { label: "Mi ruta",     href: "/dashboard",               locked: false },
+    { label: "Mi perfil",   href: "/dashboard/perfil",        locked: !user?.perfil_habilitado },
+    { label: "Comunidad",   href: "/dashboard/comunidad",     locked: !user?.tiene_acceso },
+    { label: "Certificado", href: "/dashboard/certificado",   locked: !todasCompletadas },
   ];
 
   const Sidebar = () => (
@@ -82,10 +82,11 @@ export default function DashboardLayout({ children }) {
       {/* User + Logout */}
       <div className="p-4 border-t border-white/15">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
-            <span className="text-white text-[12px] font-serif font-bold">
-              {user?.nombre?.[0] || "?"}
-            </span>
+          <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0 overflow-hidden">
+            {user?.foto_url
+              ? <img src={user.foto_url} alt="" className="w-full h-full object-cover" />
+              : <span className="text-white text-[12px] font-serif font-bold">{user?.nombre?.[0] || "?"}</span>
+            }
           </div>
           <div className="min-w-0">
             <p className="text-white text-[12px] font-medium truncate">{user?.nombre} {user?.apellido}</p>
@@ -116,14 +117,16 @@ export default function DashboardLayout({ children }) {
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar móvil */}
         <header className="md:hidden bg-[#fff8f9] border-b border-[#f0dde2] px-4 py-3 flex items-center justify-between shrink-0">
           <button onClick={() => setMobileOpen(!mobileOpen)} className="text-[#a0435f]">
             {mobileOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
           </button>
           <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={36} height={36} />
-          <div className="w-8 h-8 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center">
-            <span className="text-[#a0435f] text-[12px] font-serif font-bold">{user?.nombre?.[0] || "?"}</span>
+          <div className="w-8 h-8 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center overflow-hidden">
+            {user?.foto_url
+              ? <img src={user.foto_url} alt="" className="w-full h-full object-cover" />
+              : <span className="text-[#a0435f] text-[12px] font-serif font-bold">{user?.nombre?.[0] || "?"}</span>
+            }
           </div>
         </header>
 

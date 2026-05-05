@@ -64,11 +64,11 @@ export default function Pricing() {
 
             <div className="mt-4 mb-6">
               <div className="flex items-end gap-2 mb-1">
-                <span className="text-[#9a6672] text-[14px] line-through">$197 USD</span>
+                <span className="text-[#9a6672] text-[14px] line-through">$60 USD</span>
                 <span className="bg-[#fce8ed] text-[#a0435f] text-[11px] font-semibold px-2 py-0.5 rounded-full">Oferta lanzamiento</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="font-serif text-[56px] font-bold text-[#2d1a22] leading-none">$97</span>
+                <span className="font-serif text-[56px] font-bold text-[#2d1a22] leading-none">$29</span>
                 <span className="text-[#9a6672] text-[15px] mb-1">USD</span>
               </div>
               <p className="text-[12px] text-[#9a6672] mt-1">Pago único · Sin suscripción</p>

@@ -55,7 +55,7 @@ export default function Footer() {
           </Link>
 
           <p className="text-[13px] leading-relaxed text-white/40 mb-6">
-            Un programa guiado para chicas latinoamericanas que quieren convertirse en au pair — con orden, claridad y acompañamiento real.
+            Un programa guiado para chicas latinoamericanas que quieren convertirse en Au Pair — con orden, claridad y acompañamiento real.
           </p>
 
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export default function Footer() {
             </h2>
             <div className="space-y-3 text-[13px]">
               <p className="hover:text-[#e8849a] transition cursor-pointer">
-                hola@destinoaupair.com
+                info@destino-aupair.com
               </p>
               <a
                 href="https://wa.me/573000000000"

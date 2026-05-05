@@ -84,7 +84,7 @@ export default function FeaturesSection() {
                 Plataforma PRO
               </span>
               <h3 className="text-white text-2xl md:text-3xl font-serif font-bold leading-snug mb-4">
-                Un proceso guiado, no<br className="hidden md:block" />
+                Un proceso guiado, no <br className="hidden md:block" />
                 una biblioteca de videos.
               </h3>
               <p className="text-white/60 text-[14px] leading-relaxed max-w-md">
