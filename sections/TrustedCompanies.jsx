@@ -1,39 +1,32 @@
 import Marquee from "react-fast-marquee";
 
 const fotos = [
-  {
-    src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&q=80",
-    caption: "Preparando el viaje ✈️",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80",
-    caption: "Nueva familia, nuevo hogar 🏡",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=400&q=80",
-    caption: "Explorando el mundo 🌍",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80",
-    caption: "Aprendiendo juntas 📚",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=400&q=80",
-    caption: "Destinos increíbles 🗺️",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80",
-    caption: "Lista para despegar 🛫",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80",
-    caption: "Comunidad au pair 💛",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80",
-    caption: "Nuevas amistades 🤝",
-  },
+  { src: "/carrusel/imagen1.jpg",  caption: "Preparando el viaje ✈️" },
+  { src: "/carrusel/imagen2.jpg",  caption: "Nueva familia, nuevo hogar 🏡" },
+  { src: "/carrusel/imagen3.jpg",  caption: "Explorando el mundo 🌍" },
+  { src: "/carrusel/imagen4.jpg",  caption: "Aprendiendo juntas 📚" },
+  { src: "/carrusel/imagen5.jpg",  caption: "Destinos increíbles 🗺️" },
+  { src: "/carrusel/imagen6.jpg",  caption: "Lista para despegar 🛫" },
+  { src: "/carrusel/imagen7.jpg",  caption: "Comunidad au pair 💛" },
+  { src: "/carrusel/imagen8.jpg",  caption: "Nuevas amistades 🤝" },
+  { src: "/carrusel/imagen9.jpg",  caption: "Mi aventura empieza 🌟" },
+  { src: "/carrusel/imagen11.jpg", caption: "Familias increíbles 👨‍👩‍👧" },
+  { src: "/carrusel/imagen12.jpg", caption: "Viviendo el sueño 💫" },
+  { src: "/carrusel/imagen13.jpg", caption: "Au pair en USA 🇺🇸" },
+  { src: "/carrusel/imagen14.jpg", caption: "Momentos únicos 📸" },
+  { src: "/carrusel/imagen15.jpg", caption: "Creciendo cada día 🌱" },
+  { src: "/carrusel/imagen16.jpg", caption: "Amigas para siempre 💕" },
+  { src: "/carrusel/imagen18.jpg", caption: "Nuevas culturas 🌎" },
+  { src: "/carrusel/imagen19.jpg", caption: "El mundo es tuyo 🗺️" },
+  { src: "/carrusel/imagen20.jpg", caption: "Experiencia de vida 🙌" },
+  { src: "/carrusel/imagen21.jpg", caption: "Preparada y segura 💪" },
+  { src: "/carrusel/imagen22.jpg", caption: "Tu camino au pair 🛤️" },
+  { src: "/carrusel/imagen23.jpg", caption: "Sonrisas y recuerdos 😊" },
+  { src: "/carrusel/imagen24.jpg", caption: "¡Lo lograste! 🎉" },
 ];
+
+const fila1 = fotos.slice(0, 11);
+const fila2 = fotos.slice(11);
 
 function FotoCard({ foto }) {
   return (
@@ -67,7 +60,7 @@ export default function PhotoCarousel() {
 
       <Marquee gradient gradientColor="#fff8f9" speed={30} className="mb-4">
         <div className="flex items-center py-2">
-          {[...fotos, ...fotos].map((foto, i) => (
+          {[...fila1, ...fila1].map((foto, i) => (
             <FotoCard key={i} foto={foto} />
           ))}
         </div>
@@ -75,7 +68,7 @@ export default function PhotoCarousel() {
 
       <Marquee gradient gradientColor="#fff8f9" speed={30} direction="right">
         <div className="flex items-center py-2">
-          {[...fotos.slice(3), ...fotos.slice(0, 3), ...fotos].map((foto, i) => (
+          {[...fila2, ...fila2].map((foto, i) => (
             <FotoCard key={i} foto={foto} />
           ))}
         </div>
