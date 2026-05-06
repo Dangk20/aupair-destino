@@ -16,12 +16,26 @@ export const FaqSection = () => {
 
       <div className="relative max-w-2xl mx-auto flex flex-col items-center px-4 md:px-0">
 
-        <SectionTitle
-          text1="Preguntas frecuentes"
-          text2="Todo lo que necesitas saber"
-          text3="Resolvemos las dudas más comunes antes de que empieces tu camino au pair."
-        />
+        <div className="max-w-5xl mx-auto px-4 mb-14">
+        <div className="flex flex-col items-center text-center">
 
+          <span className="inline-flex items-center gap-2 text-[#a0435f] text-[11px] font-semibold tracking-[4px] uppercase mb-5">
+            <span className="w-8 h-px bg-[#e8849a]" />
+            Preguntas frecuentes
+            <span className="w-8 h-px bg-[#e8849a]" />
+          </span>
+
+          <h2 className="font-serif font-bold leading-[1.05] text-[#2d1a22] mb-5">
+            <span className="block text-[40px] md:text-[40px] italic text-[#a0435f]">Todo lo que necesitas saber</span>
+          </h2>
+
+          <p className="text-[15px] text-[#7a4a54] leading-relaxed max-w-lg">
+            Resolvemos las dudas más comunes antes de que empieces tu camino Au Pair.
+          </p>
+        </div>
+      </div>
+        
+    
         <div className="mt-10 w-full">
           {faqsData.map((faq, index) => (
             <div

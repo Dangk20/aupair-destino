@@ -25,7 +25,7 @@ const socialLinks = [
   },
   {
     label: "WhatsApp",
-    href: "https://wa.me/573000000000",
+    href: "https://wa.me/13478886836",
     bg: "bg-[#25D366]",
     icon: (
       <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
@@ -55,7 +55,7 @@ export default function Footer() {
           </Link>
 
           <p className="text-[13px] leading-relaxed text-white/40 mb-6">
-            Un programa guiado para chicas latinoamericanas que quieren convertirse en Au Pair — con orden, claridad y acompañamiento real.
+            Un programa guiado para chicas Colombianas que quieren convertirse en Au Pair en Estados Unidos — con orden, claridad y acompañamiento real.
           </p>
 
           <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function Footer() {
                 info@destino-aupair.com
               </p>
               <a
-                href="https://wa.me/573000000000"
+                href="https://wa.me/13478886836"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-[#e8849a] transition"

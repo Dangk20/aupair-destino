@@ -90,11 +90,11 @@ export default function RegisterPage() {
             className="mx-auto mb-5 brightness-0 invert"
           />
           <h2 className="font-serif text-white text-[26px] lg:text-[32px] font-bold leading-tight mb-3">
-            Tu aventura<br />
+            Tu Destino<br />
             <span className="italic text-[#fce8ed]">empieza aquí.</span>
           </h2>
           <p className="text-white/60 text-[13px] leading-relaxed max-w-xs mx-auto mb-6 lg:mb-10">
-            Regístrate gratis y accede a la sesión de bienvenida. Sin tarjeta de crédito.
+            Regístrate gratis y accede a la sesión de bienvenida. Da el primer paso sin compromiso.
           </p>
 
           {/* Pasos — ocultos en mobile muy pequeño */}
@@ -122,7 +122,7 @@ export default function RegisterPage() {
             Crea tu cuenta
           </h2>
           <p className="text-[13px] text-[#9a6672] mb-7">
-            Es gratis — sin tarjeta de crédito requerida.
+            Es gratis — Da el primer paso sin compromiso.
           </p>
 
           {error && (

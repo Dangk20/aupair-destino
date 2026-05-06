@@ -138,7 +138,7 @@ export default function LoginPage() {
             Iniciar sesión
           </h2>
           <p className="text-[13px] text-[#9a6672] mb-7">
-            Ingresa a tu cuenta para continuar tu camino au pair.
+            Ingresa a tu cuenta para continuar tu Destino Au Pair.
           </p>
 
           {error && (

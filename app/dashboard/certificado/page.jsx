@@ -8,9 +8,7 @@ export default function CertificadoPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fecha] = useState(new Date().toLocaleDateString("es-CO", {
-    year: "numeric", month: "long", day: "numeric"
-  }));
+  const [fechaCompletado, setFechaCompletado] = useState("");
 
   useEffect(() => {
     fetch("/api/dashboard/sesiones")
@@ -21,6 +19,24 @@ export default function CertificadoPage() {
       .then((d) => {
         if (!d) return;
         if (d.completadas < d.total) { router.push("/dashboard"); return; }
+
+        // Obtener la fecha de la última sesión completada
+        const ultimaSesion = d.sesiones
+          .filter(s => s.fecha_completado)
+          .sort((a, b) => new Date(b.fecha_completado) - new Date(a.fecha_completado))[0];
+
+        if (ultimaSesion?.fecha_completado) {
+          const fecha = new Date(ultimaSesion.fecha_completado).toLocaleDateString("es-CO", {
+            year: "numeric", month: "long", day: "numeric"
+          });
+          setFechaCompletado(fecha);
+        } else {
+          // Fallback: fecha de hoy si no hay fecha guardada
+          setFechaCompletado(new Date().toLocaleDateString("es-CO", {
+            year: "numeric", month: "long", day: "numeric"
+          }));
+        }
+
         setLoading(false);
       });
 
@@ -82,19 +98,22 @@ export default function CertificadoPage() {
 
           <div className="flex items-center justify-center gap-2 mb-10">
             <CheckCircleIcon size={14} className="text-[#a0435f]" />
-            <p className="text-[13px] text-[#9a6672]">Completado el {fecha}</p>
+            <p className="text-[13px] text-[#9a6672]">Completado el {fechaCompletado}</p>
           </div>
 
-          <div className="flex items-end justify-center gap-16">
+          {/* Firma Jennifer — solo una firma centrada */}
+          <div className="flex justify-center">
             <div className="text-center">
-              <div className="w-28 h-px bg-[#e8b0bc] mb-2 mx-auto" />
-              <p className="text-[13px] font-semibold text-[#2d1a22]">Jennifer</p>
-              <p className="text-[11px] text-[#9a6672]">Co-fundadora</p>
-            </div>
-            <div className="text-center">
-              <div className="w-28 h-px bg-[#e8b0bc] mb-2 mx-auto" />
-              <p className="text-[13px] font-semibold text-[#2d1a22]">Tati</p>
-              <p className="text-[11px] text-[#9a6672]">Co-fundadora</p>
+              {/* Imagen de la firma — guarda en /public/assets/firma-jennifer.png */}
+              <img
+                src="/assets/firma-jennifer.png"
+                alt="Firma Jennifer Salgado"
+                className="h-16 w-auto mx-auto mb-2 object-contain"
+                onError={(e) => { e.target.style.display = "none"; }}
+              />
+              <div className="w-36 h-px bg-[#e8b0bc] mb-2 mx-auto" />
+              <p className="text-[13px] font-semibold text-[#2d1a22]">Jennifer Salgado</p>
+              <p className="text-[11px] text-[#9a6672]">CEO — Destino Au Pair</p>
             </div>
           </div>
 

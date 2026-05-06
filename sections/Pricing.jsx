@@ -5,15 +5,15 @@ const includes = [
   { icon: VideoIcon,          text: "8 sesiones en video (bienvenida + 7 módulos)" },
   { icon: CheckIcon,          text: "Desbloqueo progresivo — avanza a tu ritmo" },
   { icon: MessageCircleIcon,  text: "Acceso a comunidad privada al finalizar" },
-  { icon: UsersIcon,          text: "Revisión directa con Jennifer y Tati" },
-  { icon: InfinityIcon,       text: "Acceso de por vida al contenido" },
+  { icon: UsersIcon,          text: "Revisión del perfil personalizado" },
+  { icon: InfinityIcon,       text: "Acceso durante tu proceso" },
   { icon: ShieldCheckIcon,    text: "Documentación, visa y contratos explicados" },
 ];
 
 const testimonial = {
   text: "Gracias al programa llegué a mi entrevista con la familia sin nervios. Sabía exactamente qué decir y qué preguntar.",
   name: "Valeria M.",
-  country: "🇨🇴 Colombia → 🇩🇪 Alemania",
+  country: "🇨🇴 Colombia → 🇺🇸 Estados Unidos",
 };
 
 export default function Pricing() {
@@ -68,7 +68,7 @@ export default function Pricing() {
                 <span className="bg-[#fce8ed] text-[#a0435f] text-[11px] font-semibold px-2 py-0.5 rounded-full">Oferta lanzamiento</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="font-serif text-[56px] font-bold text-[#2d1a22] leading-none">$29</span>
+                <span className="font-serif text-[56px] font-bold text-[#2d1a22] leading-none">$35</span>
                 <span className="text-[#9a6672] text-[15px] mb-1">USD</span>
               </div>
               <p className="text-[12px] text-[#9a6672] mt-1">Pago único · Sin suscripción</p>
@@ -98,7 +98,7 @@ export default function Pricing() {
             <div className="flex items-center justify-center gap-2">
               <ShieldCheckIcon size={14} className="text-[#9a6672]" />
               <p className="text-[11px] text-[#9a6672] text-center">
-                Garantía de 7 días — si no es para ti, te devolvemos el dinero.
+                Garantía de 7 días — si no es para ti, puedes transferir tu cupo.
               </p>
             </div>
           </div>
@@ -134,8 +134,8 @@ export default function Pricing() {
                 {[
                   "No es teoría — es un proceso real que funciona",
                   "Acompañamiento humano, no solo videos",
-                  "Comunidad de au pairs que están en lo mismo",
-                  "Acceso directo a Jennifer y Tati al finalizar",
+                  "Comunidad de Au Pairs que están en lo mismo",
+                  "Acceso directo al equipo Destino Au Pairs al finalizar",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-[13px] text-white/80">
                     <span className="text-white mt-0.5 shrink-0">✦</span>

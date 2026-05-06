@@ -12,6 +12,11 @@ const nextConfig = {
                 hostname: 'raw.githubusercontent.com',
                 pathname: '**',
             },
+            {
+                protocol: 'https',
+                hostname: 'flagcdn.com',
+                pathname: '**',
+            },
         ],
         unoptimized: true,
     },

@@ -82,10 +82,10 @@ export default function ComunidadPage() {
             {/* Texto */}
             <div className="p-5 flex-1 flex flex-col">
               <h2 className="font-serif text-[22px] font-bold text-[#2d1a22] mb-2">
-                Jennifer & Tati
+                Destino Au Pair
               </h2>
               <p className="text-[13px] text-[#7a4a54] leading-relaxed mb-3 flex-1">
-                Somos Jennifer y Tati — dos colombianas que vivimos el proceso Au Pair de primera mano y decidimos crear Destino Au Pair para que ninguna chica se sienta sola en este camino.
+                Somos el Equipo de Destino Au Pair — dos colombianas que vivimos el proceso Au Pair de primera mano y decidimos crear Destino Au Pair para que ninguna chica se sienta sola en este camino.
               </p>
               <p className="text-[13px] text-[#7a4a54] leading-relaxed mb-4">
                 Esta comunidad es nuestro espacio más especial: un lugar seguro donde conectas con otras chicas, resuelves dudas y celebras cada paso del proceso. 🌍
@@ -155,7 +155,7 @@ export default function ComunidadPage() {
           <p className="text-[13px] text-[#7a4a54] leading-relaxed italic mb-3">
             "Esta comunidad es un espacio seguro. Recuerda siempre ser amable, compartir lo que sabes y pedir ayuda cuando la necesites."
           </p>
-          <p className="text-[12px] font-semibold text-[#a0435f]">— Jennifer y Tati 💕</p>
+          <p className="text-[12px] font-semibold text-[#a0435f]">— Destino Au Pair 💕</p>
         </div>
 
       </div>

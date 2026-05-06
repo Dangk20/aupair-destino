@@ -6,17 +6,12 @@ import { ChevronRightIcon, CheckIcon, LockIcon, PlayCircleIcon, GlobeIcon, Users
 
 const sessions = [
   { label: "Bienvenida", status: "completed" },
-  { label: "Sesión 1 · ¿Qué es ser au pair?", status: "completed" },
+  { label: "Sesión 1 · ¿Qué es ser Au Pair?", status: "completed" },
   { label: "Sesión 2 · Visa y documentación", status: "available", progress: 60 },
   { label: "Sesión 3 · Buscar familia anfitriona", status: "locked" },
   { label: "Sesión 4 · Entrevistas y contratos", status: "locked" },
 ];
 
-const stats = [
-  { icon: UsersIcon, value: "+500", label: "Au pairs preparadas" },
-  { icon: GlobeIcon, value: "12", label: "Países destino" },
-  { icon: StarIcon, value: "4.9", label: "Valoración promedio" },
-];
 
 export default function HeroSection() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -91,14 +86,14 @@ export default function HeroSection() {
             </h1>
 
             <p className="text-[15px] text-[#7a4a54] leading-relaxed mb-7 max-w-[400px]">
-              Aprende todo lo que necesitas para convertirte en au pair: visa, entrevistas,
+              Aprende todo lo que necesitas para convertirte en Au Pair: visa, entrevistas,
               llegada y adaptación. Cada sesión se desbloquea cuando completas la anterior.
             </p>
 
             <ul className="space-y-3 mb-8">
               {[
                 "Sesiones progresivas — cada etapa desbloquea la siguiente",
-                "Acceso de por vida a todos los materiales",
+                "Acceso durante tu proceso.",
                 "Comunidad privada al completar el programa",
               ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-[13.5px] text-[#7a4a54]">
@@ -119,18 +114,6 @@ export default function HeroSection() {
                 className="flex items-center gap-1.5 border border-[#e8b0bc] text-[#a0435f] text-[14px] px-5 py-3.5 rounded-xl hover:bg-[#fef0f3] transition">
                 Ver cursos <ChevronRightIcon size={14} />
               </button>
-            </div>
-
-            <div className="flex items-center gap-6 pt-6 border-t border-[#f0dde2] w-full">
-              {stats.map(({ icon: Icon, value, label }, i) => (
-                <div key={i} className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <Icon size={13} className="text-[#e8849a]" />
-                    <span className="font-serif font-bold text-[20px] text-[#2d1a22]">{value}</span>
-                  </div>
-                  <span className="text-[11px] text-[#9a6672]">{label}</span>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -237,7 +220,7 @@ export default function HeroSection() {
                   <SparklesIcon size={14} className="text-[#e8849a]" />
                   <p className="text-[11px] font-semibold tracking-[2px] uppercase text-[#e8849a]">El programa completo</p>
                 </div>
-                <h3 className="font-serif text-[20px] font-bold text-[#2d1a22]">✈️ Tus 8 sesiones au pair</h3>
+                <h3 className="font-serif text-[20px] font-bold text-[#2d1a22]">✈️ Tus 8 sesiones Au Pair</h3>
               </div>
               <button onClick={() => setModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#fce8ed] hover:bg-[#f0b8c4] flex items-center justify-center transition">
@@ -286,7 +269,7 @@ export default function HeroSection() {
             {/* Footer */}
             <div className="px-6 py-5 border-t border-[#f0dde2] bg-[#fff8f9]">
               <p className="text-[12px] text-[#9a6672] text-center mb-3">
-                La primera sesión es gratis 🎉 — sin tarjeta de crédito
+                La primera sesión es gratis 🎉 — Da el primer paso sin compromiso.
               </p>
               <Link href="/register" onClick={() => setModalOpen(false)}
                 className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px] py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20 flex items-center justify-center gap-2">

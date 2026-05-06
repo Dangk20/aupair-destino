@@ -7,12 +7,12 @@ const fotos = [
   { src: "/carrusel/imagen4.jpg",  caption: "Aprendiendo juntas 📚" },
   { src: "/carrusel/imagen5.jpg",  caption: "Destinos increíbles 🗺️" },
   { src: "/carrusel/imagen6.jpg",  caption: "Lista para despegar 🛫" },
-  { src: "/carrusel/imagen7.jpeg",  caption: "Comunidad au pair 💛" },
+  { src: "/carrusel/imagen7.jpeg",  caption: "Comunidad Au Pair 💛" },
   { src: "/carrusel/imagen8.jpeg",  caption: "Nuevas amistades 🤝" },
   { src: "/carrusel/imagen9.jpg",  caption: "Mi aventura empieza 🌟" },
   { src: "/carrusel/imagen11.jpg", caption: "Familias increíbles 👨‍👩‍👧" },
   { src: "/carrusel/imagen23.jpg", caption: "Viviendo el sueño 💫" },
-  { src: "/carrusel/imagen13.jpg", caption: "Au pair en USA 🇺🇸" },
+  { src: "/carrusel/imagen13.jpg", caption: "Au Pair en USA 🇺🇸" },
   { src: "/carrusel/imagen14.jpg", caption: "Momentos únicos 📸" },
   { src: "/carrusel/imagen16.jpg", caption: "Creciendo cada día 🌱" },
   { src: "/carrusel/imagen15.jpg", caption: "Amigas para siempre 💕" },
@@ -20,7 +20,7 @@ const fotos = [
   { src: "/carrusel/imagen19.jpg", caption: "El mundo es tuyo 🗺️" },
   { src: "/carrusel/imagen20.jpeg", caption: "Experiencia de vida 🙌" },
   { src: "/carrusel/imagen21.jpg", caption: "Preparada y segura 💪" },
-  { src: "/carrusel/imagen22.jpeg", caption: "Tu camino au pair 🛤️" },
+  { src: "/carrusel/imagen22.jpeg", caption: "Tu camino Au Pair 🛤️" },
   { src: "/carrusel/imagen12.jpg", caption: "Sonrisas y recuerdos 😊" },
   { src: "/carrusel/imagen24.jpg", caption: "¡Lo lograste! 🎉" },
 ];
@@ -50,10 +50,10 @@ export default function PhotoCarousel() {
 
       <div className="text-center mb-10 px-4">
         <p className="text-[11px] font-semibold tracking-[3px] uppercase text-[#e8849a] mb-3">
-          La experiencia au pair
+          La experiencia Au Pair
         </p>
         <h2 className="font-serif text-[28px] md:text-[34px] font-bold text-[#2d1a22] leading-tight">
-          Más de 500 chicas ya<br />
+          +2.094 chicas ya<br />
           <span className="italic text-[#a0435f]">vivieron esta aventura</span>
         </h2>
       </div>

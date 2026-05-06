@@ -87,7 +87,7 @@ export default function DashboardPage() {
         <main className="flex-1 p-6 md:p-8 max-w-xl">
 
           <div className="mb-7">
-            <p className="text-[11px] font-semibold tracking-[3px] uppercase text-[#e8849a] mb-1">✈️ Tu camino au pair</p>
+            <p className="text-[11px] font-semibold tracking-[3px] uppercase text-[#e8849a] mb-1">✈️ Tu destino Au Pair</p>
             <h1 className="font-serif text-[26px] font-bold text-[#2d1a22]">
               Hola, {user?.nombre} 👋
             </h1>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
                   <SparklesIcon size={13} className="text-[#fce8ed]" />
                   <p className="text-[#fce8ed] text-[11px] font-semibold tracking-wide uppercase">Desbloquea todo</p>
                 </div>
-                <p className="text-white text-[13px]">7 sesiones por <span className="text-[#fce8ed] font-semibold">$29 USD</span></p>
+                <p className="text-white text-[13px]">7 sesiones por <span className="text-[#fce8ed] font-semibold">$35 USD</span></p>
               </div>
               <Link href="/pago" className="shrink-0 bg-white hover:bg-[#fef0f3] text-[#a0435f] text-[13px] font-medium px-5 py-2.5 rounded-xl transition whitespace-nowrap">
                 Pagar →
