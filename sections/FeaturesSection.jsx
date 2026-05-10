@@ -1,175 +1,264 @@
 "use client";
 
-import Image from "next/image";
-import { PlayCircle, Unlock, FileText, Users, Heart, Infinity } from "lucide-react";
+import {
+  PlayCircle, Users, FileText, Plane,
+  MessageCircle, Heart, Award, BookOpen,
+  Video, Headphones, Gift, Sparkles,
+} from "lucide-react";
 
 const features = [
   {
-    icon: PlayCircle,
-    title: "Sesiones en video",
-    description: "8 videos cortos y directos. Aprende a tu propio ritmo, desde donde estés.",
-    // 👇 Cambia esta ruta por tu foto real en /public/assets/
+    num: "01", icon: PlayCircle,
+    title: "Entrenamiento completo",
+    description: (
+      <>Clases en video, guías y materiales para que aprendas{" "}
+        <span className="text-[#a0435f] font-semibold">todo lo que necesitas saber</span> para tu proceso.</>
+    ),
     image: "/assets/sesiones.PNG",
     fallback: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80",
-    accent: "bg-[#a0435f]",
-    badge: "Contenido",
   },
   {
-    icon: Unlock,
-    title: "Avance progresivo",
-    description: "Cada sesión se desbloquea al completar la anterior. Sin saltar pasos, sin perderse.",
+    num: "02", icon: Users,
+    title: "Preparación para entrevistas",
+    description: (
+      <>Te entrenamos para tus entrevistas con familias anfitrionas con{" "}
+        <span className="text-[#a0435f] font-semibold">confianza</span> y{" "}
+        <span className="text-[#a0435f] font-semibold">seguridad</span>.</>
+    ),
     image: "/assets/avance.PNG",
     fallback: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80",
-    accent: "bg-[#e8849a]",
-    badge: "Estructura",
   },
   {
-    icon: FileText,
-    title: "Documentación clara",
-    description: "Visa, cartas de presentación, contratos — todo explicado paso a paso.",
-    image: "/assets/feature-documentos.jpg",
+    num: "03", icon: FileText,
+    title: "Documentación paso a paso",
+    description: (
+      <>Te guiamos para reunir y enviar todos tus documentos{" "}
+        <span className="text-[#a0435f] font-semibold">sin errores</span> ni complicaciones.</>
+    ),
+    image: "/carrusel/documento.jpg",
     fallback: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80",
-    accent: "bg-[#2d1a22]",
-    badge: "Documentos",
   },
   {
-    icon: Users,
-    title: "Comunidad exclusiva",
-    description: "Al terminar el programa, accedes a la comunidad privada de Au Pairs en proceso.",
-    image: "/carrusel/imagen15.jpg",
-    fallback: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
-    accent: "bg-[#5a8a3a]",
-    badge: "Comunidad",
-  },
-  {
-    icon: Heart,
-    title: "Acompañamiento real",
-    description: "Tu proceso no comienza sola. En Destino Au Pair revisaremos tu situación actual contigo antes de avanzar. Queremos asegurarnos de que estés preparada en todos los aspectos.",
-    image: "/assets/acompanamiento.jpeg",
-    fallback: "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=600&q=80",
-    accent: "bg-[#c9607a]",
-    badge: "Mentoring",
-  },
-  {
-    icon: Infinity,
-    title: "Acceso durante tu proceso",
-    description: "Tendrás acceso al contenido y a nuestra plataforma mientras avanzas en tu camino a ser Au Pair.",
+    num: "04", icon: Plane,
+    title: "Acompañamiento hasta tu vuelo",
+    description: (
+      <>Estamos <span className="text-[#a0435f] font-semibold">contigo</span> hasta tu llegada
+        a la agencia: vuelo, llegada y adaptación inicial.</>
+    ),
     image: "/carrusel/imagen6.jpg",
     fallback: "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=600&q=80",
-    accent: "bg-[#8a3550]",
-    badge: "Acceso",
   },
+  {
+    num: "05", icon: Users,
+    title: "Comunidad exclusiva",
+    description: (
+      <>Conecta con otras Au Pairs, comparte experiencias y recibe{" "}
+        <span className="text-[#a0435f] font-semibold">apoyo</span> en todo el proceso.</>
+    ),
+    image: "/carrusel/imagen15.jpg",
+    fallback: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80",
+  },
+  {
+    num: "06", icon: MessageCircle,
+    title: "Mentorías y sesiones en vivo",
+    description: (
+      <>Resuelve tus dudas en sesiones en vivo con{" "}
+        <span className="text-[#a0435f] font-semibold">expertas</span> y recibe
+        retroalimentación <span className="text-[#a0435f] font-semibold">personalizada</span>.</>
+    ),
+    image: "/assets/acompanamiento.jpeg",
+    fallback: "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=600&q=80",
+  },
+  {
+    num: "07", icon: Heart,
+    title: "Herramientas y recursos",
+    description: (
+      <>Plantillas, ejemplos, listas de verificación y más para cada etapa de tu camino{" "}
+        <span className="text-[#a0435f] font-semibold">Au Pair</span>.</>
+    ),
+    image: "/carrusel/imagen9.jpg",
+    fallback: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&q=80",
+  },
+  {
+    num: "08", icon: Award,
+    title: "Certificado de finalización",
+    description: (
+      <>Al completar el programa, recibes tu{" "}
+        <span className="text-[#a0435f] font-semibold">certificado</span> y quedas
+        lista para iniciar tu aventura.</>
+    ),
+    image: "/carrusel/certificado.jpg",
+    fallback: "https://unsplash.com/es/fotos/texto-XQaqV5qYcXg",
+  }
 ];
 
-function FeatureImage({ src, fallback, alt }) {
+const bonos = [
+  { icon: BookOpen,   label: "Guías prácticas descargables" },
+  { icon: Video,      label: "Simulacros de entrevistas" },
+  { icon: Users,      label: "Acceso a comunidad privada" },
+  { icon: Headphones, label: "Soporte durante todo tu proceso" },
+];
+
+function FeatureCard({ f }) {
+  const Icon = f.icon;
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="w-full h-full object-cover"
-      onError={(e) => { e.target.src = fallback; }}
-    />
+    <div className="bg-white rounded-2xl overflow-hidden border border-[#f0dde2]
+                    shadow-sm hover:shadow-lg hover:shadow-[#e8b0bc]/25
+                    hover:-translate-y-1 transition-all duration-300">
+
+      {/* Imagen */}
+      <div className="relative h-48 xl:h-52 w-full overflow-hidden">
+        <img
+          src={f.image} alt={f.title}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.target.src = f.fallback; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2d1a22]/50 to-transparent" />
+
+        {/* Número — arriba derecha */}
+        <div className="absolute top-3 right-3 w-9 h-9 bg-white rounded-full
+                        flex items-center justify-center shadow-md border border-[#f0dde2]">
+          <span className="text-[12px] font-bold text-[#a0435f]">{f.num}</span>
+        </div>
+
+        {/* Ícono — abajo izquierda */}
+        <div className="absolute bottom-3 left-3 w-10 h-10 bg-[#a0435f] rounded-full
+                        flex items-center justify-center shadow-lg">
+          <Icon size={18} className="text-white" />
+        </div>
+      </div>
+
+      {/* Texto */}
+      <div className="p-4 xl:p-5">
+        <h3 className="text-[#2d1a22] font-bold text-[14px] xl:text-[15px] mb-1.5">
+          {f.title}
+        </h3>
+        <p className="text-[#7a4a54] text-[12px] xl:text-[13px] leading-relaxed">
+          {f.description}
+        </p>
+      </div>
+    </div>
   );
 }
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-[#fff8f9] overflow-hidden">
+    <section id="features"
+      className="bg-[#fff8f9] py-16 xl:py-20 w-full
+                 px-6 sm:px-10 md:px-14 lg:px-16 xl:px-24 2xl:px-40">
 
-      {/* ── Título llamativo ── */}
-      <div className="max-w-5xl mx-auto px-4 mb-14">
-        <div className="flex flex-col items-center text-center">
+      {/* ══════════════════════════════
+          HEADER — título izquierda / stats derecha
+      ══════════════════════════════ */}
+      <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 mb-12 xl:mb-16">
 
-          <span className="inline-flex items-center gap-2 text-[#a0435f] text-[11px] font-semibold tracking-[4px] uppercase mb-5">
-            <span className="w-8 h-px bg-[#e8849a]" />
-            El programa
-            <span className="w-8 h-px bg-[#e8849a]" />
-          </span>
+        {/* Izquierda — título */}
+        <div className="flex-1 mb-8 lg:mb-0">
 
-          <h2 className="font-serif font-bold leading-[1.05] text-[#2d1a22] mb-5">
-            <span className="block text-[40px] md:text-[56px]">Todo lo que necesitas</span>
-            <span className="block text-[40px] md:text-[56px] italic text-[#a0435f]">para llegar preparada</span>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-[#fce8ed] border border-[#f0b8c4]
+                          px-3 py-1.5 rounded-full mb-5">
+            <span className="text-[13px]">✨</span>
+            <span className="text-[10px] xl:text-[11px] font-bold tracking-[3px] uppercase text-[#a0435f]">
+              El programa más completo para tu éxito
+            </span>
+          </div>
+
+          {/* Título */}
+          <h2 className="font-serif font-bold text-[#2d1a22] leading-[1.05] mb-5">
+            <span className="block text-[36px] md:text-[48px] xl:text-[56px] 2xl:text-[64px]">
+              Nuestro programa,
+            </span>
+            <span className="block text-[36px] md:text-[48px] xl:text-[56px] 2xl:text-[64px] italic text-[#a0435f]">
+              diseñado para ti. <span className="not-italic">✨</span>
+            </span>
           </h2>
 
-          <p className="text-[15px] text-[#7a4a54] leading-relaxed max-w-lg">
-            No es solo información — es un proceso diseñado para que tomes la mejor decisión y llegues lista.
+          {/* Descripción */}
+          <p className="text-[14px] xl:text-[16px] text-[#7a4a54] leading-relaxed max-w-xl">
+            Te acompañamos en cada etapa con entrenamiento, herramientas y recursos
+            prácticos para que llegues a la agencia{" "}
+            <span className="text-[#a0435f] font-semibold">preparada</span>,{" "}
+            <span className="text-[#a0435f] font-semibold">segura</span> y{" "}
+            <span className="text-[#a0435f] font-semibold">lista</span>{" "}
+            para vivir tu mejor experiencia.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto w-full px-4">
-
-        {/* ── Banner principal ── */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#a0435f] p-8 md:p-12 mb-10 shadow-2xl shadow-[#a0435f]/25">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-10 w-48 h-48 bg-white/5 rounded-full translate-y-1/2" />
-          <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dots2" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1.2" fill="white" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dots2)" />
-          </svg>
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
-            <div className="flex-1">
-              <span className="inline-block bg-[#e8849a]/20 text-white text-[11px] font-semibold px-3 py-1 rounded-full mb-5 tracking-widest uppercase border border-[#e8849a]/30">
-                Plataforma PRO
-              </span>
-              {/* Título banner también llamativo */}
-              <h3 className="text-white font-serif font-bold leading-snug mb-4">
-                <span className="block text-[26px] md:text-[32px]">Un proceso guiado,</span>
-                <span className="block text-[26px] md:text-[32px] italic text-[#fce8ed]">no una biblioteca de videos.</span>
-              </h3>
-              <p className="text-white/60 text-[14px] leading-relaxed max-w-md">
-                Corto, claro, premium y acompañado. Diseñado para que avances
-                paso a paso y llegues al final con claridad y confianza.
-              </p>
-            </div>
-            <div className="flex gap-4 md:flex-col md:items-end shrink-0">
-              {[
-                { value: "8", label: "Sesiones en total" },
-                { value: "+500", label: "Au pairs preparadas" },
-              ].map((s, i) => (
-                <div key={i} className="bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-center backdrop-blur-sm">
-                  <p className="text-[#f0a0b4] font-serif text-[28px] font-bold leading-none">{s.value}</p>
-                  <p className="text-white/50 text-[11px] mt-1">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── 6 cards ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
+        {/* Derecha — stats */}
+        <div className="flex flex-row lg:flex-row gap-4 shrink-0">
+          {[
+            { icon: Users,  val: "+2.094", label: "Chicas Au Pair", sub: "viviendo su destino" },
+            { icon: Plane,  val: "+20",    label: "estados en USA", sub: "donde puedes vivir tu experiencia Au Pair" },
+          ].map((s, i) => {
+            const Icon = s.icon;
             return (
-              <div
-                key={index}
-                className="bg-white rounded-2xl overflow-hidden border border-[#f0dde2] shadow-md shadow-[#e8b0bc]/20 hover:shadow-xl hover:shadow-[#e8b0bc]/30 hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="relative h-44 w-full overflow-hidden">
-                  <FeatureImage src={feature.image} fallback={feature.fallback} alt={feature.title} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#2d1a22]/60 to-transparent" />
-                  <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-1 rounded-full border border-white/30 tracking-wide">
-                    {feature.badge}
-                  </span>
-                  <div className={`absolute bottom-3 right-3 w-9 h-9 ${feature.accent} rounded-xl flex items-center justify-center shadow-lg`}>
-                    <Icon size={16} className="text-white" />
-                  </div>
+              <div key={i}
+                className="bg-white border border-[#f0dde2] rounded-2xl
+                           px-6 py-6 xl:px-8 xl:py-8 flex flex-col items-center text-center
+                           shadow-sm w-44 xl:w-52">
+                <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-[#fce8ed] border border-[#f0b8c4]
+                                flex items-center justify-center mb-3">
+                  <Icon size={22} className="text-[#a0435f]" />
                 </div>
-                <div className="p-5">
-                  <h3 className="text-[#2d1a22] font-semibold text-[15px] mb-1.5">{feature.title}</h3>
-                  <p className="text-[#7a4a54] text-[13px] leading-relaxed">{feature.description}</p>
-                </div>
+                <p className="font-serif font-bold text-[#a0435f] text-[32px] xl:text-[40px] leading-none mb-1">
+                  {s.val}
+                </p>
+                <p className="text-[13px] xl:text-[14px] font-bold text-[#2d1a22]">{s.label}</p>
+                <p className="text-[11px] xl:text-[12px] text-[#9a6672] mt-0.5 leading-snug">{s.sub}</p>
               </div>
             );
           })}
         </div>
-
       </div>
+
+      {/* ══════════════════════════════
+          GRID 8 CARDS — 4 columnas
+      ══════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-5 mb-8 xl:mb-10">
+        {features.map((f, i) => <FeatureCard key={i} f={f} />)}
+      </div>
+
+      {/* ══════════════════════════════
+          BONOS STRIP
+      ══════════════════════════════ */}
+      <div className="bg-[#fce8ed] border border-[#f0b8c4] rounded-2xl
+                      px-8 xl:px-12 py-7 xl:py-9
+                      flex flex-col sm:flex-row items-center justify-center gap-6 xl:gap-10">
+
+        {/* Label bonos */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="w-16 h-16 xl:w-20 xl:h-20 rounded-full bg-[#a0435f]
+                          flex items-center justify-center shadow-md">
+            <Gift size={32} className="text-white" strokeWidth={1.5} />
+          </div>
+          <span className="font-bold text-[#2d1a22] text-[22px] xl:text-[26px] whitespace-nowrap">
+            Bonos incluidos
+          </span>
+        </div>
+
+        {/* Divisor */}
+        <div className="hidden sm:block w-px h-14 bg-[#f0b8c4]" />
+
+        {/* Items */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-6 xl:gap-10">
+          {bonos.map((b, i) => {
+            const Icon = b.icon;
+            return (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-[#f9d0da]
+                                flex items-center justify-center shrink-0">
+                  <Icon size={22} className="text-[#a0435f]" strokeWidth={1.5} />
+                </div>
+                <span className="text-[13px] xl:text-[15px] font-medium text-[#a0435f] leading-snug max-w-[100px] xl:max-w-[120px]">
+                  {b.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </section>
   );
 }

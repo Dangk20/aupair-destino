@@ -316,12 +316,14 @@ export default function DashboardPage() {
       <div className="h-2 bg-gradient-to-r from-[#2d1a22] via-[#e8849a] to-[#2d1a22]" />
       <div className="p-7 text-center">
         <div className="text-5xl mb-4">🌍✈️</div>
-        <h2 className="font-serif text-[26px] font-bold text-[#2d1a22] mb-2">
+        <h2 className="font-serif text-[26px] italic text-[#a0435f] mb-2">
           ¡Bienvenida,<br />
           <span className="italic text-[#a0435f]">{user.nombre}!</span>
         </h2>
         <p className="text-[13px] text-[#7a4a54] leading-relaxed mb-6">
-          Tu aventura au pair empieza hoy. Comienza con la sesión de bienvenida — es gratis y te tomará solo unos minutos. 💕
+          Tu destino au pair empieza hoy!
+          Comienza con la sesión de bienvenida 👋🏻
+          Es gratis y te tomará solo unos minutos. 💕
         </p>
         <div className="bg-[#fff8f9] border border-[#f0dde2] rounded-2xl p-4 mb-6 text-left">
           <p className="text-[12px] text-[#7a4a54] italic leading-relaxed mb-3">
@@ -341,7 +343,7 @@ export default function DashboardPage() {
         </div>
         <button onClick={cerrarBienvenida}
           className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px] py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20">
-          ¡Empezar mi aventura! 🚀
+          ¡Empezar mi Destino! 🚀
         </button>
         <p className="text-[11px] text-[#9a6672] mt-3">Tu primera sesión es completamente gratis 🎉</p>
       </div>

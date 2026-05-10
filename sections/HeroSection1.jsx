@@ -2,44 +2,84 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronRightIcon, CheckIcon, LockIcon, PlayCircleIcon, GlobeIcon, UsersIcon, StarIcon, XIcon, SparklesIcon } from "lucide-react";
+import { CheckIcon, LockIcon, PlayCircleIcon, XIcon, SparklesIcon, StarIcon } from "lucide-react";
 
 const sessions = [
   { label: "Bienvenida", status: "completed" },
   { label: "Sesión 1 · ¿Qué es ser Au Pair?", status: "completed" },
-  { label: "Sesión 2 · Visa y documentación", status: "available", progress: 60 },
+  { label: "Sesión 2 · Visa y documentación", status: "available" },
   { label: "Sesión 3 · Buscar familia anfitriona", status: "locked" },
   { label: "Sesión 4 · Entrevistas y contratos", status: "locked" },
 ];
 
+const BulletIcon = ({ children }) => (
+  <span className="w-8 h-8 xl:w-10 xl:h-10 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center shrink-0 text-[#a0435f]">
+    {children}
+  </span>
+);
+
+/* 🎓 Gorro de graduación */
+const IconGrad = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <path d="M12 3 2 8l10 5 10-5-10-5z" fill="currentColor" opacity="0.15" stroke="currentColor"/>
+    <path d="M2 8l10 5 10-5"/>
+    <path d="M6 10.5V17c0 0 2 2.5 6 2.5s6-2.5 6-2.5v-6.5"/>
+    <line x1="22" y1="8" x2="22" y2="14"/>
+  </svg>
+);
+
+/* 📋 Documento con check */
+const IconDoc = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          fill="currentColor" opacity="0.12"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="8" y1="13" x2="16" y2="13"/>
+    <line x1="8" y1="17" x2="13" y2="17"/>
+  </svg>
+);
+
+/* ✅ Círculo con check */
+const IconCheck = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12"/>
+    <polyline points="7 12.5 10.5 16 17 9"/>
+  </svg>
+);
+
+const features = [
+  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>, title: "Aprende a tu ritmo", desc: "Contenido claro y práctico para avanzar con seguridad." },
+  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>, title: "Todo en un solo lugar", desc: "Sesiones, guías y recursos organizados para ti." },
+  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>, title: "Acompañamiento real", desc: "Revisión personalizada antes de avanzar con la agencia." },
+  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>, title: "Comunidad que te impulsa", desc: "Conecta con otras Au Pairs y comparte tu experiencia." },
+  { icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>, title: "Acceso durante tu proceso", desc: "Vuelve al contenido siempre que lo necesites." },
+];
 
 export default function HeroSection() {
   const [modalOpen, setModalOpen] = useState(false);
   const [sesiones, setSesiones] = useState([]);
   const [loadingSesiones, setLoadingSesiones] = useState(false);
+  const [errorSesiones, setErrorSesiones] = useState(false);
 
   const abrirModal = async () => {
-    setModalOpen(true);
-    if (sesiones.length === 0) {
-      setLoadingSesiones(true);
-      try {
-        const res = await fetch("/api/sesiones-public");
-        const data = await res.json();
-        setSesiones(data.sesiones || []);
-      } catch {
-        setSesiones([]);
-      } finally {
-        setLoadingSesiones(false);
-      }
-    }
+    setModalOpen(true); setErrorSesiones(false); setLoadingSesiones(true);
+    try {
+      const res = await fetch("/api/sesiones-public");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setSesiones(data.sesiones || []);
+    } catch { setErrorSesiones(true); setSesiones([]); }
+    finally { setLoadingSesiones(false); }
   };
 
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === "Escape") setModalOpen(false); };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    const h = (e) => { if (e.key === "Escape") setModalOpen(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, []);
-
   useEffect(() => {
     document.body.style.overflow = modalOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -47,208 +87,390 @@ export default function HeroSection() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#fff8f9] overflow-hidden">
+      {/* ═══════════════════════════════════════
+          HERO
+          ─ Sin max-width: ocupa 100% del viewport
+          ─ Padding lateral escala con breakpoint
+      ════════════════════════════════════════ */}
+      <section
+        className="bg-[#fff8f9] relative w-full overflow-hidden"
+        style={{ minHeight: "calc(100vh - 72px)" }}
+      >
 
-        {/* BACKGROUND */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-[#e8849a]/8 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-[#a0435f]/5 blur-3xl" />
+        {/* Fondo puntitos */}
+        <div className="absolute inset-0 pointer-events-none">
           <svg className="absolute inset-0 w-full h-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <pattern id="dots-hero" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
                 <circle cx="2" cy="2" r="1.5" fill="#a0435f" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
+            <rect width="100%" height="100%" fill="url(#dots-hero)" />
           </svg>
         </div>
 
-    
-        {/* HERO BODY */}
-        <div className="relative max-w-6xl mx-auto px-8 pt-14 pb-10 flex flex-col lg:flex-row items-center gap-14">
+        {/* ─────────────────────────────────────
+            CÍRCULO FOTOGRÁFICO
+            • Ocupa ~60 vw → en 1920px ≈ 1150px
+            • Borde derecho casi al filo del viewport
+            • Se extiende hacia la izquierda cubriendo
+              gran parte de la mitad derecha
+        ───────────────────────────────────── */}
+        <div
+          className="absolute overflow-hidden shadow-2xl shadow-[#a0435f]/15 pointer-events-none"
+          style={{
+            width:        "clamp(760px, 60vw, 1260px)",
+            height:       "clamp(760px, 60vw, 1260px)",
+            borderRadius: "80%",
+            top:          "clamp(-190px, -13vw, -70px)",
+            right:        "clamp(-150px, -4vw, -50px)",
+            zIndex:       0,
+          }}
+        >
+          <img
+            src="/carrusel/portada.jpeg"
+            alt="Au pair"
+            className="w-full h-full object-cover object-[30%_35%] scale-105"
+            onError={(e) => {
+              e.target.src = "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=1200&q=90";
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f9]/20 via-transparent to-transparent" />
+        </div>
 
-          {/* LEFT */}
-          <div className="w-full lg:w-[46%] flex flex-col items-start">
-            <div className="flex items-center gap-2 bg-[#fef0f3] border border-[#f0c8d0] rounded-full px-3 py-1.5 mb-7">
-              <span className="w-2 h-2 rounded-full bg-[#e8849a] animate-pulse" />
-              <span className="text-[11px] text-[#a0435f] font-medium tracking-wide">Nuevo — Cursos actualizados 2026</span>
+        {/* ─────────────────────────────────────
+            CONTENEDOR PRINCIPAL
+            • w-full + padding lateral → sin max-w
+            • Eso hace que el texto se pegue a la
+              izquierda y ocupe todo el ancho
+        ───────────────────────────────────── */}
+        <div
+          className="relative z-10 w-full
+                     px-6 sm:px-10 md:px-14 lg:px-16 xl:px-20 2xl:px-28
+                     flex flex-col lg:flex-row items-center"
+          style={{ minHeight: "calc(100vh - 72px)" }}
+        >
+
+          {/* ══ IZQUIERDA — texto ══ */}
+          <div
+            className="w-full lg:w-[46%] xl:w-[44%] 2xl:w-[42%]
+                       flex flex-col items-start
+                       pt-20 pb-12 lg:pt-24 lg:pb-14 xl:pt-28 xl:pb-16 2xl:pt-32 2xl:pb-20"
+          >
+            {/* Badge */}
+            <div className="flex items-center gap-2 bg-[#fce8ed] border border-[#f0b8c4]
+                            px-3 py-1.5 rounded-full mb-3 xl:mb-4">
+              <span className="text-[#a0435f]">✈️</span>
+              <span className="text-[10px] xl:text-[11px] font-bold tracking-[3px] uppercase text-[#a0435f]">
+                Tu próximo destino te espera
+              </span>
             </div>
 
-            <h1 className="font-serif text-[46px] md:text-[54px] font-bold text-[#2d1a22] leading-[1.1] mb-5">
-              Tu camino<br />Au Pair,{" "}
-              <span className="relative inline-block">
-                <span className="italic text-[#a0435f]">paso a paso</span>
-                <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none">
-                  <path d="M0 5 Q50 1 100 4 Q150 7 200 3" stroke="#e8849a" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.6"/>
+            {/* Título — crece con el viewport */}
+            <h1 className="font-serif font-bold text-[#2d1a22] leading-[1.05] mb-5 xl:mb-7">
+              {["Tu Destino"].map((line, i) => (
+                <span key={i} className="block
+                  text-[46px] md:text-[58px] lg:text-[54px] xl:text-[70px] 2xl:text-[84px]">
+                  {line}
+                </span>
+              ))}
+              <span className="block relative italic text-[#a0435f]
+                text-[46px] md:text-[58px] lg:text-[54px] xl:text-[70px] 2xl:text-[84px]">
+                Empieza aquí.
+                <svg className="absolute -bottom-1 left-0 w-full" height="8"
+                     viewBox="0 0 300 8" preserveAspectRatio="none">
+                  <path d="M0 6 Q75 1 150 5 Q225 8 300 3"
+                        stroke="#e8849a" strokeWidth="2.5" fill="none"
+                        strokeLinecap="round" opacity="0.7"/>
                 </svg>
               </span>
-              <br />desde cero.
             </h1>
 
-            <p className="text-[15px] text-[#7a4a54] leading-relaxed mb-7 max-w-[400px]">
-              Aprende todo lo que necesitas para convertirte en Au Pair: visa, entrevistas,
-              llegada y adaptación. Cada sesión se desbloquea cuando completas la anterior.
+            {/* Descripción */}
+            <p className="text-[15px] xl:text-[17px] 2xl:text-[18px]
+                          text-[#7a4a54] leading-relaxed mb-7 xl:mb-9
+                          max-w-[440px] xl:max-w-[520px] 2xl:max-w-[560px]">
+              En Destino Au Pair te entrenamos paso a paso para que cumplas
+              cumplas tus sueños de ser Au Pair USA. No estás sola, 
+              te guiamos en cada etapa. 
             </p>
 
-            <ul className="space-y-3 mb-8">
+            {/* Bullets */}
+            <ul className="space-y-3 xl:space-y-4 mb-8 xl:mb-10">
               {[
-                "Sesiones progresivas — cada etapa desbloquea la siguiente",
-                "Acceso durante tu proceso.",
-                "Comunidad privada al completar el programa",
+                { icon: <IconGrad />,  text: "Entrenamiento completo para tu aplicación Au Pair" },
+                { icon: <IconDoc />, text: "Preparación para entrevistas con familias anfitrionas" },
+                { icon: <IconCheck />, text: "Acompañamiento hasta tu llegada a USA y más allá" },
               ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-[13.5px] text-[#7a4a54]">
-                  <span className="w-5 h-5 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center shrink-0">
-                    <CheckIcon size={10} className="text-[#a0435f]" />
-                  </span>
-                  {item}
+                <li key={i} className="flex items-center gap-3
+                                       text-[14px] xl:text-[15px] 2xl:text-[16px]
+                                       text-[#7a4a54]">
+                  <BulletIcon>{item.icon}</BulletIcon>
+                  {item.text}
                 </li>
               ))}
             </ul>
 
-            <div className="flex items-center gap-3 mb-10">
+            {/* Botones */}
+            <div className="flex items-center gap-3 mb-9 flex-wrap">
               <Link href="/register"
-                className="bg-[#a0435f] hover:bg-[#8a3550] transition text-white text-[14px] font-medium px-7 py-3.5 rounded-xl shadow-lg shadow-[#a0435f]/20">
-                Comenzar mi viaje
+                className="flex items-center gap-2 bg-[#a0435f] hover:bg-[#8a3550] transition
+                           text-white font-semibold rounded-xl shadow-lg shadow-[#a0435f]/25
+                           text-[14px] xl:text-[16px] px-8 xl:px-10 py-4">
+                Comenzar mi Destino →
               </Link>
-              <button onClick={abrirModal}
-                className="flex items-center gap-1.5 border border-[#e8b0bc] text-[#a0435f] text-[14px] px-5 py-3.5 rounded-xl hover:bg-[#fef0f3] transition">
-                Ver cursos <ChevronRightIcon size={14} />
+              <button type="button" onClick={abrirModal}
+                className="flex items-center gap-1.5 border-2 border-[#a0435f] text-[#a0435f]
+                           font-semibold rounded-xl hover:bg-[#fef0f3] transition
+                           text-[14px] xl:text-[16px] px-7 xl:px-9 py-4">
+                Ver el programa
               </button>
             </div>
-          </div>
 
-          {/* RIGHT — mockup */}
-          <div className="w-full lg:w-[54%] relative pb-8">
-            <div className="hidden lg:flex absolute -left-6 top-8 z-20 items-center gap-2.5 bg-white rounded-2xl px-4 py-3 shadow-xl shadow-[#a0435f]/8 border border-[#f0dde2]">
-              <div className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center">
-                <CheckIcon size={14} className="text-[#a0435f]" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-[#2d1a22]">Sesión completada</p>
-                <p className="text-[10px] text-[#9a6672]">¡Sigue así, vas genial! 🎉</p>
-              </div>
-            </div>
-
-            <div className="hidden lg:flex absolute -right-4 bottom-14 z-20 flex-col gap-1 bg-[#2d1a22] rounded-2xl px-4 py-3 shadow-xl">
-              <p className="text-[10px] text-white/60">Próxima sesión</p>
-              <p className="text-[12px] font-semibold text-white">Buscar familia anfitriona</p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#e8849a]" />
-                <span className="text-[10px] text-[#e8849a]">Se desbloquea al completar S2</span>
-              </div>
-            </div>
-
-            <div className="rounded-2xl overflow-hidden border border-[#f0dde2] shadow-2xl shadow-[#a0435f]/10 bg-white">
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-[#fff0f3] border-b border-[#f0dde2]">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-300" />
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-300" />
-                <span className="w-2.5 h-2.5 rounded-full bg-green-300" />
-                <div className="flex-1 mx-3 bg-[#fce8ed] rounded-full h-4 flex items-center px-3">
-                  <span className="text-[#9a6672] text-[10px]">app.destinoaupair.com/mis-sesiones</span>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="w-40 bg-[#2d1a22] p-3 hidden md:flex flex-col gap-1 shrink-0">
-                  <div className="bg-white/10 rounded-lg p-2 mb-4 text-center">
-                    <p className="font-serif text-[11px] text-white font-bold tracking-wide">Destino</p>
-                    <p className="text-[7px] text-white/40 tracking-[2px] uppercase">Au Pair</p>
-                  </div>
-                  {["Mi ruta", "Sesiones", "Comunidad", "Recursos", "Certificado"].map((item, i) => (
-                    <div key={i} className={`text-[11px] px-2.5 py-1.5 rounded-lg cursor-pointer ${
-                      i === 0 ? "bg-[#a0435f] text-white font-medium" : i >= 3 ? "text-white/25" : "text-white/50"}`}>
-                      {i >= 3 && <LockIcon size={8} className="inline mr-1 mb-0.5" />}{item}
+            {/* Social proof */}
+            <div className="flex items-center gap-6 pt-6 border-t border-[#f0dde2] w-full">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {[
+                    "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&q=80",
+                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80",
+                    "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&q=80",
+                    "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&q=80",
+                  ].map((src, i) => (
+                    <div key={i} className="w-9 h-9 xl:w-11 xl:h-11 rounded-full border-2 border-white overflow-hidden shadow-sm">
+                      <img src={src} alt="" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>
-                <div className="flex-1 p-4 bg-[#fffcfd] min-w-0">
-                  <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[13px] xl:text-[15px] font-semibold text-[#2d1a22]">
+                    +2.094 chicas ya iniciaron su destino
+                  </p>
+                  <p className="text-[11px] xl:text-[13px] text-[#9a6672]">
+                    que ya están preparando su aventura
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:block border-l border-[#f0dde2] pl-6">
+                <div className="flex items-center gap-1 mb-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <StarIcon key={i} size={14} fill="#e8849a" className="text-[#e8849a]" />
+                  ))}
+                </div>
+                <p className="text-[13px] xl:text-[15px] font-semibold text-[#2d1a22]">
+                  4.9<span className="text-[#9a6672] font-normal">/5</span>
+                </p>
+                <p className="text-[10px] xl:text-[12px] text-[#9a6672]">Valoración del programa</p>
+              </div>
+            </div>
+          </div>{/* /izquierda */}
+
+          {/* ══ DERECHA — mockup grande + testimonio ══ */}
+          <div className="hidden lg:block flex-1 relative self-stretch">
+
+            {/* ── MOCKUP GRANDE
+                Pegado a la derecha, empieza desde ~25% del alto.
+                Ancho generoso para que se vea como panel real de app.
+            ── */}
+            <div
+              className="absolute bg-white rounded-3xl overflow-hidden
+                         border border-[#f0dde2] shadow-2xl shadow-[#a0435f]/20 z-20"
+              style={{
+                width: "clamp(380px, 40vw, 660px)",
+                top:   "45%",
+                right: "-5%",
+              }}
+            >
+              {/* Header */}
+              <div className="flex bg-[#a0435f] px-4 py-4 items-center gap-3">
+                <img src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair"
+                     className="w-10 h-10 brightness-0 invert" />
+                <div>
+                  <p className="text-white text-[13px] font-bold leading-none tracking-wide">Destino</p>
+                  <p className="text-white/50 text-[9px] tracking-[2px] uppercase mt-0.5">Au Pair</p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="flex">
+                {/* Sidebar */}
+                <div className="w-32 bg-[#a0435f] px-2 py-3 flex flex-col gap-1 shrink-0">
+                  {["Mi ruta","Sesiones","Comunidad","Recursos","Plantillas","Certificados"].map((item, i) => (
+                    <div key={i} className={`text-[11px] px-3 py-2 rounded-xl ${
+                      i === 0
+                        ? "bg-white text-[#a0435f] font-semibold"
+                        : i >= 4 ? "text-white/25"
+                        : "text-white/60 hover:text-white/80"}`}>
+                      {i >= 4 && <LockIcon size={8} className="inline mr-1 opacity-40" />}{item}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-4 bg-[#fffcfd]">
+                  {/* Header row */}
+                  <div className="flex items-start justify-between mb-4">
                     <div>
-                      <p className="text-[11px] font-semibold text-[#2d1a22]">Hola, Jennifer 👋</p>
-                      <p className="text-[9px] text-[#9a6672]">Estás en la Sesión 2 de 7</p>
+                      <p className="text-[13px] font-bold text-[#2d1a22]">Hola, Jennifer! 👋</p>
+                      <p className="text-[11px] text-[#9a6672] mt-0.5">Estás en la Sesión 2 de 7</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[8px] text-[#9a6672] mb-1">37% completado</p>
-                      <div className="w-24 h-1.5 bg-[#fce8ed] rounded-full">
-                        <div className="h-full bg-gradient-to-r from-[#a0435f] to-[#e8849a] rounded-full" style={{ width: "37%" }} />
+                      <p className="text-[10px] text-[#9a6672]">37% completado</p>
+                      <div className="w-20 h-2 bg-[#fce8ed] rounded-full mt-1">
+                        <div className="h-full w-[37%] bg-gradient-to-r from-[#a0435f] to-[#e8849a] rounded-full" />
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-1.5 mb-3">
+
+                  {/* Sessions list */}
+                  <div className="space-y-2 mb-4">
                     {sessions.map((s, i) => (
-                      <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border ${
-                        s.status === "available" ? "border-[#e8849a] bg-white shadow-sm"
-                        : s.status === "completed" ? "border-[#f0dde2] bg-[#fff8f9]"
-                        : "border-[#f5e8eb] bg-[#fffcfd] opacity-50"}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                          s.status === "completed" ? "bg-[#fce8ed]" : s.status === "available" ? "bg-[#a0435f]" : "bg-[#f5e8eb]"}`}>
-                          {s.status === "completed" && <CheckIcon size={10} className="text-[#a0435f]" />}
-                          {s.status === "available" && <PlayCircleIcon size={12} className="text-white" />}
-                          {s.status === "locked" && <LockIcon size={9} className="text-[#d0a0a8]" />}
+                      <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${
+                        s.status==="available"  ? "border-[#e8849a] bg-white shadow-sm"
+                        : s.status==="completed" ? "border-[#f0dde2] bg-[#fff8f9]"
+                        : "border-[#f5e8eb] opacity-40"}`}>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                          s.status==="completed"?"bg-[#fce8ed]"
+                          :s.status==="available"?"bg-[#a0435f]"
+                          :"bg-[#f5e8eb]"}`}>
+                          {s.status==="completed" && <CheckIcon size={9} className="text-[#a0435f]" />}
+                          {s.status==="available" && <PlayCircleIcon size={10} className="text-white" />}
+                          {s.status==="locked"    && <LockIcon size={8} className="text-[#d0a0a8]" />}
                         </div>
-                        <p className={`text-[10px] font-medium truncate flex-1 ${s.status === "locked" ? "text-[#c0909a]" : "text-[#2d1a22]"}`}>
+                        <p className={`text-[11px] truncate ${
+                          s.status==="locked"?"text-[#c0909a]":"text-[#2d1a22] font-medium"}`}>
                           {s.label}
                         </p>
                       </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[{ val: "2/8", label: "Sesiones" }, { val: "12 min", label: "Tiempo" }, { val: "4 días", label: "Racha 🔥" }].map((s, i) => (
-                      <div key={i} className="bg-[#fff0f3] rounded-xl p-2 text-center">
-                        <p className="text-[13px] font-semibold text-[#2d1a22]">{s.val}</p>
-                        <p className="text-[8px] text-[#9a6672]">{s.label}</p>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {[{val:"2/8",label:"Sesiones"},{val:"12 min",label:"Tiempo"}].map((s,i)=>(
+                      <div key={i} className="bg-[#fff0f3] rounded-xl p-3 text-center">
+                        <p className="text-[15px] font-bold text-[#2d1a22]">{s.val}</p>
+                        <p className="text-[10px] text-[#9a6672] mt-0.5">{s.label}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
+            </div>{/* /mockup */}
+
+            {/* ── TESTIMONIO — abajo-izquierda sobre la foto ── */}
+            <div
+              className="absolute bg-white rounded-2xl shadow-xl border border-[#f0dde2] p-4 z-20"
+              style={{
+                width:  "clamp(210px, 18vw, 290px)",
+                bottom: "6%",
+                left:   "4%",
+              }}
+            >
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(5)].map((_,i)=>(
+                  <StarIcon key={i} size={13} fill="#e8849a" className="text-[#e8849a]" />
+                ))}
+              </div>
+              <p className="text-[13px] text-[#2d1a22] italic leading-relaxed mb-3">
+                "Este programa me dio la claridad y la confianza que necesitaba para llegar a USA."
+              </p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#f0dde2] shrink-0">
+                  <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&q=80"
+                       alt="" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-[12px] font-semibold text-[#a0435f]">María P.</p>
+                  <p className="text-[11px] text-[#9a6672]">Au Pair en USA</p>
+                </div>
+              </div>
             </div>
+          </div>{/* /derecha */}
+
+        </div>{/* /flex row */}
+      </section>
+
+      {/* ═══════════════════════════════════════
+          FEATURES STRIP
+          ─ También sin max-width, full viewport
+      ════════════════════════════════════════ */}
+      <section className="bg-[#fff8f9] border-t border-[#f0dde2] py-10 xl:py-14 w-full">
+        <div className="w-full px-6 sm:px-10 md:px-14 lg:px-16 xl:px-20 2xl:px-28">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 xl:gap-12 2xl:gap-16">
+            {features.map((f, i) => (
+              <div key={i} className="flex flex-col items-start gap-3">
+                <div className="w-10 h-10 xl:w-12 xl:h-12 rounded-full bg-[#fce8ed] border border-[#f0b8c4]
+                                flex items-center justify-center text-[#a0435f]">
+                  {f.icon}
+                </div>
+                <div>
+                  <p className="text-[13px] xl:text-[15px] font-bold text-[#2d1a22] leading-snug mb-1">
+                    {f.title}
+                  </p>
+                  <p className="text-[12px] xl:text-[14px] text-[#9a6672] leading-relaxed">
+                    {f.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── MODAL VER CURSOS ── */}
+      {/* ── MODAL SESIONES ── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-
-          <div className="relative bg-white rounded-3xl shadow-2xl shadow-[#a0435f]/20 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-
-            {/* Header */}
+          <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm"
+               onClick={() => setModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl shadow-[#a0435f]/20
+                          w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#f0dde2]">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <SparklesIcon size={14} className="text-[#e8849a]" />
-                  <p className="text-[11px] font-semibold tracking-[2px] uppercase text-[#e8849a]">El programa completo</p>
+                  <p className="text-[11px] font-semibold tracking-[2px] uppercase text-[#e8849a]">
+                    El programa completo
+                  </p>
                 </div>
-                <h3 className="font-serif text-[20px] font-bold text-[#2d1a22]">✈️ Tus 8 sesiones Au Pair</h3>
+                <h3 className="font-serif text-[20px] font-bold text-[#2d1a22]">
+                  ✈️ Tus 8 sesiones Au Pair
+                </h3>
               </div>
-              <button onClick={() => setModalOpen(false)}
+              <button type="button" onClick={() => setModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#fce8ed] hover:bg-[#f0b8c4] flex items-center justify-center transition">
                 <XIcon size={14} className="text-[#a0435f]" />
               </button>
             </div>
-
-            {/* Sesiones */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {loadingSesiones ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="w-8 h-8 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin" />
                 </div>
+              ) : errorSesiones ? (
+                <div className="text-center py-8">
+                  <p className="text-[13px] text-[#9a6672] mb-3">No se pudieron cargar las sesiones.</p>
+                  <button type="button" onClick={abrirModal}
+                    className="text-[12px] text-[#a0435f] hover:underline">Intentar de nuevo</button>
+                </div>
               ) : sesiones.length === 0 ? (
-                <p className="text-center text-[13px] text-[#9a6672] py-8">No se pudieron cargar las sesiones.</p>
+                <p className="text-center text-[13px] text-[#9a6672] py-8">No hay sesiones disponibles.</p>
               ) : (
                 <div className="space-y-3">
                   {sesiones.map((s, i) => (
-                    <div key={s.id} className="flex items-start gap-3 p-4 rounded-2xl border border-[#f0dde2] bg-[#fff8f9] hover:border-[#e8b0bc] hover:bg-white transition">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-serif font-bold text-[14px] ${
-                        i === 0 ? "bg-[#a0435f] text-white" : "bg-[#fce8ed] text-[#a0435f]"}`}>
-                        {i + 1}
+                    <div key={s.id}
+                      className="flex items-start gap-3 p-4 rounded-2xl border border-[#f0dde2]
+                                 bg-[#fff8f9] hover:border-[#e8b0bc] hover:bg-white transition">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+                                       font-serif font-bold text-[14px] ${
+                        i===0?"bg-[#a0435f] text-white":"bg-[#fce8ed] text-[#a0435f]"}`}>
+                        {i+1}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <p className="text-[13px] font-semibold text-[#2d1a22]">{s.titulo}</p>
-                          {(s.es_gratis === 1 || s.es_gratis === true) && (
-                            <span className="text-[9px] bg-[#e8f0e0] text-[#5a8a3a] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">
+                          {(s.es_gratis===1||s.es_gratis===true) && (
+                            <span className="text-[9px] bg-[#e8f0e0] text-[#5a8a3a] font-bold px-2 py-0.5 rounded-full uppercase">
                               Gratis
                             </span>
                           )}
@@ -257,7 +479,7 @@ export default function HeroSection() {
                           <p className="text-[12px] text-[#9a6672] leading-relaxed">{s.descripcion}</p>
                         )}
                       </div>
-                      {!(s.es_gratis === 1 || s.es_gratis === true) && (
+                      {!(s.es_gratis===1||s.es_gratis===true) && (
                         <LockIcon size={13} className="text-[#c0909a] shrink-0 mt-1" />
                       )}
                     </div>
@@ -265,14 +487,14 @@ export default function HeroSection() {
                 </div>
               )}
             </div>
-
-            {/* Footer */}
             <div className="px-6 py-5 border-t border-[#f0dde2] bg-[#fff8f9]">
               <p className="text-[12px] text-[#9a6672] text-center mb-3">
                 La primera sesión es gratis 🎉 — Da el primer paso sin compromiso.
               </p>
               <Link href="/register" onClick={() => setModalOpen(false)}
-                className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px] py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20 flex items-center justify-center gap-2">
+                className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px]
+                           py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20
+                           flex items-center justify-center gap-2">
                 Comenzar gratis →
               </Link>
             </div>

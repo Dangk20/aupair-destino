@@ -5,6 +5,7 @@ import Pricing from "@/sections/Pricing";
 import Testimonials from "@/sections/Testimonials";
 import TrustedCompanies from "@/sections/TrustedCompanies";
 import MapSectionClient from "@/sections/MapSectionClient";
+import ContactSection from "@/sections/ContactSection";
 
 export default function Page() {
     return (
@@ -16,6 +17,7 @@ export default function Page() {
             <Pricing />
             <MapSectionClient />
             <FaqSection />
+            <ContactSection />
         </>
     );
 }
