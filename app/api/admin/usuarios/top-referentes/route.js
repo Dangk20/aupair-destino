@@ -1,16 +1,13 @@
-//══════════════════════════════════════════
-// app/api/admin/usuarios/top-referentes/route.js
-
+import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 
-// ══════════════════════════════════════════
 export async function GET() {
   try {
     const [rows] = await dbAupair.query(`
       SELECT
         r.nombre, r.codigo, r.email,
-        COUNT(rr.id)                                         AS registradas,
-        COALESCE(SUM(rr.pago_realizado), 0)                  AS pagaron,
+        COUNT(rr.id) AS registradas,
+        COALESCE(SUM(rr.pago_realizado), 0) AS pagaron,
         ROUND(COALESCE(SUM(rr.monto_pagado),0) * r.porcentaje / 100, 0) AS pendiente
       FROM referidos r
       LEFT JOIN referido_registros rr ON rr.referido_id = r.id
@@ -22,3 +19,4 @@ export async function GET() {
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
+}

@@ -1,13 +1,13 @@
-/ ══════════════════════════════════════════
-// app/api/admin/usuarios/actividad/route.js
-// ══════════════════════════════════════════
+import { NextResponse } from "next/server";
+import dbAupair from "@/lib/db-aupair";
+
 export async function GET() {
   try {
-    const [pagos] = await db.query(`
+    const [pagos] = await dbAupair.query(`
       SELECT 'pago' AS tipo,
         CONCAT('Pago confirmado de $', rr.monto_pagado, ' USD') AS titulo,
-        CONCAT(u.nombre, ' ', u.apellido)                        AS descripcion,
-        DATE_FORMAT(rr.created_at, '%d/%m %H:%i')               AS tiempo,
+        CONCAT(u.nombre, ' ', u.apellido) AS descripcion,
+        DATE_FORMAT(rr.created_at, '%d/%m %H:%i') AS tiempo,
         rr.created_at AS orden
       FROM referido_registros rr
       JOIN usuarios u ON u.id = rr.usuario_id
@@ -15,7 +15,7 @@ export async function GET() {
       ORDER BY rr.created_at DESC LIMIT 3
     `);
 
-    const [registros] = await db.query(`
+    const [registros] = await dbAupair.query(`
       SELECT 'registro' AS tipo,
         'Nuevo registro' AS titulo,
         CONCAT(nombre, ' ', apellido, ' se registró') AS descripcion,
@@ -25,7 +25,7 @@ export async function GET() {
       ORDER BY created_at DESC LIMIT 3
     `);
 
-    const [progresos] = await db.query(`
+    const [progresos] = await dbAupair.query(`
       SELECT 'progreso' AS tipo,
         CONCAT(u.nombre, ' completó la sesión ', s.orden) AS titulo,
         s.titulo AS descripcion,
@@ -41,7 +41,7 @@ export async function GET() {
     const actividad = [...pagos, ...registros, ...progresos]
       .sort((a, b) => new Date(b.orden) - new Date(a.orden))
       .slice(0, 8)
-      .map(({ orden, ...rest }) => rest); // quita campo orden
+      .map(({ orden, ...rest }) => rest);
 
     return NextResponse.json({ actividad });
   } catch (e) {
