@@ -513,7 +513,7 @@ export default function AdminSesionesPage() {
   const sPct = stats?.sin_iniciar_pct  ?? 100;
 
   // Tipos de recursos desde BD
-  const TIPO_LABELS: Record<string, string> = { pdf:"Guías en PDF", docx:"Documentos Word", otro:"Otros archivos" };
+  const TIPO_LABELS = { pdf:"Guías en PDF", docx:"Documentos Word", otro:"Otros archivos" };
   const tiposRecursos = stats?.recursos_por_tipo || [];
 
   // Actividad reciente desde BD (o vacío)
