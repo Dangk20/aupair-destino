@@ -1,18 +1,15 @@
-// app/api/admin/referidos/route.js
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import dbAupair from "@/lib/db-aupair";
 
-/* ── GET — listar todos ── */
 export async function GET() {
   try {
     const [rows] = await dbAupair.query(`
       SELECT
         r.id, r.nombre, r.email, r.codigo, r.porcentaje, r.estado,
         LEFT(r.nombre, 1) AS inicial,
-        COUNT(rr.id)                                             AS registradas,
-        COALESCE(SUM(rr.pago_realizado), 0)                      AS pagaron,
-        COALESCE(SUM(rr.monto_pagado), 0)                        AS ingresos_raw,
+        COUNT(rr.id) AS registradas,
+        COALESCE(SUM(rr.pago_realizado), 0) AS pagaron,
+        COALESCE(SUM(rr.monto_pagado), 0) AS ingresos_raw,
         CONCAT('$', FORMAT(COALESCE(SUM(rr.monto_pagado),0), 0), ' USD') AS ingresos,
         CONCAT('$', FORMAT(COALESCE(SUM(rr.monto_pagado),0) * r.porcentaje / 100, 0), ' USD') AS comision,
         CASE WHEN r.estado = 'Pagado'
@@ -32,14 +29,12 @@ export async function GET() {
   }
 }
 
-/* ── POST — crear ── */
 export async function POST(req) {
   try {
     const { nombre, email, codigo, porcentaje } = await req.json();
-    if (!nombre || !email || !codigo) {
+    if (!nombre || !email || !codigo)
       return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
-    }
-    const [result] = await db.query(
+    const [result] = await dbAupair.query(
       "INSERT INTO referidos (nombre, email, codigo, porcentaje) VALUES (?, ?, ?, ?)",
       [nombre, email, codigo.toUpperCase(), porcentaje || 20]
     );

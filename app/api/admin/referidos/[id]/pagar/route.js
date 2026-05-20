@@ -1,32 +1,14 @@
-/// ══════════════════════════════════════════════
-// 1. app/api/auth/register/route.js
-//    Cuando alguien se registra, guarda el código
-// ══════════════════════════════════════════════
-// Agrega esto DENTRO de tu función de registro,
-// después de crear el usuario:
+import { NextResponse } from "next/server";
+import dbAupair from "@/lib/db-aupair";
 
-// Ejemplo — busca esta línea en tu register y agrega debajo:
-// const [result] = await db.query("INSERT INTO usuarios...", [...]);
-// const nuevoId = result.insertId;
-
-// ↓ AGREGA ESTO:
-if (codigoReferido) {
-  const cod = codigoReferido.trim().toUpperCase();
-  const [ref] = await db.query(
-    "SELECT id FROM referidos WHERE codigo = ?", [cod]
-  );
-  if (ref.length > 0) {
-    // Guarda relación referido → usuario (sin pago aún)
-    await db.query(
-      `INSERT INTO referido_registros
-         (referido_id, usuario_id, pago_realizado, monto_pagado)
-       VALUES (?, ?, 0, 0)`,
-      [ref[0].id, nuevoId]
+export async function POST(_, { params }) {
+  try {
+    await dbAupair.query(
+      "UPDATE referidos SET estado='Pagado' WHERE id=?",
+      [params.id]
     );
-    // Guarda el código en el usuario también
-    await db.query(
-      "UPDATE usuarios SET codigo_referido = ? WHERE id = ?",
-      [cod, nuevoId]
-    );
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
-}   
+}
