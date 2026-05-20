@@ -1,9 +1,12 @@
 //══════════════════════════════════════════
 // app/api/admin/usuarios/top-referentes/route.js
+
+import dbAupair from "@/lib/db-aupair";
+
 // ══════════════════════════════════════════
 export async function GET() {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await dbAupair.query(`
       SELECT
         r.nombre, r.codigo, r.email,
         COUNT(rr.id)                                         AS registradas,

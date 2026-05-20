@@ -1,11 +1,14 @@
 //══════════════════════════════════════════
 // app/api/admin/confirmar-pago/route.js
+
+import dbAupair from "@/lib/db-aupair";
+
 // ══════════════════════════════════════════
 export async function POST(req) {
   try {
     const { usuarioId, monto = 35 } = await req.json();
 
-    await db.query("UPDATE usuarios SET tiene_acceso = 1 WHERE id = ?", [usuarioId]);
+    await dbAupair.query("UPDATE usuarios SET tiene_acceso = 1 WHERE id = ?", [usuarioId]);
 
     await db.query(`
       UPDATE referido_registros

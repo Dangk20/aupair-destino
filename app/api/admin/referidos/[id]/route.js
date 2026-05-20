@@ -1,12 +1,12 @@
 // app/api/admin/referidos/[id]/route.js
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import dbAupair from "@/lib/db-aupair"
 
 /* ── PUT — editar ── */
 export async function PUT(req, { params }) {
   try {
     const { nombre, email, codigo, porcentaje } = await req.json();
-    await db.query(
+    await dbAupair.query(
       "UPDATE referidos SET nombre=?, email=?, codigo=?, porcentaje=? WHERE id=?",
       [nombre, email, codigo.toUpperCase(), porcentaje, params.id]
     );

@@ -1,9 +1,12 @@
 // ══════════════════════════════════════════
 // app/api/admin/pagos/movimientos/route.js
+
+import dbAupair from "@/lib/db-aupair";
+
 // ══════════════════════════════════════════
 export async function GET() {
   try {
-    const [ingresos] = await db.query(`
+    const [ingresos] = await dbAupair.query(`
       SELECT
         u.id AS usuarioId,
         CONCAT(u.nombre, ' ', u.apellido)                   AS estudiante,
@@ -25,7 +28,7 @@ export async function GET() {
       ORDER BY rr.created_at DESC
     `);
 
-    const [comisiones] = await db.query(`
+    const [comisiones] = await dbAupair.query(`
       SELECT
         r.nombre                                                 AS estudiante,
         r.email                                                  AS emailEstudiante,

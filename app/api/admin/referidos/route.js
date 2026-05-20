@@ -1,12 +1,12 @@
 // app/api/admin/referidos/route.js
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import db from "@/lib/db"; // tu conexión MySQL
+import dbAupair from "@/lib/db-aupair";
 
 /* ── GET — listar todos ── */
 export async function GET() {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await dbAupair.query(`
       SELECT
         r.id, r.nombre, r.email, r.codigo, r.porcentaje, r.estado,
         LEFT(r.nombre, 1) AS inicial,

@@ -1,9 +1,12 @@
 // ══════════════════════════════════════════
 // app/api/admin/pagos/stats/route.js
+
+import dbAupair from "@/lib/db-aupair";
+
 // ══════════════════════════════════════════
 export async function GET() {
   try {
-    const [[s]] = await db.query(`
+    const [[s]] = await dbAupair.query(`
       SELECT
         COALESCE(SUM(rr.monto_pagado), 0) AS ingresos,
         COALESCE(SUM(CASE WHEN ref.estado='Pendiente'
@@ -25,7 +28,7 @@ export async function GET() {
       FROM usuarios u WHERE u.rol != 'admin'
     `);
 
-    const [[{ pagosPendientes }]] = await db.query(
+    const [[{ pagosPendientes }]] = await dbAupair.query(
       "SELECT COUNT(*) AS pagosPendientes FROM referidos WHERE estado = 'Pendiente'"
     );
 
@@ -38,7 +41,7 @@ export async function GET() {
       GROUP BY r.id ORDER BY comision DESC LIMIT 5
     `);
 
-    const [graficaIngresos] = await db.query(`
+    const [graficaIngresos] = await dbAupair.query(`
       SELECT
         CONCAT(DAY(MIN(created_at)), '-', DAY(MAX(created_at)), ' may') AS label,
         SUM(monto_pagado) AS monto

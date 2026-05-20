@@ -3,11 +3,11 @@
 // app/api/admin/usuarias/route.js
 // ══════════════════════════════════════════
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import dbAupair from "@/lib/db-aupair";
 
 export async function GET() {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await dbAupair.query(`
       SELECT
         u.id, u.nombre, u.apellido, u.email, u.foto_url,
         u.tiene_acceso, u.perfil_habilitado, u.codigo_referido,
