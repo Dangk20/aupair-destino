@@ -4,92 +4,137 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Bell, BookOpen, CheckCircle2, Clock, Lock,
-  ChevronRight, PlayCircle, MessageCircle,
-  Calendar, HelpCircle, ArrowRight, Edit3,
-  BookMarked, UserCheck, Building2, Heart, FileCheck, Plane,
+  Bell, Calendar, MessageCircle, ArrowRight, ChevronRight,
+  Check, Clock, Lock, Info,
+  BookOpen, UserCheck, Building2, Heart, FileCheck, Plane,
+  CheckCircle2,
 } from "lucide-react";
 
-/* ─── Status config ────────────────────────────────────────────────────────── */
-const PASO_ICON = { curso:BookOpen, evaluacion_perfil:UserCheck, perfil_agencia:Building2, match:Heart, visa:FileCheck, viaje:Plane };
-const STATUS_STYLE = {
-  completado:  { ring:"#10b981", bg:"#d1fae5", text:"text-emerald-600",  label:"Completado",  dot:"bg-emerald-500" },
-  en_revision: { ring:"#f59e0b", bg:"#fef3c7", text:"text-amber-600",    label:"En revisión", dot:"bg-amber-400"   },
-  disponible:  { ring:"#a0435f", bg:"#fce8ed", text:"text-[#a0435f]",    label:"Disponible",  dot:"bg-[#a0435f]"   },
-  bloqueado:   { ring:"#d1d5db", bg:"#f3f4f6", text:"text-gray-400",     label:"Bloqueado",   dot:"bg-gray-300"    },
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════════════════ */
+const PASO_META = {
+  curso:             { icon: BookOpen,  color: "#10b981", bg: "#d1fae5", label: "Curso" },
+  evaluacion_perfil: { icon: UserCheck, color: "#f59e0b", bg: "#fef3c7", label: "Evaluación de perfil" },
+  perfil_agencia:    { icon: Building2, color: "#8b5cf6", bg: "#ede9fe", label: "Perfil con la agencia" },
+  match:             { icon: Heart,     color: "#ec4899", bg: "#fce7f3", label: "Match" },
+  visa:              { icon: FileCheck, color: "#3b82f6", bg: "#dbeafe", label: "Visa" },
+  viaje:             { icon: Plane,     color: "#a0435f", bg: "#fce8ed", label: "Viaje" },
 };
 
-/* ─── Journey Step circle ──────────────────────────────────────────────────── */
-function PasoCircle({ paso, isLast }) {
-  const Icon  = PASO_ICON[paso.id] || BookOpen;
-  const st    = STATUS_STYLE[paso.status] || STATUS_STYLE.bloqueado;
-  const locked= paso.status === "bloqueado";
+const STATUS_CFG = {
+  completado:  { textColor: "#10b981", ring: "#10b981", badgeBg: "#d1fae5", badgeText: "Completado"  },
+  en_revision: { textColor: "#d97706", ring: "#f59e0b", badgeBg: "#fef3c7", badgeText: "En revisión" },
+  disponible:  { textColor: "#a0435f", ring: "#a0435f", badgeBg: "#fce8ed", badgeText: "Disponible"  },
+  bloqueado:   { textColor: "#9ca3af", ring: "#d1d5db", badgeBg: "#f3f4f6", badgeText: "Bloqueado"   },
+};
+
+// Pasos por defecto cuando la API no tiene datos
+const PASOS_DEFAULT = [
+  { id:"curso",             label:"Curso",                 sublabel_base:"Educación y preparación",     status:"disponible" },
+  { id:"evaluacion_perfil", label:"Evaluación de perfil",  sublabel_base:"Revisión por Destino Au Pair",status:"bloqueado"  },
+  { id:"perfil_agencia",    label:"Perfil con la agencia", sublabel_base:"Activación con UNO800",       status:"bloqueado"  },
+  { id:"match",             label:"Match",                 sublabel_base:"Conexión con familias",       status:"bloqueado"  },
+  { id:"visa",              label:"Visa",                  sublabel_base:"Trámite y aprobación",        status:"bloqueado"  },
+  { id:"viaje",             label:"Viaje",                 sublabel_base:"Preparación final",           status:"bloqueado"  },
+];
+
+/* ─── Step circle ──────────────────────────────────────────────────────────── */
+function StepCircle({ paso, index, isLast }) {
+  const meta   = PASO_META[paso.id] || PASO_META.curso;
+  const cfg    = STATUS_CFG[paso.status] || STATUS_CFG.bloqueado;
+  const Icon   = meta.icon;
+  const locked = paso.status === "bloqueado";
+  const done   = paso.status === "completado";
+
   return (
-    <div className="flex items-center">
-      <div className="flex flex-col items-center gap-2 min-w-[72px]">
+    <div className="flex items-start flex-shrink-0">
+      <div className="flex flex-col items-center gap-1.5" style={{ minWidth: 80 }}>
         <div className="relative">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center border-[2.5px] transition-all"
-            style={{ borderColor: st.ring, background: st.bg }}>
+          <div className="w-[52px] h-[52px] rounded-full flex items-center justify-center border-[2.5px] transition-all"
+            style={{ borderColor: cfg.ring, background: locked ? "#f9fafb" : meta.bg }}>
             {locked
-              ? <Lock size={18} className="text-gray-300" />
-              : paso.status === "completado"
-              ? <CheckCircle2 size={22} className="text-emerald-500" />
-              : <Icon size={20} style={{ color: st.ring }} />
+              ? <Lock size={16} className="text-gray-300" />
+              : done
+              ? <CheckCircle2 size={24} style={{ color: cfg.ring }} />
+              : <Icon size={20} style={{ color: meta.color }} />
             }
           </div>
-          {/* Status dot */}
-          {!locked && paso.status !== "completado" && (
-            <span className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${st.dot}`} />
+          {paso.status === "en_revision" && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-amber-400 animate-pulse" />
           )}
         </div>
-        <div className="text-center">
-          <p className="text-[11px] font-semibold text-[#2d1a22] leading-tight text-center max-w-[72px]">{paso.label}</p>
-          <p className={`text-[10px] font-medium mt-0.5 ${st.text}`}>{paso.sublabel}</p>
-        </div>
+        <p className="text-[10.5px] font-semibold text-[#1e1033] text-center leading-tight" style={{ maxWidth: 78 }}>
+          {index + 1}. {paso.label}
+        </p>
+        <p className="text-[9.5px] font-semibold text-center" style={{ color: cfg.textColor }}>
+          {done ? "Completado" : paso.status === "en_revision" ? "En revisión" : locked ? "Bloqueado" : ""}
+        </p>
+        {locked && <Lock size={8} className="text-gray-300" />}
       </div>
-      {/* Connector line */}
       {!isLast && (
-        <div className="flex-1 mx-1 flex items-center" style={{ marginBottom: 28 }}>
-          <div className="w-full border-t-2 border-dashed" style={{ borderColor: st.ring === "#10b981" ? "#10b981" : "#e5e7eb" }} />
+        <div className="flex items-center flex-1 mx-0" style={{ marginTop: 26, minWidth: 12 }}>
+          <div className="w-full border-t-2 border-dashed" style={{ borderColor: done ? "#10b981" : "#e5e7eb" }} />
         </div>
       )}
     </div>
   );
 }
 
-/* ─── Progress summary card ───────────────────────────────────────────────── */
-function PasoCard({ paso }) {
-  const Icon = PASO_ICON[paso.id] || BookOpen;
-  const st   = STATUS_STYLE[paso.status] || STATUS_STYLE.bloqueado;
+/* ─── Progress summary card ────────────────────────────────────────────────── */
+function ProgressCard({ paso, porcentaje }) {
+  const meta   = PASO_META[paso.id] || PASO_META.curso;
+  const cfg    = STATUS_CFG[paso.status] || STATUS_CFG.bloqueado;
+  const Icon   = meta.icon;
   const locked = paso.status === "bloqueado";
-  const actionLabel = {
-    completado: "Ver curso", en_revision: "Ver estado",
-    disponible: "¿Cómo funciona?", bloqueado: "Más información",
-  };
+
+  const action = {
+    completado:  paso.id === "curso" ? "Ver curso"       : "Ver detalles",
+    en_revision: paso.id === "curso" ? "Ver módulos"     : "Ver estado",
+    disponible:  paso.id === "curso" ? "Ir al curso"     : "¿Cómo funciona?",
+    bloqueado:   "Más información",
+  }[paso.status];
+
+  const href = {
+    curso: "/dashboard/curso", evaluacion_perfil: "/dashboard/perfil",
+    perfil_agencia: "/dashboard/perfil", match: "/dashboard/comunidad",
+    visa: "/dashboard/documentos", viaje: "/dashboard/documentos",
+  }[paso.id] || "#";
+
   return (
-    <div className="bg-white rounded-2xl border border-[#f0e8ea] p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: st.bg }}>
-          {locked ? <Lock size={15} className="text-gray-300" /> : <Icon size={18} style={{ color: st.ring }} />}
-        </div>
-        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${st.text}`} style={{ background: st.bg }}>
-          {paso.sublabel}
-        </span>
+    <div className="bg-white rounded-2xl border border-[#ece4f0] p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-all min-h-[160px]">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-1"
+        style={{ background: locked ? "#f3f4f6" : meta.bg }}>
+        {locked ? <Lock size={15} className="text-gray-300" /> : <Icon size={18} style={{ color: meta.color }} />}
       </div>
-      <div>
-        <p className="text-[12px] font-semibold text-[#2d1a22] leading-tight">{paso.label}</p>
-      </div>
-      <button className={`text-[11px] font-semibold ${locked ? "text-gray-300 cursor-not-allowed" : "text-[#a0435f] hover:underline"} text-left`}
-        disabled={locked}>
-        {actionLabel[paso.status]} {!locked && "→"}
-      </button>
+
+      {/* Value */}
+      {paso.id === "curso" && paso.status === "completado" ? (
+        <p className="text-[22px] font-bold leading-none" style={{ color: "#10b981", fontFamily: "Georgia, serif" }}>100%</p>
+      ) : paso.id === "curso" ? (
+        <p className="text-[22px] font-bold leading-none text-[#a0435f]" style={{ fontFamily: "Georgia, serif" }}>{porcentaje || 0}%</p>
+      ) : (
+        <p className="text-[13px] font-bold" style={{ color: cfg.textColor }}>
+          {cfg.badgeText}
+        </p>
+      )}
+
+      <p className="text-[10.5px] text-[#9a7080] leading-tight">
+        {paso.id === "curso" ? "Curso completado" : paso.label}
+      </p>
+
+      <Link href={locked ? "#" : href}
+        className={`text-[11px] font-semibold mt-auto ${locked ? "text-gray-300 pointer-events-none" : "hover:underline"}`}
+        style={{ color: locked ? undefined : meta.color }}>
+        {action}
+      </Link>
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════
    MAIN PAGE
-═════════════════════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const router = useRouter();
   const [user,       setUser]       = useState(null);
@@ -98,225 +143,228 @@ export default function DashboardPage() {
   const [mensajes,   setMensajes]   = useState([]);
   const [recursos,   setRecursos]   = useState([]);
   const [reunion,    setReunion]    = useState(null);
-  const [recordat,   setRecordat]   = useState([]);
   const [loading,    setLoading]    = useState(true);
-  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
+  const [bienvenida, setBienvenida] = useState(false);
 
   useEffect(() => {
+    const safe = (p, fb = null) =>
+      p.then(r => { if (r.status === 401) { router.push("/login"); return fb; } return r.json().catch(() => fb); })
+       .catch(() => fb);
+
     Promise.all([
-      fetch("/api/auth/me").then(r=>r.json()),
-      fetch("/api/dashboard/sesiones").then(r=>{ if(r.status===401){router.push("/login");return null;} return r.json(); }),
-      fetch("/api/dashboard/proceso").then(r=>r.json()).catch(()=>null),
-      fetch("/api/dashboard/mensajes?limit=3").then(r=>r.json()).catch(()=>({mensajes:[]})),
-      fetch("/api/dashboard/recursos?limit=4").then(r=>r.json()).catch(()=>({recursos:[]})),
-      fetch("/api/dashboard/reunion").then(r=>r.json()).catch(()=>null),
-      fetch("/api/dashboard/recordatorios").then(r=>r.json()).catch(()=>({recordatorios:[]})),
-    ]).then(([me, ses, proc, msgs, recs, reu, recs2]) => {
-      setUser(me?.user);
-      if(ses) setSesData(ses);
+      safe(fetch("/api/auth/me"),                      { user: null }),
+      safe(fetch("/api/dashboard/sesiones"),           null),
+      safe(fetch("/api/dashboard/proceso"),            null),
+      safe(fetch("/api/dashboard/mensajes?limit=3"),   { mensajes: [] }),
+      safe(fetch("/api/dashboard/recursos?limit=4"),   { recursos: [] }),
+      safe(fetch("/api/dashboard/reunion"),            null),
+    ]).then(([me, ses, proc, msgs, recs, reu]) => {
+      setUser(me?.user || null);
+      setSesData(ses);
       setProceso(proc);
-      setMensajes(msgs?.mensajes||[]);
-      setRecursos(recs?.recursos||[]);
-      setReunion(reu?.reunion||null);
-      setRecordat(recs2?.recordatorios||[]);
-      if(me?.user && !me.user.vio_bienvenida) setMostrarBienvenida(true);
+      setMensajes(msgs?.mensajes || []);
+      setRecursos(recs?.recursos || []);
+      setReunion(reu?.reunion || null);
+      if (me?.user && !me.user.vio_bienvenida) setBienvenida(true);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, []);
 
   const cerrarBienvenida = async () => {
-    setMostrarBienvenida(false);
-    await fetch("/api/dashboard/bienvenida",{method:"POST"});
+    setBienvenida(false);
+    await fetch("/api/dashboard/bienvenida", { method: "POST" }).catch(() => {});
   };
 
+  /* ── Derived data ── */
+  const { completadas = 0, total = 0, porcentaje = 0, sesiones = [] } = sesData || {};
+  const pasos         = proceso?.pasos?.length > 0 ? proceso.pasos : PASOS_DEFAULT;
+  const notif         = proceso?.notificacion;
+  const proximoPaso   = proceso?.proximoPaso;
+  const porcentajeCurso = proceso?.porcentaje_curso || porcentaje || 0;
+  const cursoCompleto   = proceso?.curso_completo   || (completadas > 0 && completadas >= total);
+  const sesionActual    = sesiones.find(s => s.estado === "available");
+
+  const recordDisplay = (proceso?.recordatorios || []).length > 0
+    ? proceso.recordatorios
+    : [
+        { id:"curso",             label:"Finaliza el curso",     sublabel: cursoCompleto ? "¡Felicidades!" : "En progreso",       estado: cursoCompleto ? "completado" : "en_curso"  },
+        { id:"evaluacion_perfil", label:"Evaluación de perfil",  sublabel:"En revisión",          estado:"en_curso"   },
+        { id:"perfil_agencia",    label:"Perfil con la agencia", sublabel:"Pendiente aprobación", estado:"pendiente"  },
+      ];
+
+  const mensajesDisplay = mensajes.length > 0 ? mensajes : [
+    { id:1, remitente:"Destino Au Pair",   texto:"Tu evaluación de perfil está en revisión. Te...", hora:"Hoy, 10:30 AM",  avatarBg:"#fce8ed", avatarColor:"#a0435f", avatar:"D" },
+    { id:2, remitente:"Asesora Valentina", texto:"¡Hola! ¿Tienes dudas sobre...",                   hora:"Ayer, 4:20 PM",  avatarBg:"#fef3c7", avatarColor:"#d97706", avatar:"A" },
+    { id:3, remitente:"Equipo Destino",    texto:"Recordatorio: Agendemos tu próxima reunión.",      hora:"19 may, 11:15",  avatarBg:"#e0f2fe", avatarColor:"#0369a1", avatar:"E" },
+  ];
+
+  const recursosDisplay = recursos.length > 0 ? recursos : [
+    { id:1, titulo:"Cultura Americana",      categoria:"Lección 3 de 5", progreso:60, emoji:"🇺🇸" },
+    { id:2, titulo:"Cuidado de niños",        categoria:"Lección 2 de 4", progreso:50, emoji:"👶" },
+    { id:3, titulo:"Preparación entrevistas", categoria:"Lección 4 de 6", progreso:66, emoji:"🎤" },
+    { id:4, titulo:"Checklist de viaje",      categoria:"Lección 1 de 3", progreso:33, emoji:"✈️" },
+  ];
+
+  /* ── Loading ── */
   if (loading) return (
     <div className="min-h-screen bg-[#faf5f6] flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[13px] text-[#9a6672]">Cargando tu programa...</p>
+        <p className="text-[13px] text-[#9a7080]">Cargando tu programa...</p>
       </div>
     </div>
   );
 
-  const { completadas=0, total=0, porcentaje=0, sesiones=[] } = sesData||{};
-  const pasos = proceso?.pasos || [];
-  const notif = proceso?.notificacion;
-  const proximoPaso = proceso?.proximoPaso;
-
-  // Recordatorios por defecto si API no existe aún
-  const recordatorios = recordat.length > 0 ? recordat : [
-    { id:1, label:"Finaliza el curso",       sublabel:"¡Felicidades!",          estado:"completado" },
-    { id:2, label:"Evaluación de perfil",    sublabel:"En revisión",             estado:"en_curso"   },
-    { id:3, label:"Perfil con la agencia",   sublabel:"Pendiente aprobación",    estado:"pendiente"  },
-  ];
-
-  // Mensajes por defecto si API no existe aún
-  const mensajesDisplay = mensajes.length > 0 ? mensajes : [
-    { id:1, remitente:"Destino Au Pair",   texto:"Tu evaluación de perfil está en revisión. Te...", hora:"Hoy, 10:30 AM",  avatar:"D", avatarBg:"#fce8ed", avatarColor:"#a0435f" },
-    { id:2, remitente:"Asesora Valentina", texto:"¡Hola! ¿Tienes dudas sobre...",                  hora:"Ayer, 4:20 PM",  avatar:"A", avatarBg:"#fef3c7", avatarColor:"#d97706" },
-    { id:3, remitente:"Equipo Destino",    texto:"Recordatorio: Agendemos tu próxima reunión.",     hora:"19 may, 11:15", avatar:"E", avatarBg:"#e0f2fe", avatarColor:"#0369a1" },
-  ];
-
-  const cursoPaso = pasos.find(p=>p.id==="curso");
-  const cursoCompleto = cursoPaso?.status === "completado" || completadas === total;
-  const sesionActual  = sesiones.find(s=>s.estado==="available");
-
+  /* ─────────────────────────────────────────────────────────────────────────
+     RENDER
+  ───────────────────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#faf5f6]">
-      {/* ── Top header ── */}
-      <div className="bg-white border-b border-[#f0e8ea] px-6 md:px-8 py-4 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#faf5f6]" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+
+      {/* ── TOP HEADER ── */}
+      <div className="bg-white border-b border-[#ece8f0] px-6 md:px-8 py-4 flex items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="font-serif text-[22px] md:text-[26px] font-bold text-[#2d1a22]">
-            ¡Hola, {user?.nombre} {user?.apellido}! 👋
+          <h1 style={{ fontFamily:"Georgia, serif", fontSize:"clamp(20px,2.5vw,26px)", fontWeight:700, color:"#1e1033", margin:0, display:"flex", alignItems:"center", gap:8 }}>
+            ¡Hola, {user?.nombre} {user?.apellido}! <span>👋</span>
           </h1>
-          <p className="text-[13px] text-[#9a7080] mt-0.5">Cada paso te acerca más a tu aventura. Estamos aquí para acompañarte. 💜</p>
+          <p style={{ fontSize:13, color:"#9a7080", margin:"3px 0 0" }}>
+            Cada paso te acerca más a tu aventura. Estamos aquí para acompañarte. <span>💜</span>
+          </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button className="relative p-2 rounded-xl border border-[#f0e8ea] bg-white hover:bg-[#fff0f3] transition">
-            <Bell size={18} className="text-[#9a7080]" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-[#a0435f] rounded-full" />
+        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0, flexWrap:"wrap" }}>
+          <button style={{ position:"relative", padding:8, borderRadius:12, border:"1px solid #ece4f0", background:"#fff", cursor:"pointer" }}>
+            <Bell size={17} style={{ color:"#9a7080" }} />
+            <span style={{ position:"absolute", top:6, right:6, width:7, height:7, background:"#a0435f", borderRadius:"50%", border:"1.5px solid #fff" }} />
           </button>
-          <Link href="/dashboard/reuniones"
-            className="hidden sm:flex items-center gap-2 border border-[#e0d0d4] text-[#6b4a54] text-[13px] font-medium px-4 py-2 rounded-xl hover:bg-[#fff0f3] transition">
+          <Link href="/dashboard/reuniones" style={{
+            display:"flex", alignItems:"center", gap:6,
+            border:"1.5px solid #e0d0e8", color:"#6b4a70", fontSize:13, fontWeight:500,
+            padding:"8px 14px", borderRadius:12, textDecoration:"none",
+            background:"#fff",
+          }}>
             <Calendar size={14} /> Agendar reunión
           </Link>
-          <Link href="/dashboard/proceso"
-            className="hidden sm:flex items-center gap-2 bg-[#5b21b6] hover:bg-[#4c1d95] text-white text-[13px] font-semibold px-4 py-2 rounded-xl transition">
-            Ver mi proceso completo <ArrowRight size={14} />
+          <Link href="/dashboard/proceso" style={{
+            display:"flex", alignItems:"center", gap:6,
+            background:"#5b21b6", color:"#fff", fontSize:13, fontWeight:600,
+            padding:"9px 16px", borderRadius:12, textDecoration:"none",
+          }}>
+            Ver mi proceso completo <ArrowRight size={13} />
           </Link>
         </div>
       </div>
 
-      {/* ── Content ── */}
-      <div className="flex gap-5 p-5 md:p-6">
-        {/* Main column */}
-        <div className="flex-1 min-w-0 space-y-5">
+      {/* ── CONTENT ── */}
+      <div style={{ display:"flex", gap:20, padding:"20px 24px 40px", maxWidth:1400, margin:"0 auto" }}>
 
-          {/* Journey roadmap */}
-          <div className="bg-white rounded-2xl border border-[#f0e8ea] p-5 shadow-sm">
-            <h2 className="text-[15px] font-semibold text-[#2d1a22] mb-5">Mi Destino Au Pair</h2>
-            {pasos.length === 0 ? (
-              /* Skeleton / fallback roadmap */
-              <div className="flex items-center overflow-x-auto pb-2">
-                {["Curso","Evaluación de perfil","Perfil con la agencia","Match","Visa","Viaje"].map((l,i,arr)=>(
-                  <div key={l} className="flex items-center">
-                    <div className="flex flex-col items-center gap-2 min-w-[72px]">
-                      <div className="w-14 h-14 rounded-full border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
-                        <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse" />
-                      </div>
-                      <div className="h-3 bg-gray-100 rounded w-16 animate-pulse" />
-                    </div>
-                    {i<arr.length-1&&<div className="flex-1 mx-1 border-t-2 border-dashed border-gray-200" style={{ marginBottom:28 }} />}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-start overflow-x-auto pb-2">
-                {pasos.map((p,i)=><PasoCircle key={p.id} paso={p} isLast={i===pasos.length-1} />)}
-              </div>
-            )}
+        {/* ── MAIN COLUMN ── */}
+        <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:18 }}>
+
+          {/* ROADMAP */}
+          <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:20, boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <h2 style={{ fontFamily:"Georgia,serif", fontSize:15, fontWeight:700, color:"#1e1033", margin:"0 0 18px" }}>Mi Destino Au Pair</h2>
+            <div style={{ display:"flex", alignItems:"flex-start", overflowX:"auto", paddingBottom:4 }}>
+              {pasos.map((p, i) => <StepCircle key={p.id} paso={p} index={i} isLast={i === pasos.length - 1} />)}
+            </div>
           </div>
 
-          {/* Notification bar */}
+          {/* NOTIFICATION */}
           {notif && (
-            <div className={`rounded-2xl border px-5 py-3.5 flex items-center justify-between gap-4 ${
-              notif.tipo==="en_revision"
-                ? "bg-[#fffbeb] border-[#fde68a]"
-                : "bg-[#f0fdf4] border-[#bbf7d0]"
-            }`}>
-              <div className="flex items-start gap-3">
-                <Clock size={16} className={notif.tipo==="en_revision"?"text-amber-500":"text-emerald-500"} style={{ marginTop:2 }} />
+            <div style={{ background:"#fffbeb", border:"1px solid #fde68a", borderRadius:16, padding:"14px 20px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16 }}>
+              <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                <Clock size={16} style={{ color:"#d97706", flexShrink:0, marginTop:2 }} />
                 <div>
-                  <p className="text-[13px] font-semibold text-[#2d1a22]">{notif.texto}</p>
-                  <p className="text-[12px] text-[#9a7080] mt-0.5">{notif.detalle}</p>
+                  <p style={{ fontSize:13, fontWeight:600, color:"#1e1033", margin:"0 0 2px" }}>{notif.texto}</p>
+                  <p style={{ fontSize:12, color:"#9a7080", margin:0 }}>{notif.detalle}</p>
                 </div>
               </div>
-              <Link href={notif.link||"#"}
-                className="text-[12px] font-semibold text-[#a0435f] hover:underline whitespace-nowrap shrink-0">
-                Ver detalles
-              </Link>
+              <Link href={notif.link || "#"} style={{
+                fontSize:12, fontWeight:600, color:"#a0435f", textDecoration:"none",
+                border:"1px solid #f0dde2", padding:"6px 14px", borderRadius:10,
+                background:"#fff", whiteSpace:"nowrap", flexShrink:0,
+              }}>Ver detalles</Link>
             </div>
           )}
 
-          {/* Progress summary cards */}
-          {pasos.length > 0 && (
-            <div>
-              <h2 className="text-[15px] font-semibold text-[#2d1a22] mb-3">Resumen de tu progreso</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {pasos.map(p=><PasoCard key={p.id} paso={p} />)}
-              </div>
+          {/* PROGRESS CARDS */}
+          <div>
+            <h2 style={{ fontFamily:"Georgia,serif", fontSize:15, fontWeight:700, color:"#1e1033", margin:"0 0 12px" }}>
+              Resumen de tu progreso
+            </h2>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:12 }}>
+              {pasos.map(p => (
+                <ProgressCard key={p.id} paso={p} porcentaje={porcentajeCurso} />
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Course status + Messages */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Course status */}
-            <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#f5eced]">
-                <h3 className="text-[14px] font-semibold text-[#2d1a22]">Estado de tu curso</h3>
+          {/* COURSE + MESSAGES */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
+            {/* Course */}
+            <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", boxShadow:"0 1px 4px rgba(0,0,0,.04)", overflow:"hidden" }}>
+              <div style={{ padding:"14px 20px 12px", borderBottom:"1px solid #f5eef8" }}>
+                <h3 style={{ fontSize:14, fontWeight:700, color:"#1e1033", margin:0 }}>Estado de tu curso</h3>
               </div>
-              <div className="p-5">
-                {/* Course thumbnail */}
-                <div className="rounded-xl overflow-hidden mb-4 h-28 bg-gradient-to-br from-[#2d1a22] to-[#5a2a3a] flex items-center justify-center relative">
-                  <div className="absolute inset-0 opacity-20">
-                    <svg width="100%" height="100%"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#e8849a"/></pattern></defs><rect width="100%" height="100%" fill="url(#dots)"/></svg>
+              <div style={{ padding:20 }}>
+                {/* Thumbnail */}
+                <div style={{ borderRadius:14, overflow:"hidden", marginBottom:14, height:110, position:"relative", background:"linear-gradient(135deg,#2d1a22,#5a2a3a)" }}>
+                  <div style={{ position:"absolute", inset:0, opacity:.18 }}>
+                    <svg width="100%" height="100%"><defs><pattern id="d1" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#e8849a"/></pattern></defs><rect width="100%" height="100%" fill="url(#d1)"/></svg>
                   </div>
-                  <div className="relative text-center">
-                    <div className="text-3xl mb-1">{cursoCompleto ? "🎉" : "📚"}</div>
-                    <p className="text-white text-[12px] font-semibold">Destino Au Pair</p>
+                  <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:4 }}>
+                    <span style={{ fontSize:28 }}>{cursoCompleto ? "🎉" : "📚"}</span>
+                    <span style={{ color:"#fff", fontSize:11, fontWeight:600 }}>Destino Au Pair</span>
                   </div>
                 </div>
 
                 {cursoCompleto ? (
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#2d1a22] mb-1">¡Felicidades! 🎓</p>
-                    <p className="text-[12px] text-[#9a7080] mb-3">Has completado todos los módulos del curso.</p>
-                    <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl px-3 py-2 mb-3">
-                      <p className="text-[11px] text-emerald-700 font-medium">✓ Enviado para revisión</p>
+                  <>
+                    <p style={{ fontSize:14, fontWeight:700, color:"#1e1033", margin:"0 0 4px" }}>¡Felicidades! 🎓</p>
+                    <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 8px" }}>Has completado todos los módulos del curso.</p>
+                    <div style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#dcfce7", color:"#15803d", fontSize:10, fontWeight:700, padding:"4px 10px", borderRadius:99, marginBottom:12 }}>
+                      <Check size={9} /> Enviado para revisión
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-[13px] font-semibold text-[#2d1a22]">{completadas} de {total} sesiones</p>
-                      <span className="text-[12px] font-bold text-[#a0435f]">{porcentaje}%</span>
+                  <>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                      <span style={{ fontSize:13, fontWeight:600, color:"#1e1033" }}>{completadas} de {total} sesiones</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:"#a0435f" }}>{porcentajeCurso}%</span>
                     </div>
-                    <div className="h-2 bg-[#f0e8ea] rounded-full overflow-hidden mb-3">
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width:`${porcentaje}%`, background:"linear-gradient(90deg,#a0435f,#e8849a)" }} />
+                    <div style={{ height:7, background:"#f0e8f0", borderRadius:99, overflow:"hidden", marginBottom:12 }}>
+                      <div style={{ height:"100%", width:`${porcentajeCurso}%`, background:"linear-gradient(90deg,#7c3aed,#a0435f)", borderRadius:99, transition:"width .7s" }} />
                     </div>
-                  </div>
+                  </>
                 )}
 
-                <button onClick={()=>router.push("/dashboard/curso")}
-                  className="w-full text-center text-[12px] font-semibold text-[#a0435f] hover:text-[#8a3550] border border-[#f0dde2] hover:border-[#e8b0bc] py-2 rounded-xl transition">
-                  {cursoCompleto ? "Ver mis módulos →" : (sesionActual ? `▶ Continuar — ${sesionActual.titulo}` : "Ver mis módulos →")}
+                <button onClick={() => router.push("/dashboard/curso")} style={{
+                  width:"100%", textAlign:"center", fontSize:12, fontWeight:600, color:"#7c3aed",
+                  border:"1.5px solid #ede9fe", background:"#fff", borderRadius:12, padding:"9px",
+                  cursor:"pointer",
+                }}>
+                  {cursoCompleto ? "Ver mis módulos →" : sesionActual ? `▶ Continuar — ${sesionActual.titulo}` : "Ver mis módulos →"}
                 </button>
               </div>
             </div>
 
-            {/* Recent messages */}
-            <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#f5eced] flex items-center justify-between">
-                <h3 className="text-[14px] font-semibold text-[#2d1a22]">Mensajes recientes</h3>
-                <Link href="/dashboard/mensajes" className="text-[12px] font-semibold text-[#a0435f] hover:underline">Ver todos</Link>
+            {/* Messages */}
+            <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", boxShadow:"0 1px 4px rgba(0,0,0,.04)", overflow:"hidden" }}>
+              <div style={{ padding:"14px 20px 12px", borderBottom:"1px solid #f5eef8", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <h3 style={{ fontSize:14, fontWeight:700, color:"#1e1033", margin:0 }}>Mensajes recientes</h3>
+                <Link href="/dashboard/mensajes" style={{ fontSize:12, fontWeight:600, color:"#7c3aed", textDecoration:"none" }}>Ver todos</Link>
               </div>
-              <div className="divide-y divide-[#f5eced]">
-                {mensajesDisplay.map(m=>(
-                  <Link href="/dashboard/mensajes" key={m.id}
-                    className="flex items-start gap-3 px-5 py-3.5 hover:bg-[#fff8f9] transition">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold overflow-hidden"
-                      style={{ background: m.avatar_url ? "transparent" : (m.avatarBg||"#fce8ed"), color: m.avatarColor||"#a0435f" }}>
-                      {m.avatar_url
-                        ? <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
-                        : (m.avatar||m.remitente?.[0]||"?")}
+              <div>
+                {mensajesDisplay.map((m, i) => (
+                  <Link key={m.id || i} href="/dashboard/mensajes" style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"14px 20px", borderBottom:i < mensajesDisplay.length-1 ? "1px solid #f8f4fc" : "none", textDecoration:"none" }}>
+                    <div style={{ width:34, height:34, borderRadius:"50%", background:m.avatar_url?"transparent":(m.avatarBg||"#fce8ed"), color:m.avatarColor||"#a0435f", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, flexShrink:0, overflow:"hidden" }}>
+                      {m.avatar_url ? <img src={m.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : (m.avatar || m.remitente?.[0] || "?")}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-[12px] font-semibold text-[#2d1a22] truncate">{m.remitente}</p>
-                        <p className="text-[10px] text-[#b0909a] shrink-0">{m.hora||m.tiempo}</p>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:8 }}>
+                        <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.remitente}</p>
+                        <p style={{ fontSize:10, color:"#b0909a", margin:0, flexShrink:0 }}>{m.hora || m.tiempo}</p>
                       </div>
-                      <p className="text-[11px] text-[#9a7080] truncate mt-0.5">{m.texto||m.preview}</p>
+                      <p style={{ fontSize:11, color:"#9a7080", margin:"2px 0 0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.texto || m.preview}</p>
                     </div>
                   </Link>
                 ))}
@@ -324,180 +372,176 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Resources */}
-          {recursos.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[15px] font-semibold text-[#2d1a22]">Recursos recomendados para ti</h2>
-                <Link href="/dashboard/recursos" className="text-[12px] font-semibold text-[#a0435f] hover:underline">Ver todos</Link>
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {recursos.slice(0,4).map(r=>(
-                  <Link href={r.link||`/dashboard/recursos/${r.id}`} key={r.id}
-                    className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
-                    <div className="h-24 bg-gradient-to-br from-[#fce8ed] to-[#f0c0cc] relative overflow-hidden">
-                      {r.imagen
-                        ? <img src={r.imagen} alt={r.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                        : <div className="w-full h-full flex items-center justify-center text-3xl">{r.emoji||"📖"}</div>
-                      }
-                    </div>
-                    <div className="p-3">
-                      <p className="text-[12px] font-semibold text-[#2d1a22] leading-tight mb-1">{r.titulo}</p>
-                      <p className="text-[10px] text-[#9a7080] mb-2">{r.categoria||"Recurso"}</p>
-                      <div className="h-1.5 bg-[#f0e8ea] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#a0435f] rounded-full" style={{ width:`${r.progreso||0}%` }} />
-                      </div>
-                      <p className="text-[10px] text-[#b0909a] mt-1">{r.progreso||0}%</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+          {/* RESOURCES */}
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <h2 style={{ fontFamily:"Georgia,serif", fontSize:15, fontWeight:700, color:"#1e1033", margin:0 }}>
+                Recursos recomendados para ti
+              </h2>
+              <Link href="/dashboard/recursos" style={{ fontSize:12, fontWeight:600, color:"#7c3aed", textDecoration:"none" }}>Ver todos</Link>
             </div>
-          )}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
+              {recursosDisplay.map(r => (
+                <Link key={r.id} href={r.link || `/dashboard/recursos/${r.id}`} style={{ background:"#fff", borderRadius:16, border:"1px solid #ece4f0", overflow:"hidden", textDecoration:"none", boxShadow:"0 1px 4px rgba(0,0,0,.04)", display:"flex", flexDirection:"column" }}>
+                  <div style={{ height:90, background:"linear-gradient(135deg,#f5f0ff,#fce8ed)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
+                    {r.imagen
+                      ? <img src={r.imagen} alt={r.titulo} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                      : <span style={{ fontSize:36 }}>{r.emoji || "📖"}</span>
+                    }
+                  </div>
+                  <div style={{ padding:12, flex:1, display:"flex", flexDirection:"column" }}>
+                    <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:"0 0 3px", lineHeight:1.3 }}>{r.titulo}</p>
+                    <p style={{ fontSize:10, color:"#9a7080", margin:"0 0 8px" }}>{r.categoria}</p>
+                    <div style={{ height:5, background:"#f0e8f0", borderRadius:99, overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:`${r.progreso||0}%`, background:"linear-gradient(90deg,#7c3aed,#a0435f)", borderRadius:99 }} />
+                    </div>
+                    <p style={{ fontSize:10, color:"#b0909a", margin:"4px 0 0" }}>{r.progreso || 0}%</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Right sidebar */}
-        <aside className="hidden xl:flex flex-col gap-4 w-64 shrink-0">
+        {/* ── RIGHT SIDEBAR ── */}
+        <aside style={{ width:260, flexShrink:0, display:"flex", flexDirection:"column", gap:14 }}>
 
           {/* Próximo paso */}
           {proximoPaso && (
-            <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-[#fce8ed] flex items-center justify-center">
-                  <ChevronRight size={14} className="text-[#a0435f]" />
-                </div>
-                <h3 className="text-[13px] font-semibold text-[#2d1a22]">Próximo paso</h3>
+            <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:18, boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                <div style={{ width:28, height:28, borderRadius:9, background:"#f5f0ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>🎯</div>
+                <span style={{ fontSize:11, fontWeight:700, color:"#9a7080", textTransform:"uppercase", letterSpacing:".5px" }}>Próximo paso</span>
               </div>
-              <p className="text-[14px] font-bold text-[#2d1a22] mb-1">{proximoPaso.titulo}</p>
-              <p className="text-[12px] text-[#9a7080] mb-4">{proximoPaso.detalle}</p>
-              <Link href={proximoPaso.link||"#"}
-                className="w-full block text-center bg-[#5b21b6] hover:bg-[#4c1d95] text-white text-[12px] font-semibold py-2.5 rounded-xl transition">
+              <p style={{ fontFamily:"Georgia,serif", fontSize:15, fontWeight:700, color:"#1e1033", margin:"0 0 6px", lineHeight:1.3 }}>{proximoPaso.titulo}</p>
+              <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 14px", lineHeight:1.5 }}>{proximoPaso.detalle}</p>
+              <Link href={proximoPaso.link || "#"} style={{ display:"block", textAlign:"center", background:"#5b21b6", color:"#fff", fontSize:12, fontWeight:600, padding:"10px", borderRadius:12, textDecoration:"none" }}>
                 {proximoPaso.label_boton}
               </Link>
             </div>
           )}
 
           {/* Recordatorios */}
-          <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[13px] font-semibold text-[#2d1a22]">Recordatorios importantes</h3>
-            </div>
-            <div className="space-y-3">
-              {recordatorios.map(r=>(
-                <div key={r.id} className="flex items-start gap-2.5">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                    r.estado==="completado"
-                      ? "bg-emerald-500 border-emerald-500"
-                      : r.estado==="en_curso"
-                      ? "border-amber-400 bg-transparent"
-                      : "border-gray-300 bg-transparent"
-                  }`}>
-                    {r.estado==="completado" && <span className="text-white text-[8px]">✓</span>}
+          <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:18, boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 14px" }}>Recordatorios importantes</h3>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {recordDisplay.map(r => (
+                <div key={r.id} style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                  <div style={{
+                    width:20, height:20, borderRadius:"50%", flexShrink:0, marginTop:1,
+                    border: r.estado==="completado" ? "none" : r.estado==="en_curso" ? "2px solid #f59e0b" : "2px solid #d1d5db",
+                    background: r.estado==="completado" ? "#10b981" : "transparent",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                  }}>
+                    {r.estado === "completado" && <Check size={10} style={{ color:"#fff" }} />}
                   </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#2d1a22]">{r.label}</p>
-                    <p className={`text-[11px] ${r.estado==="en_curso"?"text-amber-600":r.estado==="completado"?"text-emerald-600":"text-[#9a7080]"}`}>
-                      {r.sublabel}
-                    </p>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:6 }}>
+                      <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:0 }}>{r.label}</p>
+                      {r.estado === "en_curso" && (
+                        <span style={{ fontSize:9, fontWeight:700, color:"#d97706", background:"#fef3c7", padding:"2px 7px", borderRadius:99, flexShrink:0 }}>En curso</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize:11, color: r.estado==="en_curso"?"#d97706":r.estado==="completado"?"#10b981":"#9a7080", margin:0 }}>{r.sublabel}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <Link href="/dashboard/proceso"
-              className="flex items-center justify-between text-[11px] text-[#a0435f] font-semibold mt-4 hover:underline">
+            <Link href="/dashboard/proceso" style={{
+              display:"flex", justifyContent:"space-between", alignItems:"center",
+              fontSize:11, fontWeight:600, color:"#7c3aed", textDecoration:"none",
+              marginTop:14, paddingTop:12, borderTop:"1px solid #f5eef8",
+            }}>
               Ver todos mis recordatorios <ChevronRight size={12} />
             </Link>
           </div>
 
           {/* Próxima reunión */}
-          {reunion ? (
-            <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar size={14} className="text-[#a0435f]" />
-                <h3 className="text-[13px] font-semibold text-[#2d1a22]">Tu próxima reunión</h3>
-              </div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-[#fce8ed] flex items-center justify-center overflow-hidden shrink-0">
-                  {reunion.asesora_foto
-                    ? <img src={reunion.asesora_foto} alt="" className="w-full h-full object-cover" />
-                    : <span className="text-[#a0435f] font-bold text-[13px]">{reunion.asesora?.[0]||"A"}</span>
-                  }
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold text-[#2d1a22]">1 a 1 con tu asesora</p>
-                  <p className="text-[11px] text-[#9a7080]">{reunion.asesora}</p>
-                </div>
-              </div>
-              <div className="bg-[#fff8f9] rounded-xl px-3 py-2 mb-3">
-                <p className="text-[12px] font-semibold text-[#2d1a22]">{reunion.fecha}</p>
-                <p className="text-[11px] text-[#9a7080]">{reunion.hora}</p>
-              </div>
-              <Link href="/dashboard/reuniones"
-                className="w-full block text-center border border-[#f0dde2] hover:bg-[#fff0f3] text-[#a0435f] text-[12px] font-semibold py-2 rounded-xl transition">
-                Ver en calendario
-              </Link>
+          <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:18, boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
+              <Calendar size={13} style={{ color:"#7c3aed" }} />
+              <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:0 }}>Tu próxima reunión</h3>
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar size={14} className="text-[#a0435f]" />
-                <h3 className="text-[13px] font-semibold text-[#2d1a22]">Tu próxima reunión</h3>
-              </div>
-              <p className="text-[12px] text-[#9a7080] mb-3">No tienes reuniones agendadas.</p>
-              <Link href="/dashboard/reuniones"
-                className="w-full block text-center bg-[#5b21b6] hover:bg-[#4c1d95] text-white text-[12px] font-semibold py-2.5 rounded-xl transition">
-                Agendar reunión
-              </Link>
-            </div>
-          )}
+            {reunion ? (
+              <>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                  <div style={{ width:36, height:36, borderRadius:"50%", background:"#fce8ed", overflow:"hidden", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {reunion.asesora_foto
+                      ? <img src={reunion.asesora_foto} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                      : <span style={{ color:"#a0435f", fontWeight:700, fontSize:12 }}>{reunion.asesora?.[0]||"A"}</span>
+                    }
+                  </div>
+                  <div>
+                    <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:0 }}>1 a 1 con tu asesora</p>
+                    <p style={{ fontSize:11, color:"#9a7080", margin:0 }}>{reunion.asesora}</p>
+                  </div>
+                </div>
+                <div style={{ background:"#faf5f6", borderRadius:12, padding:"8px 12px", marginBottom:10 }}>
+                  <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:0 }}>{reunion.fecha}</p>
+                  <p style={{ fontSize:11, color:"#9a7080", margin:0 }}>{reunion.hora}</p>
+                </div>
+                <Link href="/dashboard/reuniones" style={{ display:"block", textAlign:"center", border:"1.5px solid #ece4f0", color:"#7c3aed", fontSize:12, fontWeight:600, padding:"8px", borderRadius:12, textDecoration:"none" }}>
+                  Ver en calendario
+                </Link>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 12px" }}>No tienes reuniones agendadas.</p>
+                <Link href="/dashboard/reuniones" style={{ display:"block", textAlign:"center", background:"#5b21b6", color:"#fff", fontSize:12, fontWeight:600, padding:"10px", borderRadius:12, textDecoration:"none" }}>
+                  Agendar reunión
+                </Link>
+              </>
+            )}
+          </div>
 
           {/* Help */}
-          <div className="bg-white rounded-2xl border border-[#f0e8ea] shadow-sm p-4 relative overflow-hidden">
-            <div className="absolute -right-2 -bottom-2 text-5xl opacity-25 pointer-events-none select-none">🎈</div>
-            <h3 className="text-[13px] font-semibold text-[#2d1a22] mb-1">¿Necesitas ayuda?</h3>
-            <p className="text-[12px] text-[#9a7080] mb-3">Estamos aquí para ti.</p>
-            <button className="flex items-center gap-2 text-[#a0435f] border border-[#f0dde2] hover:bg-[#fff0f3] text-[12px] font-semibold w-full justify-center py-2 rounded-xl transition">
+          <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:18, position:"relative", overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div style={{ position:"absolute", right:-8, bottom:-8, fontSize:52, opacity:.2, pointerEvents:"none", userSelect:"none" }}>🎈</div>
+            <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 4px" }}>¿Necesitas ayuda?</h3>
+            <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 12px" }}>Estamos aquí para ti.</p>
+            <button style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, width:"100%", border:"1.5px solid #ede9fe", background:"#fff", color:"#7c3aed", fontSize:12, fontWeight:600, padding:"9px", borderRadius:12, cursor:"pointer" }}>
               <MessageCircle size={13} /> Escribir a soporte
             </button>
           </div>
+
         </aside>
       </div>
 
-      {/* ── Welcome modal ── */}
-      {mostrarBienvenida && user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={cerrarBienvenida} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="h-2 bg-gradient-to-r from-[#2d1a22] via-[#e8849a] to-[#2d1a22]" />
-            <div className="p-7 text-center">
-              <div className="text-5xl mb-4">🌍✈️</div>
-              <h2 className="font-serif text-[26px] italic text-[#a0435f] mb-2">
-                ¡Bienvenida,<br /><span className="italic">{user.nombre}!</span>
+      {/* ── WELCOME MODAL ── */}
+      {bienvenida && user && (
+        <div style={{ position:"fixed", inset:0, zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+          <div style={{ position:"absolute", inset:0, background:"rgba(45,26,34,.5)", backdropFilter:"blur(4px)" }} onClick={cerrarBienvenida} />
+          <div style={{ position:"relative", background:"#fff", borderRadius:24, boxShadow:"0 20px 60px rgba(45,26,34,.2)", width:"100%", maxWidth:380, overflow:"hidden" }}>
+            <div style={{ height:6, background:"linear-gradient(90deg,#2d1a22,#e8849a,#2d1a22)" }} />
+            <div style={{ padding:28, textAlign:"center" }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>🌍✈️</div>
+              <h2 style={{ fontFamily:"Georgia,serif", fontSize:24, color:"#a0435f", margin:"0 0 8px", fontStyle:"italic" }}>
+                ¡Bienvenida,<br />{user.nombre}!
               </h2>
-              <p className="text-[13px] text-[#7a4a54] leading-relaxed mb-6">
+              <p style={{ fontSize:13, color:"#7a4a54", lineHeight:1.6, margin:"0 0 20px" }}>
                 Tu destino au pair empieza hoy. Comienza con la sesión de bienvenida 👋🏻 Es gratis y te tomará solo unos minutos. 💕
               </p>
-              <div className="bg-[#fff8f9] border border-[#f0dde2] rounded-2xl p-4 mb-6 text-left">
-                <p className="text-[12px] text-[#7a4a54] italic leading-relaxed mb-3">
+              <div style={{ background:"#fff8f9", border:"1px solid #f0dde2", borderRadius:16, padding:14, marginBottom:20, textAlign:"left" }}>
+                <p style={{ fontSize:12, color:"#7a4a54", fontStyle:"italic", lineHeight:1.6, margin:"0 0 10px" }}>
                   "Estamos muy emocionadas de tenerte aquí. Este programa lo creamos con todo el amor para que llegues preparada a tu familia anfitriona."
                 </p>
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1">
-                    <div className="w-7 h-7 rounded-full bg-[#fce8ed] border-2 border-white flex items-center justify-center">
-                      <span className="text-[#a0435f] text-[10px] font-serif font-bold">J</span>
-                    </div>
-                    <div className="w-7 h-7 rounded-full bg-[#e8e0f8] border-2 border-white flex items-center justify-center">
-                      <span className="text-[#6b4f9e] text-[10px] font-serif font-bold">T</span>
-                    </div>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ display:"flex", marginLeft:0 }}>
+                    {["J","T"].map((l,i) => (
+                      <div key={i} style={{ width:26, height:26, borderRadius:"50%", background:i===0?"#fce8ed":"#e8e0f8", border:"2px solid #fff", marginLeft:i>0?-6:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color:i===0?"#a0435f":"#6b4f9e" }}>{l}</div>
+                    ))}
                   </div>
-                  <p className="text-[11px] font-semibold text-[#a0435f]">Jennifer y Tati 💕</p>
+                  <p style={{ fontSize:11, fontWeight:600, color:"#a0435f", margin:0 }}>Jennifer y Tati 💕</p>
                 </div>
               </div>
-              <button onClick={cerrarBienvenida}
-                className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-medium text-[14px] py-3.5 rounded-2xl transition shadow-lg shadow-[#a0435f]/20">
+              <button onClick={cerrarBienvenida} style={{
+                width:"100%", background:"#a0435f", color:"#fff", fontSize:14, fontWeight:600,
+                padding:"14px", borderRadius:16, border:"none", cursor:"pointer",
+                boxShadow:"0 8px 20px rgba(160,67,95,.25)",
+              }}>
                 ¡Empezar mi Destino! 🚀
               </button>
-              <p className="text-[11px] text-[#9a6672] mt-3">Tu primera sesión es completamente gratis 🎉</p>
+              <p style={{ fontSize:11, color:"#9a6672", margin:"10px 0 0" }}>Tu primera sesión es completamente gratis 🎉</p>
             </div>
           </div>
         </div>
