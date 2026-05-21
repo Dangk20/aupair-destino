@@ -8,16 +8,9 @@ import {
   BookOpen, UserCheck, Building2, Heart, FileCheck, Plane,
   Bell, Calendar, MessageCircle, ArrowRight, Check,
 } from "lucide-react";
+import { StepCircle, HelpCard, RoadmapCard, PASO_META, PASOS_DEFAULT } from "@/components/dashboard/DashboardWidgets";
 
 /* ─── Config ──────────────────────────────────────────────────────────────── */
-const PASO_META = {
-  curso:             { icon:BookOpen,  color:"#10b981", bg:"#d1fae5" },
-  evaluacion_perfil: { icon:UserCheck, color:"#f59e0b", bg:"#fef3c7" },
-  perfil_agencia:    { icon:Building2, color:"#8b5cf6", bg:"#ede9fe" },
-  match:             { icon:Heart,     color:"#ec4899", bg:"#fce7f3" },
-  visa:              { icon:FileCheck, color:"#3b82f6", bg:"#dbeafe" },
-  viaje:             { icon:Plane,     color:"#a0435f", bg:"#fce8ed" },
-};
 const STATUS_CFG = {
   completado:  { label:"Completado",  textColor:"#10b981", ring:"#10b981" },
   en_revision: { label:"En revisión", textColor:"#d97706", ring:"#f59e0b" },
@@ -25,46 +18,6 @@ const STATUS_CFG = {
   bloqueado:   { label:"Bloqueado",   textColor:"#9ca3af", ring:"#d1d5db" },
 };
 
-/* ─── Step circle ─────────────────────────────────────────────────────────── */
-function StepCircle({ paso, index, isLast }) {
-  const meta   = PASO_META[paso.id] || PASO_META.curso;
-  const cfg    = STATUS_CFG[paso.status] || STATUS_CFG.bloqueado;
-  const Icon   = meta.icon;
-  const locked = paso.status === "bloqueado";
-  const done   = paso.status === "completado";
-  return (
-    <div className="flex items-start">
-      <div className="flex flex-col items-center gap-2" style={{ minWidth:78 }}>
-        <div className="relative">
-          <div className="w-[50px] h-[50px] rounded-full flex items-center justify-center border-[2.5px] transition-all"
-            style={{ borderColor:cfg.ring, background:locked?"#f9fafb":meta.bg }}>
-            {locked  ? <Lock size={16} className="text-gray-300" />
-             : done  ? <CheckCircle2 size={22} style={{ color:cfg.ring }} />
-             : <Icon size={19} style={{ color:meta.color }} />}
-          </div>
-          {paso.status === "en_revision" && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-amber-400 animate-pulse" />
-          )}
-          {paso.status === "disponible" && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white" style={{ background:meta.color }} />
-          )}
-        </div>
-        <div className="text-center" style={{ maxWidth:78 }}>
-          <p className="text-[10.5px] font-semibold text-[#1e1033] leading-tight">{index+1}. {paso.label}</p>
-          <p className="text-[10px] font-semibold mt-0.5" style={{ color:cfg.textColor }}>
-            {done?"Completado": paso.status==="en_revision"?"En revisión": locked?"Bloqueado":""}
-          </p>
-          {locked && <Lock size={9} className="mx-auto mt-0.5 text-gray-300" />}
-        </div>
-      </div>
-      {!isLast && (
-        <div className="flex items-center flex-1 mx-0.5" style={{ marginTop:25 }}>
-          <div className="w-full border-t-2 border-dashed" style={{ borderColor:done?"#10b981":"#e5e7eb" }} />
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ─── Progress card ───────────────────────────────────────────────────────── */
 function ProgressCard({ paso, porcentaje_curso }) {
@@ -476,14 +429,7 @@ export default function ProcesoPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl border border-[#ece4f0] shadow-sm p-4 relative overflow-hidden">
-              <div className="absolute -right-2 -bottom-2 pointer-events-none select-none text-[56px] opacity-20">🎈</div>
-              <h3 className="text-[13px] font-bold text-[#1e1033] mb-1">¿Necesitas ayuda?</h3>
-              <p className="text-[12px] text-[#9a7080] mb-3">Estamos aquí para ti.</p>
-              <button className="flex items-center justify-center gap-2 text-[#7c3aed] border border-[#ede9fe] hover:bg-[#f5f0ff] text-[12px] font-semibold w-full py-2 rounded-xl transition">
-                <MessageCircle size={13} /> Escribir a soporte
-              </button>
-            </div>
+            <HelpCard onContact={() => router.push("/dashboard/mensajes")} />
 
           </aside>
         </div>

@@ -24,7 +24,11 @@ export default function DashboardLayout({ children }) {
   const [mobileOpen,   setMobileOpen]   = useState(false);
   const [mensajesCount,setMensajesCount]= useState(0);
   const [todasComp,    setTodasComp]    = useState(false);
-  const [frase] = useState(() => FRASES[Math.floor(Math.random()*FRASES.length)]);
+  const [frase, setFrase] = useState(FRASES[0]);
+
+useEffect(() => {
+  setFrase(FRASES[Math.floor(Math.random() * FRASES.length)]);
+}, []);
 
   useEffect(() => {
     fetch("/api/auth/me").then(r=>r.json()).then(d=>setUser(d.user));

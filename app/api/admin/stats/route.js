@@ -3,175 +3,133 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 
+async function q(db, sql, params = []) {
+  try {
+    const [rows] = await db.query(sql, params);
+    return rows;
+  } catch (_) {
+    return null;
+  }
+}
+async function q1(db, sql, params = []) {
+  const rows = await q(db, sql, params);
+  return rows?.[0] ?? null;
+}
+
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
 
-  // ─── Queries que ya tenías ────────────────────────────────────────────────
+  try {
+    const r1  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol = 'usuaria'");
+    const totalUsuarias = Number(r1?.n ?? 0);
 
-  const [[{ totalUsuarias }]] = await dbAupair.query(
-    "SELECT COUNT(*) as totalUsuarias FROM usuarios WHERE rol = 'usuaria'"
-  );
-  const [[{ conAcceso }]] = await dbAupair.query(
-    "SELECT COUNT(*) as conAcceso FROM usuarios WHERE rol = 'usuaria' AND tiene_acceso = TRUE"
-  );
-  const [[{ totalSesiones }]] = await dbAupair.query(
-    "SELECT COUNT(*) as totalSesiones FROM sesiones"
-  );
-  const [[{ completaron }]] = await dbAupair.query(`
-    SELECT COUNT(*) as completaron FROM (
-      SELECT id_usuario FROM progreso_usuario WHERE completada = TRUE
-      GROUP BY id_usuario
-      HAVING COUNT(*) = (SELECT COUNT(*) FROM sesiones)
-    ) t
-  `);
+    const r2  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol = 'usuaria' AND tiene_acceso = TRUE");
+    const conAcceso = Number(r2?.n ?? 0);
 
-  const [registrosPorSemana] = await dbAupair.query(`
-    SELECT 
-      DATE_FORMAT(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY), '%d/%m') as semana,
-      COUNT(*) as total
-    FROM usuarios
-    WHERE rol = 'usuaria' AND created_at >= DATE_SUB(NOW(), INTERVAL 8 WEEK)
-    GROUP BY semana
-    ORDER BY MIN(created_at) ASC
-  `);
+    const r3  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM sesiones");
+    const totalSesiones = Number(r3?.n ?? 0);
 
-  const [[{ progresoPromedio }]] = await dbAupair.query(`
-    SELECT ROUND(AVG(sesiones_completadas / total_sesiones * 100)) as progresoPromedio
-    FROM (
-      SELECT u.id,
-        COUNT(p.id) as sesiones_completadas,
-        (SELECT COUNT(*) FROM sesiones) as total_sesiones
+    const r4  = await q1(dbAupair, `
+      SELECT COUNT(*) AS n FROM (
+        SELECT id_usuario FROM progreso_usuario WHERE completada = TRUE
+        GROUP BY id_usuario HAVING COUNT(*) = (SELECT COUNT(*) FROM sesiones)
+      ) t
+    `);
+    const completaron = Number(r4?.n ?? 0);
+
+    const r5  = await q1(dbAupair, `
+      SELECT ROUND(AVG(sesiones_completadas / GREATEST(total_sesiones,1) * 100)) AS prom
+      FROM (
+        SELECT u.id, COUNT(p.id) AS sesiones_completadas,
+          (SELECT COUNT(*) FROM sesiones) AS total_sesiones
+        FROM usuarios u
+        LEFT JOIN progreso_usuario p ON p.id_usuario = u.id AND p.completada = TRUE
+        WHERE u.rol = 'usuaria' GROUP BY u.id
+      ) t
+    `);
+    const progresoPromedio = Number(r5?.prom ?? 0);
+
+    const r6  = await q(dbAupair, `
+      SELECT s.titulo, s.orden, COUNT(p.id) AS completadas
+      FROM sesiones s
+      LEFT JOIN progreso_usuario p ON p.id_sesion = s.id AND p.completada = TRUE
+      GROUP BY s.id ORDER BY s.orden ASC
+    `);
+    const sesionesPopulares = r6 ?? [];
+
+    const r7  = await q(dbAupair, `
+      SELECT u.id, u.nombre, u.apellido, u.email, u.tiene_acceso, u.foto_url, u.created_at,
+        COUNT(p.id) AS sesiones_completadas,
+        ROUND(COUNT(p.id) / GREATEST((SELECT COUNT(*) FROM sesiones),1) * 100) AS porcentaje
       FROM usuarios u
       LEFT JOIN progreso_usuario p ON p.id_usuario = u.id AND p.completada = TRUE
-      WHERE u.rol = 'usuaria'
-      GROUP BY u.id
-    ) t
-  `);
-
-  const [sesionesPopulares] = await dbAupair.query(`
-    SELECT s.titulo, s.orden, COUNT(p.id) as completadas
-    FROM sesiones s
-    LEFT JOIN progreso_usuario p ON p.id_sesion = s.id AND p.completada = TRUE
-    GROUP BY s.id ORDER BY s.orden ASC
-  `);
-
-  const [ultimasUsuarias] = await dbAupair.query(`
-    SELECT u.id, u.nombre, u.apellido, u.email, u.tiene_acceso, u.foto_url, u.created_at,
-      COUNT(p.id) as sesiones_completadas,
-      ROUND(COUNT(p.id) / (SELECT COUNT(*) FROM sesiones) * 100) as porcentaje
-    FROM usuarios u
-    LEFT JOIN progreso_usuario p ON p.id_usuario = u.id AND p.completada = TRUE
-    WHERE u.rol = 'usuaria'
-    GROUP BY u.id ORDER BY u.created_at DESC LIMIT 5
-  `);
-
-  const [[{ sinProgreso }]] = await dbAupair.query(`
-    SELECT COUNT(*) as sinProgreso FROM usuarios u
-    WHERE u.rol = 'usuaria'
-    AND NOT EXISTS (
-      SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE
-    )
-  `);
-
-  // ─── Nuevas queries para la página de Sesiones ────────────────────────────
-
-  // Sesiones publicadas
-  const [[{ publicadas }]] = await dbAupair.query(
-    "SELECT COUNT(*) as publicadas FROM sesiones WHERE estado = 'publicada'"
-  );
-
-  // Tiempo promedio del programa (suma duración de sesiones publicadas)
-  // Requiere columna duracion_minutos en tabla sesiones.
-  // Si no la tienes aún, devuelve "—" sin romper nada.
-  let tiempo_promedio = "—";
-  try {
-    const [[{ minutos_total }]] = await dbAupair.query(
-      "SELECT COALESCE(SUM(duracion_minutos), 0) AS minutos_total FROM sesiones WHERE estado = 'publicada'"
-    );
-    if (minutos_total > 0) {
-      const h = Math.floor(minutos_total / 60);
-      const m = minutos_total % 60;
-      tiempo_promedio = `${h}h ${m}m`;
-    }
-  } catch (_) { /* columna no existe todavía, ignorar */ }
-
-  // Distribución para la dona (usa progresoPromedio ya calculado arriba)
-  const prom          = progresoPromedio || 0;
-  const completadas_pct  = prom;
-  // Usuarias que tienen algo de progreso pero no terminaron todo
-  const [[{ enProgreso }]] = await dbAupair.query(`
-    SELECT COUNT(*) as enProgreso FROM usuarios u
-    WHERE u.rol = 'usuaria'
-    AND EXISTS (
-      SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE
-    )
-    AND u.id NOT IN (
-      SELECT id_usuario FROM progreso_usuario WHERE completada = TRUE
-      GROUP BY id_usuario
-      HAVING COUNT(*) = (SELECT COUNT(*) FROM sesiones)
-    )
-  `);
-  const en_progreso_pct = totalUsuarias > 0 ? Math.round((enProgreso / totalUsuarias) * 100) : 0;
-  const sin_iniciar_pct = Math.max(0, 100 - completadas_pct - en_progreso_pct);
-
-  // Recursos por tipo (tabla sesion_recursos)
-  let recursos_por_tipo = [];
-  let total_recursos    = 0;
-  try {
-    const [rpt] = await dbAupair.query(`
-      SELECT tipo, COUNT(*) AS cantidad
-      FROM sesion_recursos
-      GROUP BY tipo
-      ORDER BY cantidad DESC
+      WHERE u.rol = 'usuaria' GROUP BY u.id ORDER BY u.created_at DESC LIMIT 5
     `);
-    recursos_por_tipo = rpt;
+    const ultimasUsuarias = r7 ?? [];
 
-    const [[{ tr }]] = await dbAupair.query(
-      "SELECT COUNT(*) AS tr FROM sesion_recursos"
-    );
-    total_recursos = tr;
-  } catch (_) { /* tabla aún no existe, devolver vacío */ }
+    const r8  = await q1(dbAupair, `
+      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol = 'usuaria'
+      AND NOT EXISTS (SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE)
+    `);
+    const sinProgreso = Number(r8?.n ?? 0);
 
-  // Actividad reciente — últimas 8 acciones de estudiantes
-  const [actividad] = await dbAupair.query(`
-    SELECT
-      u.id,
-      CONCAT(u.nombre, ' ', u.apellido) AS nombre,
-      LEFT(u.nombre,  1) AS ini_nombre,
-      LEFT(u.apellido,1) AS ini_apellido,
-      CASE WHEN p.completada = TRUE THEN 'completado' ELSE 'iniciado' END AS tipo_evento,
-      s.titulo AS sesion_titulo,
-      p.updated_at AS fecha
-    FROM progreso_usuario p
-    JOIN usuarios u ON u.id = p.id_usuario
-    JOIN sesiones s ON s.id = p.id_sesion
-    ORDER BY p.updated_at DESC
-    LIMIT 8
-  `);
+    const r9  = await q(dbAupair, `
+      SELECT DATE_FORMAT(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY), '%d/%m') AS semana,
+        COUNT(*) AS total
+      FROM usuarios WHERE rol = 'usuaria' AND created_at >= DATE_SUB(NOW(), INTERVAL 8 WEEK)
+      GROUP BY semana ORDER BY MIN(created_at) ASC
+    `);
+    const registrosPorSemana = r9 ?? [];
 
-  // ─── Respuesta ────────────────────────────────────────────────────────────
-  return NextResponse.json({
-    // — lo que ya tenías —
-    totalUsuarias,
-    conAcceso,
-    totalSesiones,
-    completaron,
-    progresoPromedio: progresoPromedio || 0,
-    tasaConversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
-    sinProgreso,
-    registrosPorSemana,
-    sesionesPopulares,
-    ultimasUsuarias,
+    const r10 = await q1(dbAupair, `
+      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol = 'usuaria'
+      AND EXISTS (SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE)
+      AND u.id NOT IN (
+        SELECT id_usuario FROM progreso_usuario WHERE completada = TRUE
+        GROUP BY id_usuario HAVING COUNT(*) = (SELECT COUNT(*) FROM sesiones)
+      )
+    `);
+    const enProgreso = Number(r10?.n ?? 0);
 
-    // — nuevo para la página de Sesiones —
-    publicadas,
-    tiempo_promedio,
-    completadas_pct,
-    en_progreso_pct,
-    sin_iniciar_pct,
-    recursos_por_tipo,   // [{ tipo: 'pdf', cantidad: 5 }, ...]
-    total_recursos,
-    actividad,           // últimas acciones de estudiantes
-  });
+    const completadas_pct = progresoPromedio;
+    const en_progreso_pct = totalUsuarias > 0 ? Math.round((enProgreso / totalUsuarias) * 100) : 0;
+    const sin_iniciar_pct = Math.max(0, 100 - completadas_pct - en_progreso_pct);
+
+    const r11 = await q(dbAupair, "SELECT tipo, COUNT(*) AS cantidad FROM sesion_recursos GROUP BY tipo ORDER BY cantidad DESC");
+    const recursos_por_tipo = r11 ?? [];
+
+    const r12 = await q1(dbAupair, "SELECT COUNT(*) AS n FROM sesion_recursos");
+    const total_recursos = Number(r12?.n ?? 0);
+
+    const r13 = await q(dbAupair, `
+      SELECT u.id, CONCAT(u.nombre, ' ', u.apellido) AS nombre,
+        LEFT(u.nombre,1) AS ini_nombre, LEFT(u.apellido,1) AS ini_apellido,
+        CASE WHEN p.completada = TRUE THEN 'completado' ELSE 'iniciado' END AS tipo_evento,
+        s.titulo AS sesion_titulo, p.updated_at AS fecha
+      FROM progreso_usuario p
+      JOIN usuarios u ON u.id = p.id_usuario
+      JOIN sesiones s ON s.id = p.id_sesion
+      ORDER BY p.updated_at DESC LIMIT 8
+    `);
+    const actividad = r13 ?? [];
+
+    // ── FIX: quitado WHERE estado = 'publicada' (columna no existe en tu BD) ──
+    const publicadas    = totalSesiones; // todas las sesiones cuentan
+    const tiempo_promedio = "—";         // requiere columna duracion_minutos
+
+    return NextResponse.json({
+      totalUsuarias, conAcceso, totalSesiones, completaron,
+      progresoPromedio,
+      tasaConversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
+      sinProgreso, registrosPorSemana, sesionesPopulares, ultimasUsuarias,
+      publicadas, tiempo_promedio,
+      completadas_pct, en_progreso_pct, sin_iniciar_pct,
+      recursos_por_tipo, total_recursos, actividad,
+    });
+
+  } catch (err) {
+    console.error("[GET /api/admin/stats]", err.message);
+    return NextResponse.json({ error: "Error en stats", detalle: err.message }, { status: 500 });
+  }
 }

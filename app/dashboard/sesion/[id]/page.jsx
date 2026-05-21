@@ -6,18 +6,18 @@ import Link from "next/link";
 import { CheckIcon, ChevronLeftIcon, LockIcon, PlayCircleIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
-const VIDEO_DEMO =  "/assets/Bienvenida.mp4";
+const VIDEO_DEMO = "/assets/Bienvenida.mp4";
 
 export default function SesionPage() {
   const { id } = useParams();
-  const router = useRouter();
+  const router  = useRouter();
 
-  const [sesion, setSesion] = useState(null);
-  const [todas, setTodas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [completando, setCompletando] = useState(false);
+  const [sesion,       setSesion]       = useState(null);
+  const [todas,        setTodas]        = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [completando,  setCompletando]  = useState(false);
   const [yaCompletada, setYaCompletada] = useState(false);
-  const [error, setError] = useState("");
+  const [error,        setError]        = useState("");
 
   useEffect(() => {
     fetch("/api/dashboard/sesiones")
@@ -29,8 +29,8 @@ export default function SesionPage() {
         if (!d) return;
         setTodas(d.sesiones);
         const encontrada = d.sesiones.find((s) => String(s.id) === String(id));
-        if (!encontrada) { router.push("/dashboard"); return; }
-        if (encontrada.estado === "locked") { router.push("/dashboard"); return; }
+        if (!encontrada)              { router.push("/dashboard/curso"); return; }
+        if (encontrada.estado === "locked") { router.push("/dashboard/curso"); return; }
         setSesion(encontrada);
         setYaCompletada(encontrada.estado === "completed");
         setLoading(false);
@@ -42,41 +42,22 @@ export default function SesionPage() {
     setCompletando(true);
     try {
       const res = await fetch("/api/dashboard/completar", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_sesion: Number(id) }),
+        body:    JSON.stringify({ id_sesion: Number(id) }),
       });
       if (res.ok) {
         setYaCompletada(true);
 
-         // 🎉 Confetti
-        confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#a0435f", "#e8849a", "#fce8ed", "#2d1a22", "#f0b8c4"],
-        });
-
-        // Segunda ráfaga
+        // 🎉 Confetti
+        confetti({ particleCount:120, spread:80, origin:{ y:0.6 }, colors:["#a0435f","#e8849a","#fce8ed","#2d1a22","#f0b8c4"] });
         setTimeout(() => {
-          confetti({
-          particleCount: 60,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ["#a0435f", "#e8849a", "#fce8ed"],
-         });
-          confetti({
-          particleCount: 60,
-         angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ["#a0435f", "#e8849a", "#fce8ed"],
-         });
+          confetti({ particleCount:60, angle:60,  spread:55, origin:{ x:0 }, colors:["#a0435f","#e8849a","#fce8ed"] });
+          confetti({ particleCount:60, angle:120, spread:55, origin:{ x:1 }, colors:["#a0435f","#e8849a","#fce8ed"] });
         }, 300);
 
-        setTimeout(() => router.push("/dashboard"), 2500);
-        
+        // ── FIX: vuelve a /dashboard/curso, no al dashboard ──
+        setTimeout(() => router.push("/dashboard/curso"), 2500);
       } else {
         const data = await res.json();
         setError(data.error || "No se pudo completar la sesión.");
@@ -88,30 +69,29 @@ export default function SesionPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#fff8f9] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-[13px] text-[#9a6672]">Cargando sesión...</p>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen bg-[#fff8f9] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-10 h-10 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-[13px] text-[#9a6672]">Cargando sesión...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   const indiceActual = todas.findIndex((s) => String(s.id) === String(id));
-  const siguiente = todas[indiceActual + 1];
-  const anterior = todas[indiceActual - 1];
+  const siguiente    = todas[indiceActual + 1];
+  const anterior     = todas[indiceActual - 1];
 
   return (
     <div className="min-h-screen bg-[#fff8f9]">
       <div className="max-w-3xl mx-auto px-4 py-8">
 
-        {/* Breadcrumb */}
+        {/* ── FIX: breadcrumb apunta a /dashboard/curso ── */}
         <div className="flex items-center gap-2 mb-6">
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-[13px] text-[#9a6672] hover:text-[#a0435f] transition">
+          <Link href="/dashboard/curso"
+            className="flex items-center gap-1.5 text-[13px] text-[#9a6672] hover:text-[#a0435f] transition">
             <ChevronLeftIcon size={14} />
-            Mi ruta
+            Mi curso
           </Link>
           <span className="text-[#e8b0bc] text-[13px]">/</span>
           <span className="text-[13px] text-[#2d1a22] font-medium">{sesion.titulo}</span>
@@ -121,16 +101,26 @@ export default function SesionPage() {
         <div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full">
           {sesion.url_video ? (
             sesion.url_video.includes("youtube.com") || sesion.url_video.includes("youtu.be") ? (
-              <iframe src={sesion.url_video.replace("watch?v=", "embed/")} className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+              <iframe
+                src={sesion.url_video.replace("watch?v=", "embed/")}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             ) : sesion.url_video.includes("vimeo.com") ? (
-              <iframe src={sesion.url_video.replace("vimeo.com/", "player.vimeo.com/video/")} className="w-full h-full"
-                allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+              <iframe
+                src={sesion.url_video.replace("vimeo.com/", "player.vimeo.com/video/")}
+                className="w-full h-full"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
             ) : (
-              <video src={sesion.url_video} controls className="w-full h-full" controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
+              <video src={sesion.url_video} controls className="w-full h-full"
+                controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
             )
           ) : (
-            <video src={VIDEO_DEMO} controls className="w-full h-full" controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
+            <video src={VIDEO_DEMO} controls className="w-full h-full"
+              controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
           )}
         </div>
 
@@ -147,13 +137,11 @@ export default function SesionPage() {
             </div>
             {yaCompletada ? (
               <div className="flex items-center gap-1.5 bg-[#fce8ed] text-[#a0435f] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
-                <CheckIcon size={12} />
-                Completada
+                <CheckIcon size={12} /> Completada
               </div>
             ) : (
               <div className="flex items-center gap-1.5 bg-[#fce8ed] text-[#e8849a] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
-                <PlayCircleIcon size={12} />
-                En curso
+                <PlayCircleIcon size={12} /> En curso
               </div>
             )}
           </div>
@@ -182,11 +170,11 @@ export default function SesionPage() {
           </button>
         ) : (
           <div className="w-full bg-[#fce8ed] border border-[#f0b8c4] text-[#a0435f] font-medium text-[14px] py-4 rounded-2xl text-center mb-4">
-            ✓ Sesión completada — redirigiendo...
+            ✓ Sesión completada — volviendo al curso...
           </div>
         )}
 
-        {/* Navegación */}
+        {/* Navegación anterior / siguiente */}
         <div className="flex items-center justify-between gap-3">
           {anterior ? (
             <Link href={`/dashboard/sesion/${anterior.id}`}
@@ -194,7 +182,14 @@ export default function SesionPage() {
               <ChevronLeftIcon size={14} />
               {anterior.titulo}
             </Link>
-          ) : <div />}
+          ) : (
+            /* Si no hay anterior, botón para volver al curso */
+            <Link href="/dashboard/curso"
+              className="flex items-center gap-2 text-[13px] text-[#9a6672] hover:text-[#a0435f] border border-[#f0dde2] bg-white px-4 py-2.5 rounded-xl transition">
+              <ChevronLeftIcon size={14} />
+              Volver al curso
+            </Link>
+          )}
 
           {siguiente && siguiente.estado !== "locked" ? (
             <Link href={`/dashboard/sesion/${siguiente.id}`}

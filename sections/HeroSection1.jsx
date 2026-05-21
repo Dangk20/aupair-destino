@@ -119,18 +119,18 @@ export default function HeroSection() {
         <div
           className="absolute overflow-hidden shadow-2xl shadow-[#a0435f]/15 pointer-events-none"
           style={{
-            width:        "clamp(760px, 60vw, 1260px)",
+            width:        "clamp(660px, 60vw, 1150px)",
             height:       "clamp(760px, 60vw, 1260px)",
-            borderRadius: "80%",
+            borderRadius: "60%",
             top:          "clamp(-190px, -13vw, -70px)",
-            right:        "clamp(-150px, -4vw, -50px)",
+            right:        "clamp(-100px, -4vw, -40px)",
             zIndex:       0,
           }}
         >
           <img
-            src="/carrusel/portada.jpeg"
+            src="/assets/portada.jpg"
             alt="Au pair"
-            className="w-full h-full object-cover object-[30%_35%] scale-105"
+            className="w-full h-full object-cover object-[50%_35%] scale-105"
             onError={(e) => {
               e.target.src = "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=1200&q=90";
             }}
@@ -175,7 +175,7 @@ export default function HeroSection() {
                 </span>
               ))}
               <span className="block relative italic text-[#a0435f]
-                text-[46px] md:text-[58px] lg:text-[54px] xl:text-[70px] 2xl:text-[84px]">
+                text-[46px] md:text-[58px] lg:text-[44px] xl:text-[60px] 2xl:text-[64px]">
                 Empieza aquí.
                 <svg className="absolute -bottom-1 left-0 w-full" height="8"
                      viewBox="0 0 300 8" preserveAspectRatio="none">

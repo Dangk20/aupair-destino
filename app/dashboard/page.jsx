@@ -9,18 +9,11 @@ import {
   BookOpen, UserCheck, Building2, Heart, FileCheck, Plane,
   CheckCircle2,
 } from "lucide-react";
+import { StepCircle, HelpCard, RoadmapCard, PASO_META, PASOS_DEFAULT } from "@/components/dashboard/DashboardWidgets";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CONFIG
 ═══════════════════════════════════════════════════════════════════════════ */
-const PASO_META = {
-  curso:             { icon: BookOpen,  color: "#10b981", bg: "#d1fae5", label: "Curso" },
-  evaluacion_perfil: { icon: UserCheck, color: "#f59e0b", bg: "#fef3c7", label: "Evaluación de perfil" },
-  perfil_agencia:    { icon: Building2, color: "#8b5cf6", bg: "#ede9fe", label: "Perfil con la agencia" },
-  match:             { icon: Heart,     color: "#ec4899", bg: "#fce7f3", label: "Match" },
-  visa:              { icon: FileCheck, color: "#3b82f6", bg: "#dbeafe", label: "Visa" },
-  viaje:             { icon: Plane,     color: "#a0435f", bg: "#fce8ed", label: "Viaje" },
-};
 
 const STATUS_CFG = {
   completado:  { textColor: "#10b981", ring: "#10b981", badgeBg: "#d1fae5", badgeText: "Completado"  },
@@ -29,57 +22,6 @@ const STATUS_CFG = {
   bloqueado:   { textColor: "#9ca3af", ring: "#d1d5db", badgeBg: "#f3f4f6", badgeText: "Bloqueado"   },
 };
 
-// Pasos por defecto cuando la API no tiene datos
-const PASOS_DEFAULT = [
-  { id:"curso",             label:"Curso",                 sublabel_base:"Educación y preparación",     status:"disponible" },
-  { id:"evaluacion_perfil", label:"Evaluación de perfil",  sublabel_base:"Revisión por Destino Au Pair",status:"bloqueado"  },
-  { id:"perfil_agencia",    label:"Perfil con la agencia", sublabel_base:"Activación con UNO800",       status:"bloqueado"  },
-  { id:"match",             label:"Match",                 sublabel_base:"Conexión con familias",       status:"bloqueado"  },
-  { id:"visa",              label:"Visa",                  sublabel_base:"Trámite y aprobación",        status:"bloqueado"  },
-  { id:"viaje",             label:"Viaje",                 sublabel_base:"Preparación final",           status:"bloqueado"  },
-];
-
-/* ─── Step circle ──────────────────────────────────────────────────────────── */
-function StepCircle({ paso, index, isLast }) {
-  const meta   = PASO_META[paso.id] || PASO_META.curso;
-  const cfg    = STATUS_CFG[paso.status] || STATUS_CFG.bloqueado;
-  const Icon   = meta.icon;
-  const locked = paso.status === "bloqueado";
-  const done   = paso.status === "completado";
-
-  return (
-    <div className="flex items-start flex-shrink-0">
-      <div className="flex flex-col items-center gap-1.5" style={{ minWidth: 80 }}>
-        <div className="relative">
-          <div className="w-[52px] h-[52px] rounded-full flex items-center justify-center border-[2.5px] transition-all"
-            style={{ borderColor: cfg.ring, background: locked ? "#f9fafb" : meta.bg }}>
-            {locked
-              ? <Lock size={16} className="text-gray-300" />
-              : done
-              ? <CheckCircle2 size={24} style={{ color: cfg.ring }} />
-              : <Icon size={20} style={{ color: meta.color }} />
-            }
-          </div>
-          {paso.status === "en_revision" && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-amber-400 animate-pulse" />
-          )}
-        </div>
-        <p className="text-[10.5px] font-semibold text-[#1e1033] text-center leading-tight" style={{ maxWidth: 78 }}>
-          {index + 1}. {paso.label}
-        </p>
-        <p className="text-[9.5px] font-semibold text-center" style={{ color: cfg.textColor }}>
-          {done ? "Completado" : paso.status === "en_revision" ? "En revisión" : locked ? "Bloqueado" : ""}
-        </p>
-        {locked && <Lock size={8} className="text-gray-300" />}
-      </div>
-      {!isLast && (
-        <div className="flex items-center flex-1 mx-0" style={{ marginTop: 26, minWidth: 12 }}>
-          <div className="w-full border-t-2 border-dashed" style={{ borderColor: done ? "#10b981" : "#e5e7eb" }} />
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ─── Progress summary card ────────────────────────────────────────────────── */
 function ProgressCard({ paso, porcentaje }) {
@@ -199,11 +141,23 @@ export default function DashboardPage() {
   ];
 
   const recursosDisplay = recursos.length > 0 ? recursos : [
-    { id:1, titulo:"Cultura Americana",      categoria:"Lección 3 de 5", progreso:60, emoji:"🇺🇸" },
-    { id:2, titulo:"Cuidado de niños",        categoria:"Lección 2 de 4", progreso:50, emoji:"👶" },
-    { id:3, titulo:"Preparación entrevistas", categoria:"Lección 4 de 6", progreso:66, emoji:"🎤" },
-    { id:4, titulo:"Checklist de viaje",      categoria:"Lección 1 de 3", progreso:33, emoji:"✈️" },
-  ];
+  {
+    id:1, titulo:"Cultura Americana", categoria:"Lección 3 de 5", progreso:60,
+    imagen:"https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=180&fit=crop&q=80",
+  },
+  {
+    id:2, titulo:"Cuidado de niños", categoria:"Lección 2 de 4", progreso:50,
+    imagen:"https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&h=180&fit=crop&q=80",
+  },
+  {
+    id:3, titulo:"Preparación entrevistas", categoria:"Lección 4 de 6", progreso:66,
+    imagen:"https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&h=180&fit=crop&q=80",
+  },
+  {
+    id:4, titulo:"Checklist de viaje", categoria:"Lección 1 de 3", progreso:33,
+    imagen:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=180&fit=crop&q=80",
+  },
+];
 
   /* ── Loading ── */
   if (loading) return (
@@ -383,12 +337,26 @@ export default function DashboardPage() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
               {recursosDisplay.map(r => (
                 <Link key={r.id} href={r.link || `/dashboard/recursos/${r.id}`} style={{ background:"#fff", borderRadius:16, border:"1px solid #ece4f0", overflow:"hidden", textDecoration:"none", boxShadow:"0 1px 4px rgba(0,0,0,.04)", display:"flex", flexDirection:"column" }}>
-                  <div style={{ height:90, background:"linear-gradient(135deg,#f5f0ff,#fce8ed)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
-                    {r.imagen
-                      ? <img src={r.imagen} alt={r.titulo} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                      : <span style={{ fontSize:36 }}>{r.emoji || "📖"}</span>
-                    }
-                  </div>
+                  <div style={{ height:100, overflow:"hidden", position:"relative" }}>
+  {r.imagen ? (
+    <>
+      <img
+        src={r.imagen}
+        alt={r.titulo}
+        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+      />
+      {/* Overlay degradado sutil abajo */}
+      <div style={{
+        position:"absolute", bottom:0, left:0, right:0, height:40,
+        background:"linear-gradient(to top, rgba(45,26,34,.35), transparent)",
+      }} />
+    </>
+  ) : (
+    <div style={{ width:"100%", height:"100%", background:"linear-gradient(135deg,#f5f0ff,#fce8ed)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <span style={{ fontSize:36 }}>{r.emoji || "📖"}</span>
+    </div>
+  )}
+</div>
                   <div style={{ padding:12, flex:1, display:"flex", flexDirection:"column" }}>
                     <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:"0 0 3px", lineHeight:1.3 }}>{r.titulo}</p>
                     <p style={{ fontSize:10, color:"#9a7080", margin:"0 0 8px" }}>{r.categoria}</p>
@@ -495,14 +463,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Help */}
-          <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:18, position:"relative", overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <div style={{ position:"absolute", right:-8, bottom:-8, fontSize:52, opacity:.2, pointerEvents:"none", userSelect:"none" }}>🎈</div>
-            <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 4px" }}>¿Necesitas ayuda?</h3>
-            <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 12px" }}>Estamos aquí para ti.</p>
-            <button style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, width:"100%", border:"1.5px solid #ede9fe", background:"#fff", color:"#7c3aed", fontSize:12, fontWeight:600, padding:"9px", borderRadius:12, cursor:"pointer" }}>
-              <MessageCircle size={13} /> Escribir a soporte
-            </button>
-          </div>
+          <HelpCard onContact={() => router.push("/dashboard/mensajes")} />
 
         </aside>
       </div>

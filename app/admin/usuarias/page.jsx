@@ -256,25 +256,39 @@ export default function AdminUsuariosPage() {
   useEffect(() => { cargar(); }, []);
 
   /* ── Acciones ── */
-  const toggleAcceso = async (id, actual) => {
-    await fetch("/api/admin/toggle-acceso", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, tiene_acceso: !actual }),
-    });
-    showToast(!actual ? "Acceso activado ✓" : "Acceso removido");
-    cargar();
-  };
+  const toggleAcceso = async (id, tieneAcceso) => {
+  setToggling(id);
+  const res = await fetch("/api/admin/toggle-acceso", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, tiene_acceso: !tieneAcceso }),
+  });
+  const data = await res.json();
+  if (data.ok) {
+    // ← Actualiza el estado local INMEDIATAMENTE
+    setUsuarias(prev => prev.map(u =>
+      u.id === id ? { ...u, tiene_acceso: data.tiene_acceso } : u
+    ));
+  }
+  setToggling(null);
+};
 
-  const togglePerfil = async (id, actual) => {
-    await fetch("/api/admin/toggle-perfil", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, perfil_habilitado: !actual }),
-    });
-    showToast(!actual ? "Perfil habilitado ✓" : "Perfil deshabilitado");
-    cargar();
-  };
+  const togglePerfil = async (id, perfilHabilitado) => {
+  setTogglingPerfil(id);
+  const res = await fetch("/api/admin/toggle-perfil", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, perfil_habilitado: !perfilHabilitado }),
+  });
+  const data = await res.json();
+  if (data.ok) {
+    // ← Actualiza el estado local INMEDIATAMENTE
+    setUsuarias(prev => prev.map(u =>
+      u.id === id ? { ...u, perfil_habilitado: data.perfil_habilitado } : u
+    ));
+  }
+  setTogglingPerfil(null);
+};
 
   const guardarEdicion = async (id, form) => {
     await fetch(`/api/admin/usuarias/${id}`, {
