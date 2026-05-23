@@ -3,44 +3,24 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 
-/* ── GET: obtener perfil completo de un usuario ── */
+/* ── GET: obtener perfil completo desde usuarios ── */
 export async function GET(req, { params }) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
 
   try {
     const { id } = await params;
-    const [[u]] = await dbAupair.query(`
-      SELECT
-        id, nombre, apellido, email, foto_url,
-        ciudad, pais, tiene_acceso, perfil_habilitado,
-        created_at, updated_at,
-        cedula, telefono, fecha_nacimiento, bio, pais_destino,
-        conoce_requisitos_26, conoce_requisitos_18_20,
-        curso_primeros_auxilios, nivel_ingles,
-        licencia_conduccion, habilidad_conduccion,
-        situacion_actual, detalle_otra_actividad,
-        detalle_estudios, carrera_graduada,
-        detalle_trabajo, detalle_sin_ocupacion,
-        enfermedad_medicamentos, detalle_enfermedad_med,
-        enfermedad_grave, detalle_enfermedad_grave,
-        depresion_panico, trastorno_alimenticio,
-        autolesiones, abuso_sustancias, detalle_salud_mental,
-        isotretinoina, condiciones_fisicas,
-        alergia_medicamentos, detalle_alergias,
-        dosis_covid, vacuna_covid,
-        exp_ninos_externos, horas_exp_ninos,
-        visa_negada, detalle_visa_negada, visa_cancelada,
-        familiar_residencia_usa, detalle_familiar_residencia,
-        familiar_visa_estudio_usa, detalle_familiar_visa_estudio,
-        overstay_otro_pais,
-        entiende_intercambio_cultural, consciente_riesgo_familiar,
-        participo_programa_ap, finalizo_programa_ap,
-        puede_proveer_certificados
-      FROM usuarios WHERE id = ?
-    `, [id]);
+
+    const [[u]] = await dbAupair.query(
+      "SELECT * FROM usuarios WHERE id = ?",
+      [id]
+    );
 
     if (!u) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+    // Quitar password del response
+    delete u.password;
+
     return NextResponse.json({ perfil: u });
   } catch (err) {
     console.error("[GET /api/admin/perfiles/[id]]", err.message);
@@ -48,7 +28,7 @@ export async function GET(req, { params }) {
   }
 }
 
-/* ── PUT: actualizar perfil — guarda en usuarios ── */
+/* ── PUT: actualizar perfil en usuarios ── */
 export async function PUT(req, { params }) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
@@ -57,41 +37,21 @@ export async function PUT(req, { params }) {
     const { id } = await params;
     const body = await req.json();
 
-    // Campos del perfil que el admin puede editar (todos en tabla usuarios)
-    const CAMPOS_PERMITIDOS = [
-      "cedula", "telefono", "fecha_nacimiento", "ciudad", "pais",
-      "bio", "pais_destino",
-      "conoce_requisitos_26", "conoce_requisitos_18_20",
-      "curso_primeros_auxilios", "nivel_ingles",
-      "licencia_conduccion", "habilidad_conduccion",
-      "situacion_actual", "detalle_otra_actividad",
-      "detalle_estudios", "carrera_graduada",
-      "detalle_trabajo", "detalle_sin_ocupacion",
-      "enfermedad_medicamentos", "detalle_enfermedad_med",
-      "enfermedad_grave", "detalle_enfermedad_grave",
-      "depresion_panico", "trastorno_alimenticio",
-      "autolesiones", "abuso_sustancias", "detalle_salud_mental",
-      "isotretinoina", "condiciones_fisicas",
-      "alergia_medicamentos", "detalle_alergias",
-      "dosis_covid", "vacuna_covid",
-      "exp_ninos_externos", "horas_exp_ninos",
-      "visa_negada", "detalle_visa_negada", "visa_cancelada",
-      "familiar_residencia_usa", "detalle_familiar_residencia",
-      "familiar_visa_estudio_usa", "detalle_familiar_visa_estudio",
-      "overstay_otro_pais",
-      "entiende_intercambio_cultural", "consciente_riesgo_familiar",
-      "participo_programa_ap", "finalizo_programa_ap",
-      "puede_proveer_certificados",
-    ];
+    // Verificar qué columnas existen en usuarios
+    const [cols] = await dbAupair.query("DESCRIBE usuarios");
+    const colNames = new Set(cols.map(c => c.Field));
+
+    // Nunca tocar estas columnas desde el admin de perfiles
+    const EXCLUIR = new Set(["id","email","password","rol","created_at"]);
 
     const sets   = [];
     const values = [];
 
-    for (const campo of CAMPOS_PERMITIDOS) {
-      if (body[campo] !== undefined) {
-        sets.push(`${campo} = ?`);
-        values.push(body[campo] === "" ? null : body[campo]);
-      }
+    for (const [campo, valor] of Object.entries(body)) {
+      if (EXCLUIR.has(campo)) continue;
+      if (!colNames.has(campo)) continue;
+      sets.push(`${campo} = ?`);
+      values.push(valor === "" ? null : valor);
     }
 
     if (sets.length === 0)
