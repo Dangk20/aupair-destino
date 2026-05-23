@@ -15,6 +15,7 @@ const navItems = [
   { label: "Referidos y comisiones", href: "/admin/referidos",  icon: UserPlusIcon        },
   { label: "Pagos y comisiones", href: "/admin/pagos",          icon: CreditCardIcon      },
   { label: "Usuarios",           href: "/admin/usuarias",       icon: UsersIcon           },
+  { label: "Perfiles",           href: "/admin/perfiles",       icon: UsersIcon           },
   { label: "Sesiones",           href: "/admin/sesiones",       icon: VideoIcon           },
   { label: "Reportes",           href: "/admin/reportes",       icon: BarChart2Icon       },
   { label: "Configuración",      href: "/admin/configuracion",  icon: SettingsIcon        },

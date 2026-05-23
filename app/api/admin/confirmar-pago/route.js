@@ -2,6 +2,7 @@
 // app/api/admin/confirmar-pago/route.js
 
 import dbAupair from "@/lib/db-aupair";
+import { NextResponse } from "next/server";
 
 // ══════════════════════════════════════════
 export async function POST(req) {
@@ -10,7 +11,7 @@ export async function POST(req) {
 
     await dbAupair.query("UPDATE usuarios SET tiene_acceso = 1 WHERE id = ?", [usuarioId]);
 
-    await db.query(`
+    await dbAupair.query(`
       UPDATE referido_registros
       SET pago_realizado = 1, monto_pagado = ?
       WHERE usuario_id = ?

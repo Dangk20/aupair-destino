@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Lock } from "lucide-react";
 
 export default function ComunidadPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [acceso, setAcceso] = useState(null);
+  useEffect(() => {
+  fetch("/api/dashboard/acceso")
+    .then(r => r.json())
+    .then(d => setAcceso(d.comunidad)) // cambia por d.perfil, d.recursos, etc.
+    .catch(() => setAcceso(false));
+  }, []);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -16,7 +26,6 @@ export default function ComunidadPage() {
       })
       .then((d) => {
         if (!d) return;
-        if (!d.user?.tiene_acceso) { router.push("/dashboard"); return; }
         setUser(d.user);
         setLoading(false);
       });
@@ -27,6 +36,30 @@ export default function ComunidadPage() {
       <div className="w-10 h-10 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin" />
     </div>
   );
+
+  if (acceso === null) return (
+  <div className="min-h-screen bg-[#fff8f9] flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin"/>
+  </div>
+);
+
+if (acceso === false) return (
+  <div className="min-h-screen bg-[#fff8f9] flex flex-col items-center justify-center gap-4 p-8 text-center">
+    <div className="w-16 h-16 rounded-full bg-[#fce8ed] flex items-center justify-center">
+      <Lock size={28} className="text-[#a0435f]"/>
+    </div>
+    <h2 className="font-serif font-bold text-[#2d1a22] text-[20px]">
+      Esta sección no está disponible aún
+    </h2>
+    <p className="text-[#9a6672] text-[14px] max-w-xs leading-relaxed">
+      Jenni está preparando tu acceso a esta sección. Te avisaremos cuando esté lista.
+    </p>
+    <Link href="/dashboard"
+      className="bg-[#a0435f] text-white text-[13px] font-semibold px-6 py-3 rounded-xl hover:bg-[#8a3550] transition">
+      Volver al inicio
+    </Link>
+  </div>
+);
 
   return (
     <div className="min-h-screen bg-[#fff8f9] relative overflow-hidden">

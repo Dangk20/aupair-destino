@@ -18,53 +18,127 @@ const FRASES = [
 ];
 
 export default function DashboardLayout({ children }) {
-  const pathname  = usePathname();
-  const router    = useRouter();
-  const [user,         setUser]         = useState(null);
-  const [mobileOpen,   setMobileOpen]   = useState(false);
-  const [mensajesCount,setMensajesCount]= useState(0);
-  const [todasComp,    setTodasComp]    = useState(false);
-  const [frase, setFrase] = useState(FRASES[0]);
+  const pathname = usePathname();
+  const router   = useRouter();
 
-useEffect(() => {
-  setFrase(FRASES[Math.floor(Math.random() * FRASES.length)]);
-}, []);
+  const [user,          setUser]          = useState(null);
+  const [mobileOpen,    setMobileOpen]    = useState(false);
+  const [mensajesCount, setMensajesCount] = useState(0);
+  const [frase,         setFrase]         = useState(FRASES[0]);
+  const [accesos,       setAccesos]       = useState({
+    sesiones:   false,
+    perfil:     false,
+    documentos: false,
+    recursos:   false,
+    reuniones:  false,
+    mensajes:   false,
+    comunidad:  false,
+  });
 
   useEffect(() => {
+    setFrase(FRASES[Math.floor(Math.random() * FRASES.length)]);
+  }, []);
+
+  useEffect(() => {
+    // Usuario
     fetch("/api/auth/me").then(r=>r.json()).then(d=>setUser(d.user));
-    fetch("/api/dashboard/sesiones").then(r=>r.json()).then(d=>{
-      if(d?.completadas && d?.total) setTodasComp(d.completadas===d.total);
-    });
+
+    // Mensajes no leídos
     fetch("/api/dashboard/mensajes?limit=1&solo_conteo=true")
       .then(r=>r.json()).then(d=>setMensajesCount(d.no_leidos||0))
+      .catch(()=>{});
+
+    // Accesos por sección — una sola llamada para todo
+    fetch("/api/dashboard/acceso")
+      .then(r=>r.json())
+      .then(d => setAccesos({
+        sesiones:   !!d.sesiones,
+        perfil:     !!d.perfil,
+        documentos: !!d.documentos,
+        recursos:   !!d.recursos,
+        reuniones:  !!d.reuniones,
+        mensajes:   !!d.mensajes,
+        comunidad:  !!d.comunidad,
+      }))
       .catch(()=>{});
   }, []);
 
   const logout = async () => {
-    await fetch("/api/auth/logout",{method:"POST"});
+    await fetch("/api/auth/logout", { method:"POST" });
     router.push("/");
   };
 
+  // Nav con accesos granulares
   const nav = [
-    { label:"Dashboard",          href:"/dashboard",                   icon:LayoutDashboard, locked:false },
-    { label:"Mi Destino Au Pair", href:"/dashboard/proceso",           icon:Map,             locked:false },
-    { label:"Curso",              href:"/dashboard/curso",             icon:BookOpen,        locked:false },
-    { label:"Perfil",             href:"/dashboard/perfil",            icon:User,            locked:!user?.perfil_habilitado },
-    { label:"Documentos",         href:"/dashboard/documentos",        icon:FileText,        locked:!user?.tiene_acceso },
-    { label:"Clases y formación", href:"/dashboard/clases",            icon:GraduationCap,   locked:!user?.tiene_acceso },
-    { label:"Reuniones",          href:"/dashboard/reuniones",         icon:Calendar,        locked:!user?.tiene_acceso },
-    { label:"Comunidad",          href:"/dashboard/comunidad",         icon:Users,           locked:!user?.tiene_acceso },
-    { label:"Recursos",           href:"/dashboard/recursos",          icon:FolderOpen,      locked:false },
-    { label:"Mensajes",           href:"/dashboard/mensajes",          icon:MessageCircle,   locked:false, badge:mensajesCount },
-    { label:"Configuración",      href:"/dashboard/configuracion",     icon:Settings,        locked:false },
+    {
+      label:"Dashboard",
+      href:"/dashboard",
+      icon:LayoutDashboard,
+      locked:false,                     // siempre visible y accesible
+    },
+    {
+      label:"Mi Destino Au Pair",
+      href:"/dashboard/proceso",
+      icon:Map,
+      locked:false,
+    },
+    {
+      label:"Curso",
+      href:"/dashboard/curso",
+      icon:BookOpen,
+      locked:false,                     // sesión 1 siempre libre
+    },
+    {
+      label:"Perfil",
+      href:"/dashboard/perfil",
+      icon:User,
+      locked:!accesos.perfil,
+    },
+    {
+      label:"Calendario",
+      href:"/dashboard/reuniones",
+      icon:Calendar,
+      locked:!accesos.reuniones,
+    },
+    {
+      label:"Documentos",
+      href:"/dashboard/documentos",
+      icon:FileText,
+      locked:!accesos.documentos,
+    },
+    {
+      label:"Comunidad",
+      href:"/dashboard/comunidad",
+      icon:Users,
+      locked:!accesos.comunidad,
+    },
+    {
+      label:"Recursos",
+      href:"/dashboard/recursos",
+      icon:FolderOpen,
+      locked:!accesos.recursos,
+    },
+    {
+      label:"Mensajes",
+      href:"/dashboard/mensajes",
+      icon:MessageCircle,
+      locked:!accesos.mensajes,
+      badge:mensajesCount,
+    },
+    {
+      label:"Configuración",
+      href:"/dashboard/configuracion",
+      icon:Settings,
+      locked:false,
+    },
   ];
 
   const Sidebar = () => (
     <aside className="w-[200px] bg-white border-r border-[#f0e8ea] flex flex-col h-full overflow-y-auto">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#f5eced]">
+      <div className="flex justify-center items-center p-4 border-b border-[#f5eced]">
         <Link href="/" onClick={()=>setMobileOpen(false)}>
-          <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={44} height={44} />
+          <Image src="/assets/destino-aupair-logo2.svg" alt="Destino Au Pair" width={80} height={80} />
         </Link>
       </div>
 
@@ -75,26 +149,39 @@ useEffect(() => {
           const active = item.href==="/dashboard"
             ? pathname==="/dashboard"
             : pathname===item.href || pathname.startsWith(item.href+"/");
+
           return (
-            <Link key={item.href}
-              href={item.locked?"#":item.href}
+            <Link
+              key={item.href}
+              href={item.locked ? item.href : item.href}
               onClick={()=>setMobileOpen(false)}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12.5px] font-medium transition-all group
                 ${active
                   ? "bg-[#fce8ed] text-[#a0435f]"
                   : item.locked
-                  ? "text-[#d0b0b8] cursor-not-allowed pointer-events-none"
+                  ? "text-[#d0b0b8]"
                   : "text-[#6b4a54] hover:bg-[#fff0f3] hover:text-[#a0435f]"
                 }`}
             >
+              {/* Ícono */}
               {item.locked
                 ? <Lock size={13} className="shrink-0 text-[#d0b0b8]" />
                 : <Icon size={14} className={`shrink-0 ${active?"text-[#a0435f]":"text-[#9a7080] group-hover:text-[#a0435f]"}`} />
               }
-              <span className="truncate">{item.label}</span>
-              {item.badge>0 && (
+
+              <span className="truncate flex-1">{item.label}</span>
+
+              {/* Badge mensajes */}
+              {!item.locked && item.badge>0 && (
                 <span className="ml-auto bg-[#a0435f] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                   {item.badge}
+                </span>
+              )}
+
+              {/* Candado al final si bloqueado */}
+              {item.locked && (
+                <span className="ml-auto text-[9px] bg-[#f5edf0] text-[#c0909a] font-semibold px-1.5 py-0.5 rounded-full">
+                  🔒
                 </span>
               )}
             </Link>

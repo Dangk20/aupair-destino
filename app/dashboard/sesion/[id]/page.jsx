@@ -97,32 +97,54 @@ export default function SesionPage() {
           <span className="text-[13px] text-[#2d1a22] font-medium">{sesion.titulo}</span>
         </div>
 
-        {/* Video player */}
-        <div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full">
-          {sesion.url_video ? (
-            sesion.url_video.includes("youtube.com") || sesion.url_video.includes("youtu.be") ? (
-              <iframe
-                src={sesion.url_video.replace("watch?v=", "embed/")}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : sesion.url_video.includes("vimeo.com") ? (
-              <iframe
-                src={sesion.url_video.replace("vimeo.com/", "player.vimeo.com/video/")}
-                className="w-full h-full"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video src={sesion.url_video} controls className="w-full h-full"
-                controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
-            )
-          ) : (
-            <video src={VIDEO_DEMO} controls className="w-full h-full"
-              controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} />
-          )}
-        </div>
+        {/* Video player — reemplaza todo el bloque del aspect-video */}
+<div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full">
+  {sesion.video_youtube_id ? (
+    // YouTube embed
+    <iframe
+      src={`https://www.youtube.com/embed/${sesion.video_youtube_id}?rel=0&modestbranding=1`}
+      className="w-full h-full"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  ) : sesion.video_drive_id ? (
+    // Google Drive embed
+    <iframe
+      src={`https://drive.google.com/file/d/${sesion.video_drive_id}/preview`}
+      className="w-full h-full"
+      allow="autoplay; fullscreen"
+      allowFullScreen
+    />
+  ) : sesion.url_video ? (
+    // Fallback: url_video vieja (YouTube, Vimeo o MP4)
+    sesion.url_video.includes("youtube.com") || sesion.url_video.includes("youtu.be") ? (
+      <iframe
+        src={sesion.url_video.replace("watch?v=", "embed/")}
+        className="w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    ) : sesion.url_video.includes("vimeo.com") ? (
+      <iframe
+        src={sesion.url_video.replace("vimeo.com/", "player.vimeo.com/video/")}
+        className="w-full h-full"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    ) : (
+      <video src={sesion.url_video} controls className="w-full h-full"
+        controlsList="nodownload" onContextMenu={e => e.preventDefault()} />
+    )
+  ) : (
+    // Sin video asignado
+    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+      <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+        <PlayCircleIcon size={28} className="text-[#e8849a]"/>
+      </div>
+      <p className="text-white/60 text-[13px]">Video próximamente disponible</p>
+    </div>
+  )}
+</div>
 
         {/* Info sesión */}
         <div className="bg-white rounded-2xl border border-[#f0dde2] p-6 mb-4">
@@ -144,7 +166,7 @@ export default function SesionPage() {
                 <PlayCircleIcon size={12} /> En curso
               </div>
             )}
-          </div>
+          </div>  
           {sesion.descripcion && (
             <p className="text-[14px] text-[#7a4a54] leading-relaxed">{sesion.descripcion}</p>
           )}

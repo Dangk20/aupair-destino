@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 const WHATSAPP_NUMBER = "13478886836";
-const CODIGOS_VALIDOS = ["JENI", "TATI"];
+
 
 /* ── Íconos redes ── */
 const IGIcon = () => (
@@ -70,13 +70,22 @@ const [errorCodigo,      setErrorCodigo]      = useState("");
   const precioConCodigo = 29;
   const precioFinal     = codigoAplicado ? precioConCodigo : precioRegular;
 
-  const handleAplicar = () => {
-    if (CODIGOS_VALIDOS.includes(codigo.trim().toUpperCase())) {
-      setCodigoAplicado(true); setErrorCodigo("");
-    } else {
-      setErrorCodigo("Código no válido. Verifica e intenta de nuevo.");
-    }
-  };
+  const handleAplicar = async () => {
+  if (!codigo.trim()) return;
+  setValidandoCodigo(true);
+  setErrorCodigo("");
+
+  const res = await fetch(`/api/pago/validar-codigo?codigo=${codigo.trim()}`);
+  const data = await res.json();
+
+  if (data.valido) {
+    setCodigoAplicado(true);
+    setErrorCodigo("");
+  } else {
+    setErrorCodigo(data.mensaje || "Código no válido. Verifica e intenta de nuevo.");
+  }
+  setValidandoCodigo(false);
+};
 
   const waLink = () => {
     const txt = codigoAplicado

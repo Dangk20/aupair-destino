@@ -6,29 +6,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Bell, Calendar, ArrowRight, Video, ExternalLink,
-  CheckCircle2, Clock, XCircle, CalendarPlus,
+  CheckCircle2, Clock, XCircle, CalendarPlus, Lock,
 } from "lucide-react";
 import { HelpCard } from "@/components/dashboard/DashboardWidgets";
 
-/* ─── Google Calendar URL ────────────────────────────────────────────────── */
 function buildCalendarUrl(r) {
-  const fecha  = r.fecha_raw || r.fecha;
-  const start  = `${fecha?.replace(/-/g,"")}T${(r.hora_inicio||"09:00").replace(":","").padEnd(6,"00")}`;
-  const end    = `${fecha?.replace(/-/g,"")}T${(r.hora_fin||"10:00").replace(":","").padEnd(6,"00")}`;
-  const params = new URLSearchParams({
-    action:"TEMPLATE",
-    text: r.titulo || "Reunión Destino Au Pair",
-    dates:`${start}/${end}`,
-    details:`${r.descripcion || ""}\n\nEnlace Meet: ${r.meet_url || ""}`,
-    location: r.meet_url || "Google Meet",
-  });
+  const fecha = r.fecha_raw || r.fecha;
+  const start = `${fecha?.replace(/-/g,"")}T${(r.hora_inicio||"09:00").replace(":","").padEnd(6,"00")}`;
+  const end   = `${fecha?.replace(/-/g,"")}T${(r.hora_fin||"10:00").replace(":","").padEnd(6,"00")}`;
+  const params = new URLSearchParams({ action:"TEMPLATE", text:r.titulo||"Reunión Destino Au Pair", dates:`${start}/${end}`, details:`${r.descripcion||""}\n\nMeet: ${r.meet_url||""}`, location:r.meet_url||"Google Meet" });
   return `https://calendar.google.com/calendar/render?${params}`;
 }
 
 const ESTADO_CFG = {
-  programada:  { color:"#7c3aed", bg:"#ede9fe", label:"Programada",   Icon:Clock        },
-  completada:  { color:"#10b981", bg:"#d1fae5", label:"Completada",   Icon:CheckCircle2 },
-  cancelada:   { color:"#ef4444", bg:"#fee2e2", label:"Cancelada",    Icon:XCircle      },
+  programada: { color:"#7c3aed", bg:"#ede9fe", label:"Programada", Icon:Clock        },
+  completada: { color:"#10b981", bg:"#d1fae5", label:"Completada", Icon:CheckCircle2 },
+  cancelada:  { color:"#ef4444", bg:"#fee2e2", label:"Cancelada",  Icon:XCircle      },
 };
 
 function DonutProgress({ pct=0 }) {
@@ -55,31 +48,58 @@ export default function ReunionesPage() {
   const [loading,   setLoading]   = useState(true);
   const [filtro,    setFiltro]    = useState("proximas");
 
+  // ── Control de acceso ──────────────────────────────────────────────────────
+  const [acceso, setAcceso] = useState(null);
+  useEffect(() => {
+    fetch("/api/dashboard/acceso")
+      .then(r => r.json())
+      .then(d => setAcceso(d.reuniones))
+      .catch(() => setAcceso(false));
+  }, []);
+
   useEffect(() => {
     const safe = (p, fb=null) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
     Promise.all([
-      safe(fetch("/api/auth/me"),                    { user:null }),
-      safe(fetch("/api/dashboard/reuniones"),        { reuniones:[] }),
-      safe(fetch("/api/dashboard/proceso"),          null),
+      safe(fetch("/api/auth/me"),             { user:null }),
+      safe(fetch("/api/dashboard/reuniones"), { reuniones:[] }),
+      safe(fetch("/api/dashboard/proceso"),   null),
     ]).then(([me, rData, proc]) => {
-      setUser(me?.user || null);
-      setReuniones(rData.reuniones || []);
+      setUser(me?.user||null);
+      setReuniones(rData.reuniones||[]);
       setProceso(proc);
       setLoading(false);
     });
   }, []);
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const proximas  = reuniones.filter(r => new Date(r.fecha) >= hoy && r.estado !== "cancelada");
-  const pasadas   = reuniones.filter(r => new Date(r.fecha) < hoy || r.estado === "completada");
-  const mostrar   = filtro === "proximas" ? proximas : pasadas;
-
+  const proximas = reuniones.filter(r => new Date(r.fecha)>=hoy && r.estado!=="cancelada");
+  const pasadas  = reuniones.filter(r => new Date(r.fecha)<hoy  || r.estado==="completada");
+  const mostrar  = filtro==="proximas" ? proximas : pasadas;
   const fasesComp = proceso?.pasos?.filter(p=>["evaluacion_perfil","perfil_agencia","match","visa","viaje"].includes(p.id)&&p.status==="completado")?.length||0;
 
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ width:36, height:36, border:"3px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  // ── Verificación de acceso ─────────────────────────────────────────────────
+  if (acceso === null) return (
+    <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ width:36, height:36, border:"3px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+  if (acceso === false) return (
+    <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:32, textAlign:"center" }}>
+      <div style={{ width:64, height:64, borderRadius:"50%", background:"#fce8ed", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <Lock size={28} style={{ color:"#a0435f" }}/>
+      </div>
+      <h2 style={{ fontFamily:"Georgia,serif", fontWeight:700, color:"#2d1a22", fontSize:20, margin:0 }}>Esta sección no está disponible aún</h2>
+      <p style={{ color:"#9a6672", fontSize:14, maxWidth:300, margin:0, lineHeight:1.6 }}>Jenni está preparando tu acceso. Te avisaremos cuando esté lista.</p>
+      <Link href="/dashboard" style={{ background:"#a0435f", color:"#fff", fontSize:13, fontWeight:600, padding:"12px 28px", borderRadius:14, textDecoration:"none" }}>Volver al inicio</Link>
     </div>
   );
 
@@ -93,26 +113,19 @@ export default function ReunionesPage() {
           <h1 style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:700, color:"#1e1033", margin:0 }}>¡Hola, {user?.nombre}! 👋</h1>
           <p style={{ fontSize:13, color:"#9a7080", margin:"2px 0 0" }}>Gestiona tus reuniones con el equipo. 💜</p>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
-          <button style={{ position:"relative", padding:8, borderRadius:12, border:"1px solid #ece4f0", background:"#fff", cursor:"pointer" }}>
-            <Bell size={17} style={{ color:"#9a7080" }}/>
-            <span style={{ position:"absolute", top:6, right:6, width:7, height:7, background:"#a0435f", borderRadius:"50%", border:"1.5px solid #fff" }}/>
-          </button>
-          <Link href="/dashboard/proceso" style={{ display:"flex", alignItems:"center", gap:6, background:"#5b21b6", color:"#fff", fontSize:13, fontWeight:600, padding:"9px 16px", borderRadius:12, textDecoration:"none" }}>
-            Ver mi proceso <ArrowRight size={13}/>
-          </Link>
-        </div>
+        <Link href="/dashboard/proceso" style={{ display:"flex", alignItems:"center", gap:6, background:"#5b21b6", color:"#fff", fontSize:13, fontWeight:600, padding:"9px 16px", borderRadius:12, textDecoration:"none" }}>
+          Ver mi proceso <ArrowRight size={13}/>
+        </Link>
       </div>
 
       <div style={{ maxWidth:1400, margin:"0 auto", padding:"20px 24px 40px", display:"flex", gap:20 }}>
         <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:16 }}>
-
           <div>
             <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:"#1e1033", margin:"0 0 6px" }}>Reuniones</h2>
             <p style={{ fontSize:13, color:"#9a7080", margin:0 }}>Aquí aparecerán todas las reuniones que el equipo de Destino Au Pair programe contigo.</p>
           </div>
 
-          {/* Próxima reunión destacada */}
+          {/* Próxima destacada */}
           {proximas[0] && (
             <div style={{ background:"linear-gradient(135deg,#5b21b6,#7c3aed)", borderRadius:20, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", boxShadow:"0 8px 24px rgba(91,33,182,.25)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -133,7 +146,7 @@ export default function ReunionesPage() {
                     <Video size={14}/> Unirse al Meet
                   </a>
                 )}
-                <a href={buildCalendarUrl({ ...proximas[0], fecha_raw: proximas[0].fecha })} target="_blank" rel="noopener noreferrer"
+                <a href={buildCalendarUrl({ ...proximas[0], fecha_raw:proximas[0].fecha })} target="_blank" rel="noopener noreferrer"
                   style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,.15)", color:"#fff", fontSize:12, fontWeight:600, padding:"9px 16px", borderRadius:12, textDecoration:"none", border:"1px solid rgba(255,255,255,.3)" }}>
                   <CalendarPlus size={14}/> Agregar a Calendar
                 </a>
@@ -143,14 +156,10 @@ export default function ReunionesPage() {
 
           {/* Filtros */}
           <div style={{ display:"flex", gap:8 }}>
-            {[
-              { id:"proximas", label:"Próximas", n:proximas.length },
-              { id:"pasadas",  label:"Pasadas",  n:pasadas.length  },
-            ].map(f => (
-              <button key={f.id} onClick={() => setFiltro(f.id)}
+            {[{id:"proximas",label:"Próximas",n:proximas.length},{id:"pasadas",label:"Pasadas",n:pasadas.length}].map(f=>(
+              <button key={f.id} onClick={()=>setFiltro(f.id)}
                 style={{ padding:"7px 16px", borderRadius:99, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, fontFamily:"inherit", transition:"all .12s",
-                  background:filtro===f.id?"#5b21b6":"#fff",
-                  color:filtro===f.id?"#fff":"#6b7280",
+                  background:filtro===f.id?"#5b21b6":"#fff", color:filtro===f.id?"#fff":"#6b7280",
                   boxShadow:filtro===f.id?"0 2px 8px rgba(91,33,182,.3)":"0 1px 3px rgba(0,0,0,.07)",
                 }}>
                 {f.label} ({f.n})
@@ -158,35 +167,24 @@ export default function ReunionesPage() {
             ))}
           </div>
 
-          {/* Lista reuniones */}
-          {mostrar.length === 0 ? (
+          {/* Lista */}
+          {mostrar.length===0 ? (
             <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:"48px 24px", textAlign:"center" }}>
               <div style={{ fontSize:48, marginBottom:12 }}>📅</div>
-              <p style={{ fontSize:15, fontWeight:600, color:"#1e1033", margin:"0 0 6px" }}>
-                {filtro==="proximas" ? "Sin reuniones próximas" : "Sin reuniones pasadas"}
-              </p>
-              <p style={{ fontSize:13, color:"#9a7080", margin:0 }}>
-                {filtro==="proximas" ? "El equipo te asignará una reunión pronto. 💜" : "Aquí aparecerán tus reuniones anteriores."}
-              </p>
+              <p style={{ fontSize:15, fontWeight:600, color:"#1e1033", margin:"0 0 6px" }}>{filtro==="proximas"?"Sin reuniones próximas":"Sin reuniones pasadas"}</p>
+              <p style={{ fontSize:13, color:"#9a7080", margin:0 }}>{filtro==="proximas"?"El equipo te asignará una reunión pronto. 💜":"Aquí aparecerán tus reuniones anteriores."}</p>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {mostrar.map(r => {
-                const cfg = ESTADO_CFG[r.estado] || ESTADO_CFG.programada;
+                const cfg = ESTADO_CFG[r.estado]||ESTADO_CFG.programada;
                 const EstadoIcon = cfg.Icon;
                 return (
                   <div key={r.id} style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:"18px 22px", display:"flex", alignItems:"center", gap:16, boxShadow:"0 1px 4px rgba(0,0,0,.04)", flexWrap:"wrap" }}>
-                    {/* Fecha */}
                     <div style={{ textAlign:"center", background:"#f5f0ff", borderRadius:14, padding:"10px 14px", flexShrink:0 }}>
-                      <p style={{ fontSize:22, fontWeight:800, color:"#5b21b6", margin:0, fontFamily:"Georgia,serif", lineHeight:1 }}>
-                        {new Date(r.fecha).getDate()}
-                      </p>
-                      <p style={{ fontSize:11, fontWeight:600, color:"#7c3aed", margin:0, textTransform:"uppercase" }}>
-                        {new Date(r.fecha).toLocaleDateString("es-CO",{ month:"short" })}
-                      </p>
+                      <p style={{ fontSize:22, fontWeight:800, color:"#5b21b6", margin:0, fontFamily:"Georgia,serif", lineHeight:1 }}>{new Date(r.fecha).getDate()}</p>
+                      <p style={{ fontSize:11, fontWeight:600, color:"#7c3aed", margin:0, textTransform:"uppercase" }}>{new Date(r.fecha).toLocaleDateString("es-CO",{month:"short"})}</p>
                     </div>
-
-                    {/* Info */}
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
                         <p style={{ fontSize:15, fontWeight:700, color:"#1e1033", margin:0 }}>{r.titulo}</p>
@@ -201,9 +199,7 @@ export default function ReunionesPage() {
                       </div>
                       {r.descripcion && <p style={{ fontSize:12, color:"#9a7080", margin:"6px 0 0" }}>{r.descripcion}</p>}
                     </div>
-
-                    {/* Acciones */}
-                    {r.estado === "programada" && (
+                    {r.estado==="programada" && (
                       <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                         {r.meet_url && (
                           <a href={r.meet_url} target="_blank" rel="noopener noreferrer"
@@ -211,7 +207,7 @@ export default function ReunionesPage() {
                             <Video size={13}/> Unirse
                           </a>
                         )}
-                        <a href={buildCalendarUrl({ ...r, fecha_raw:r.fecha })} target="_blank" rel="noopener noreferrer"
+                        <a href={buildCalendarUrl({...r,fecha_raw:r.fecha})} target="_blank" rel="noopener noreferrer"
                           style={{ display:"flex", alignItems:"center", gap:6, border:"1.5px solid #ede9fe", color:"#7c3aed", fontSize:12, fontWeight:600, padding:"8px 14px", borderRadius:11, textDecoration:"none", background:"#fff" }}>
                           <CalendarPlus size={13}/> Calendar
                         </a>
@@ -227,12 +223,12 @@ export default function ReunionesPage() {
         {/* SIDEBAR */}
         <aside style={{ width:260, flexShrink:0, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:20, textAlign:"center" }}>
-            <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 16px", textAlign:"left" }}>Tu progreso en el proceso</h3>
+            <h3 style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 16px", textAlign:"left" }}>Tu progreso</h3>
             <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}><DonutProgress pct={Math.round(fasesComp/5*100)}/></div>
             <p style={{ fontFamily:"Georgia,serif", fontSize:16, fontWeight:700, color:"#1e1033", margin:"0 0 2px" }}>{fasesComp} de 5 fases</p>
-            <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 14px" }}>Sigue así, vas por buen camino 💜</p>
+            <p style={{ fontSize:12, color:"#9a7080", margin:"0 0 14px" }}>Sigue así 💜</p>
             <Link href="/dashboard/proceso" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, border:"1.5px solid #ede9fe", color:"#7c3aed", fontSize:12, fontWeight:600, padding:"10px", borderRadius:12, textDecoration:"none" }}>
-              🗺️ Ver mi proceso completo
+              🗺️ Ver mi proceso
             </Link>
           </div>
           {proceso?.proximoPaso && (
@@ -247,7 +243,7 @@ export default function ReunionesPage() {
               </Link>
             </div>
           )}
-          <HelpCard onContact={() => router.push("/dashboard/mensajes")}/>
+          <HelpCard onContact={()=>router.push("/dashboard/mensajes")}/>
         </aside>
       </div>
     </div>

@@ -1,9 +1,6 @@
-// ══════════════════════════════════════════════
-// 3. app/api/pago/validar-codigo/route.js
-//    Valida si el código es válido antes de pagar
-// ══════════════════════════════════════════════
+// app/api/pago/validar-codigo/route.js
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import dbAupair from "@/lib/db-aupair"; // ← único cambio
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -11,7 +8,7 @@ export async function GET(req) {
 
   if (!codigo) return NextResponse.json({ valido: false });
 
-  const [rows] = await db.query(
+  const [rows] = await dbAupair.query( // ← y aquí
     "SELECT id, nombre FROM referidos WHERE codigo = ?", [codigo]
   );
 
@@ -22,6 +19,6 @@ export async function GET(req) {
   return NextResponse.json({
     valido: true,
     referente: rows[0].nombre,
-    precioFinal: 29, // precio con código
+    precioFinal: 29,
   });
 }

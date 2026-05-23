@@ -259,7 +259,7 @@ export default function PerfilOverviewPage() {
           {/* FASES DEL PERFIL */}
           <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", boxShadow:"0 1px 4px rgba(0,0,0,.04)", overflow:"hidden" }}>
             <div style={{ padding:"16px 24px 14px", borderBottom:"1px solid #f5eef8" }}>
-              <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, fontWeight:700, color:"#1e1033", margin:0 }}>Sesiones del perfil</h2>
+              <h2 style={{ fontFamily:"Georgia,serif", fontSize:17, fontWeight:700, color:"#1e1033", margin:0 }}>Etapas del proceso</h2>
             </div>
 
             {FASES.map((f, i) => {

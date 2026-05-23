@@ -492,7 +492,7 @@ export default function DashboardPage() {
                       <div key={i} style={{ width:26, height:26, borderRadius:"50%", background:i===0?"#fce8ed":"#e8e0f8", border:"2px solid #fff", marginLeft:i>0?-6:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color:i===0?"#a0435f":"#6b4f9e" }}>{l}</div>
                     ))}
                   </div>
-                  <p style={{ fontSize:11, fontWeight:600, color:"#a0435f", margin:0 }}>Jennifer y Tati 💕</p>
+                  <p style={{ fontSize:11, fontWeight:600, color:"#a0435f", margin:0 }}>Equipo Destino Au Pair 💕</p>
                 </div>
               </div>
               <button onClick={cerrarBienvenida} style={{

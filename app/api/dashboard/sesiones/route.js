@@ -9,21 +9,23 @@ export async function GET(req) {
   try {
     // Trae todas las sesiones con el progreso de la usuaria
     const [rows] = await dbAupair.query(
-      `SELECT 
-        s.id,
-        s.titulo,
-        s.descripcion,
-        s.orden,
-        s.es_gratis,
-        s.url_video,
-        COALESCE(p.completada, FALSE) AS completada,
-        p.fecha_completado
-       FROM sesiones s
-       LEFT JOIN progreso_usuario p 
-         ON p.id_sesion = s.id AND p.id_usuario = ?
-       ORDER BY s.orden ASC`,
-      [session.id]
-    );
+  `SELECT 
+    s.id,
+    s.titulo,
+    s.descripcion,
+    s.orden,
+    s.es_gratis,
+    s.url_video,
+    s.video_drive_id,
+    s.video_youtube_id,
+    COALESCE(p.completada, FALSE) AS completada,
+    p.fecha_completado
+   FROM sesiones s
+   LEFT JOIN progreso_usuario p 
+     ON p.id_sesion = s.id AND p.id_usuario = ?
+   ORDER BY s.orden ASC`,
+  [session.id]
+);
 
     // Calcula cuál es la primera sesión disponible (la siguiente a la última completada)
     let primeraDisponible = null;

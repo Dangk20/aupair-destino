@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 
 export async function POST(_, { params }) {
+  const { id } = await params;
   try {
     await dbAupair.query(
       "UPDATE referidos SET estado='Pagado' WHERE id=?",
-      [params.id]
+      [id]
     );
     return NextResponse.json({ ok: true });
   } catch (e) {

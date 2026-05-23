@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { EyeIcon, EyeOffIcon, Mail, Lock, User, Users, ShieldCheck, Star } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const steps = [
   {
@@ -56,6 +56,7 @@ const badges = [
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPwd, setShowPwd]       = useState(false);
   const [showPwd2, setShowPwd2]     = useState(false);
   const [accepted, setAccepted]     = useState(false);
@@ -63,7 +64,9 @@ export default function RegisterPage() {
   const [error, setError]           = useState("");
   const [form, setForm] = useState({
     nombre: "", apellido: "", email: "", password: "", confirm: "",
+    codigo_referido: searchParams.get("ref") || "",
   });
+  
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -82,6 +85,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           nombre: form.nombre, apellido: form.apellido,
           email: form.email, password: form.password,
+          codigo_referido: form.codigo_referido || null,
         }),
       });
       const data = await res.json();
@@ -355,6 +359,20 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Código referido */}
+<div>
+  <label className="block text-[10px] xl:text-[11px] font-bold tracking-[2px] uppercase text-[#1a0a3d] mb-1.5">
+    Código de referido <span className="text-[#b0a0d0] normal-case font-normal">(opcional)</span>
+  </label>
+  <div className="relative">
+    <Users size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b0a0d0]" strokeWidth={1.5}/>
+    <input name="codigo_referido" type="text" placeholder="Ej: TATI2026"
+      value={form.codigo_referido}
+      onChange={e => setForm({...form, codigo_referido: e.target.value.toUpperCase()})}
+      className={inputBase}/>
+  </div>
+</div>
 
               {/* Checkbox términos */}
               <label className="flex items-start gap-3 cursor-pointer">
