@@ -305,10 +305,9 @@ export default function LoginPage() {
                                   uppercase text-[#2d1a22]">
                   Contraseña
                 </label>
-                <Link href="/forgot-password"
-                      className="text-[12px] text-[#a0435f] hover:underline">
-                  ¿Olvidaste tu contraseña?
-                </Link>
+                <Link href="/forgot-password" style={{ fontSize:13, color:"#a0435f", textDecoration:"none" }}>
+  ¿Olvidaste tu contraseña?
+</Link>
               </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#c0909a]" strokeWidth={1.5}/>
