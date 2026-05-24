@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, Save, CheckCircle2, Lock,
   User, Wrench, Briefcase, Heart, Baby, FileCheck, Check,
 } from "lucide-react";
+import FotoUpload from "@/components/dashboard/FotoUpload";
 
 
 /* ─── Secciones ──────────────────────────────────────────────────────────── */
@@ -282,9 +283,18 @@ export default function PerfilEvaluacionPage() {
             {paso === 0 && (
               <>
                 <div>
-                  <label style={LC}>URL de tu foto de perfil</label>
-                  <input name="foto_url" type="url" placeholder="https://..." value={form.foto_url} onChange={handleInput} style={IC} />
-                  <p style={{ fontSize:11, color:"#c0909a", margin:"4px 0 0" }}>Pega el enlace directo a tu foto</p>
+                <FotoUpload
+                value={form.foto_url}
+                onChange={async (base64) => {
+               set("foto_url", base64);
+                // Guarda inmediatamente en BD
+                await fetch("/api/dashboard/foto", {
+                 method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({ foto_url: base64 }),
+                });
+                }}
+                />
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                   <div><label style={LC}>Cédula *</label><input name="cedula" type="text" placeholder="1234567890" value={form.cedula} onChange={handleInput} style={IC} /></div>

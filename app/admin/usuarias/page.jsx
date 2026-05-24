@@ -471,7 +471,7 @@ export default function AdminUsuariosPage() {
           </div>
           <button onClick={()=>setModalNuevo(true)}
             className="flex items-center gap-1.5 bg-[#a0435f] hover:bg-[#8a3550] text-white text-[12px] font-semibold px-4 py-2.5 rounded-xl transition shadow-md shadow-[#a0435f]/20">
-            <PlusIcon size={13}/>+ Nuevo usuario
+            <PlusIcon size={13}/>Nuevo usuario
           </button>
         </div>
 

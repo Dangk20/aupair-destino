@@ -72,21 +72,22 @@ export default function AdminPerfilesPage() {
   useEffect(() => { cargar(); }, [search, filtroEstado, filtroCiudad]);
 
   const exportarLista = () => {
-    const lineas = [
-      "Nombre|Email|Ciudad|Estado|Progreso|Inglés|Licencia|Registro",
-      ...lista.map(p =>
-        `${p.nombre} ${p.apellido}|${p.email}|${p.ciudad||"—"}|${p.estado}|${p.progreso}%|${p.nivel_ingles||"—"}|${p.licencia_conduccion||"—"}|${p.created_at?new Date(p.created_at).toLocaleDateString("es-CO"):"—"}`
-      )
+    const lineas = ["Nombre|Email|Ciudad|Estado|Progreso|Inglés|Licencia|Registro",
+      ...lista.map(p => `${p.nombre} ${p.apellido}|${p.email}|${p.ciudad||"—"}|${p.estado}|${p.progreso}%|${p.nivel_ingles||"—"}|${p.licencia_conduccion||"—"}|${p.created_at?new Date(p.created_at).toLocaleDateString("es-CO"):"—"}`)
     ].join("\n");
-    const a = Object.assign(document.createElement("a"),{
-      href:`data:text/plain;charset=utf-8,${encodeURIComponent(lineas)}`, download:"perfiles.txt"
-    });
+    const a = Object.assign(document.createElement("a"),{ href:`data:text/plain;charset=utf-8,${encodeURIComponent(lineas)}`, download:"perfiles.txt" });
     a.click(); showToast("Lista exportada ✓");
   };
 
-  const lista      = tab===1 ? perfiles : perfiles.filter(p => p.tiene_acceso);
-  const totalPags  = Math.ceil(lista.length / POR_PAG);
-  const visibles   = lista.slice((pagina-1)*POR_PAG, pagina*POR_PAG);
+  // Tab 1 → evaluacion page, Tab 2 → agencia page
+  const irAPerfil = (id) => {
+    if (tab === 1) router.push(`/admin/perfiles/${id}`);
+    else           router.push(`/admin/perfiles/${id}/agencia`);
+  };
+
+  const lista     = tab===1 ? perfiles : perfiles.filter(p => p.tiene_acceso);
+  const totalPags = Math.ceil(lista.length / POR_PAG);
+  const visibles  = lista.slice((pagina-1)*POR_PAG, pagina*POR_PAG);
   const se = statsEval;
   const sa = statsAgencia;
 
@@ -113,7 +114,7 @@ export default function AdminPerfilesPage() {
         {/* Tabs */}
         <div style={{ display:"flex", marginBottom:24, background:"#fff", borderRadius:14, border:"1px solid #f0dde2", overflow:"hidden", width:"fit-content" }}>
           {[{id:1,label:"1. Evaluación de Perfil",emoji:"🗂️"},{id:2,label:"2. Perfil con la agencia",emoji:"🏢"}].map(t=>(
-            <button key={t.id} onClick={()=>{setTab(t.id);setPagina(1);}}
+            <button key={t.id} onClick={()=>{setTab(t.id);setPagina(1);setFiltroEstado("");}}
               style={{ display:"flex", alignItems:"center", gap:8, padding:"12px 24px", border:"none", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"inherit",
                 background:tab===t.id?"#fce8ed":"#fff", color:tab===t.id?"#a0435f":"#9a7080",
                 borderBottom:tab===t.id?"2px solid #a0435f":"2px solid transparent",
@@ -167,9 +168,9 @@ export default function AdminPerfilesPage() {
               : ["Lista para agencia","En progreso","En revisión","Incompleto"]
             ).map(e=><option key={e}>{e}</option>)}
           </select>
-          <input type="text" placeholder="Todas las ubicaciones" value={filtroCiudad}
+          <input type="text" placeholder="Ciudad..." value={filtroCiudad}
             onChange={e=>{setFiltroCiudad(e.target.value);setPagina(1);}}
-            style={{ height:38, border:"1.5px solid #f0dde2", borderRadius:10, padding:"0 12px", fontSize:13, color:"#1e1033", outline:"none", fontFamily:"inherit", width:180 }}/>
+            style={{ height:38, border:"1.5px solid #f0dde2", borderRadius:10, padding:"0 12px", fontSize:13, color:"#1e1033", outline:"none", fontFamily:"inherit", width:160 }}/>
           {(filtroEstado||filtroCiudad||search) && (
             <button onClick={()=>{setSearch("");setFiltroEstado("");setFiltroCiudad("");}}
               style={{ padding:"8px 14px", border:"1.5px solid #f0dde2", borderRadius:10, background:"#fff", color:"#9a7080", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
@@ -180,18 +181,14 @@ export default function AdminPerfilesPage() {
 
         {/* Tabla */}
         <div style={{ background:"#fff", borderRadius:20, border:"1px solid #f0dde2", overflow:"hidden" }}>
-
-          {/* Headers Tab 1 */}
-          {tab===1 && (
+          {/* Headers */}
+          {tab===1 ? (
             <div style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 100px", gap:12, padding:"12px 20px", borderBottom:"1px solid #fce8ed", background:"#fff8f9" }}>
               {["Usuario","Ubicación","Estado","Progreso","Última actividad","Acciones"].map(h=>(
                 <p key={h} style={{ fontSize:10, fontWeight:700, color:"#9a7080", textTransform:"uppercase", letterSpacing:".7px", margin:0 }}>{h}</p>
               ))}
             </div>
-          )}
-
-          {/* Headers Tab 2 */}
-          {tab===2 && (
+          ) : (
             <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"12px 20px", borderBottom:"1px solid #fce8ed", background:"#fff8f9" }}>
               {["Aplicante","Ciudad","Inglés","Licencia","Horas childcare","Progreso agencia","Estado agencia","Acciones"].map(h=>(
                 <p key={h} style={{ fontSize:10, fontWeight:700, color:"#9a7080", textTransform:"uppercase", letterSpacing:".7px", margin:0 }}>{h}</p>
@@ -207,18 +204,32 @@ export default function AdminPerfilesPage() {
             <p style={{ textAlign:"center", padding:"48px", fontSize:13, color:"#9a7080" }}>No se encontraron perfiles.</p>
           ) : (
             <div>
-              {visibles.map((p,i) => (
-                tab===1 ? (
-                  /* Fila Tab 1 */
+              {visibles.map((p,i) => {
+                const avatar = (
+                  <div style={{ width:40, height:40, borderRadius:12, background:"#fce8ed", border:"2px solid #f0b8c4", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    {p.foto_url
+                      ? <img src={p.foto_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
+                      : <span style={{ color:"#a0435f", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
+                  </div>
+                );
+                const acciones = (
+                  <div style={{ display:"flex", gap:6 }}>
+                    <button onClick={() => irAPerfil(p.id)} title="Ver perfil"
+                      style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <EyeIcon size={14} style={{ color:"#a0435f" }}/>
+                    </button>
+                    <button onClick={() => irAPerfil(p.id)} title="Editar"
+                      style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <PencilIcon size={14} style={{ color:"#a0435f" }}/>
+                    </button>
+                  </div>
+                );
+
+                return tab===1 ? (
                   <div key={p.id} className="row-h"
                     style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 100px", gap:12, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
-                    {/* Usuario */}
                     <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
-                      <div style={{ width:40, height:40, borderRadius:12, background:"#fce8ed", border:"2px solid #f0b8c4", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        {p.foto_url
-                          ? <img src={p.foto_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
-                          : <span style={{ color:"#a0435f", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
-                      </div>
+                      {avatar}
                       <div style={{ minWidth:0 }}>
                         <p style={{ fontSize:13, fontWeight:600, color:"#1e1033", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.nombre} {p.apellido}</p>
                         <p style={{ fontSize:11, color:"#9a7080", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.email}</p>
@@ -228,30 +239,13 @@ export default function AdminPerfilesPage() {
                     <EstadoBadge estado={p.estado}/>
                     <BarraProgreso pct={p.progreso}/>
                     <p style={{ fontSize:12, color:"#9a7080", margin:0 }}>{p.ultima_actividad}</p>
-                    {/* Acciones — navegan a página completa */}
-                    <div style={{ display:"flex", gap:6 }}>
-                      <button onClick={() => router.push(`/admin/perfiles/${p.id}`)}
-                        title="Ver perfil completo"
-                        style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <EyeIcon size={14} style={{ color:"#a0435f" }}/>
-                      </button>
-                      <button onClick={() => router.push(`/admin/perfiles/${p.id}`)}
-                        title="Editar perfil"
-                        style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <PencilIcon size={14} style={{ color:"#a0435f" }}/>
-                      </button>
-                    </div>
+                    {acciones}
                   </div>
                 ) : (
-                  /* Fila Tab 2 */
                   <div key={p.id} className="row-h"
                     style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
-                      <div style={{ width:40, height:40, borderRadius:12, background:"#fce8ed", border:"2px solid #f0b8c4", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        {p.foto_url
-                          ? <img src={p.foto_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
-                          : <span style={{ color:"#a0435f", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
-                      </div>
+                      {avatar}
                       <div style={{ minWidth:0 }}>
                         <p style={{ fontSize:13, fontWeight:600, color:"#1e1033", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.nombre} {p.apellido}</p>
                         <p style={{ fontSize:11, color:"#9a7080", margin:0 }}>{p.email}</p>
@@ -275,19 +269,10 @@ export default function AdminPerfilesPage() {
                     </div>
                     <BarraProgreso pct={p.progreso_agencia||0}/>
                     <EstadoBadge estado={p.estado_agencia||"En progreso"}/>
-                    <div style={{ display:"flex", gap:6 }}>
-                      <button onClick={() => router.push(`/admin/perfiles/${p.id}`)}
-                        style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <EyeIcon size={14} style={{ color:"#a0435f" }}/>
-                      </button>
-                      <button onClick={() => router.push(`/admin/perfiles/${p.id}`)}
-                        style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <PencilIcon size={14} style={{ color:"#a0435f" }}/>
-                      </button>
-                    </div>
+                    {acciones}
                   </div>
-                )
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -307,8 +292,8 @@ export default function AdminPerfilesPage() {
                   {n}
                 </button>
               ))}
-              {totalPags>5 && <span style={{ display:"flex", alignItems:"center", fontSize:12, color:"#9a7080", padding:"0 4px" }}>...</span>}
-              {totalPags>5 && (
+              {totalPags>5&&<span style={{ display:"flex", alignItems:"center", fontSize:12, color:"#9a7080", padding:"0 4px" }}>...</span>}
+              {totalPags>5&&(
                 <button onClick={()=>setPagina(totalPags)}
                   style={{ width:30, height:30, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:pagina===totalPags?"#a0435f":"#fff", color:pagina===totalPags?"#fff":"#6b7280" }}>
                   {totalPags}
