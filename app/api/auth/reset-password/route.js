@@ -13,7 +13,7 @@ export async function POST(req) {
     if (password.length < 8)
       return NextResponse.json({ error: "La contraseña debe tener mínimo 8 caracteres" }, { status: 400 });
 
-    // Buscar usuario con token válido y no expirado
+    // ← Comparar expiración dentro de MySQL con NOW() para evitar timezone issues
     const [[usuario]] = await dbAupair.query(
       `SELECT id, nombre, email
        FROM usuarios
@@ -23,13 +23,28 @@ export async function POST(req) {
     );
 
     if (!usuario) {
+      // Debug: ver si existe el token aunque esté expirado
+      const [[expirado]] = await dbAupair.query(
+        "SELECT id, reset_token_expiry, NOW() as ahora FROM usuarios WHERE reset_token = ?",
+        [token]
+      );
+      if (expirado) {
+        console.error("[reset-password] Token expirado:", {
+          expiry: expirado.reset_token_expiry,
+          ahora: expirado.ahora,
+        });
+        return NextResponse.json(
+          { error: "El enlace ya expiró. Solicita uno nuevo desde la página de inicio de sesión." },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
-        { error: "El enlace es inválido o ya expiró. Solicita uno nuevo." },
+        { error: "El enlace es inválido. Solicita uno nuevo desde la página de inicio de sesión." },
         { status: 400 }
       );
     }
 
-    // Hash de la nueva contraseña
+    // Hash nueva contraseña
     const hash = await bcrypt.hash(password, 12);
 
     // Actualizar contraseña y limpiar token
@@ -43,6 +58,6 @@ export async function POST(req) {
     return NextResponse.json({ ok: true, email: usuario.email });
   } catch (err) {
     console.error("[reset-password]", err.message);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

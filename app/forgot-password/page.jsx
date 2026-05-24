@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/login">
-            <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={56} height={56}/>
+            <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={86} height={86}/>
           </Link>
         </div>
 
