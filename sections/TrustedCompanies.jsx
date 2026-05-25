@@ -142,11 +142,11 @@ export default function PhotoCarousel() {
       {/* ═══ AVIÓN COMERCIAL — DERECHA ═══ */}
       <div className="absolute pointer-events-none select-none z-0"
            style={{
-             right: "10%", top: "10%",
-             width: "clamp(100px, 11vw, 160px)",
+             right: "7%", top: "6%",
+             width: "clamp(140px, 15vw, 220px)",
              filter: "invert(55%) sepia(25%) saturate(500%) hue-rotate(220deg) opacity(0.35)",
            }}>
-        <img src="assets/aiplane.png" alt="" className="w-full h-full object-contain" />
+        <img src="assets/love-message.png" alt="" className="w-full h-full object-contain" />
       </div>
 
       {/* ── ENCABEZADO ── */}
