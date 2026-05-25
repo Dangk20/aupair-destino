@@ -167,7 +167,7 @@ export default function Pricing() {
             className="w-full bg-[#a0435f] hover:bg-[#8a3550] transition text-white
                        font-semibold text-[15px] xl:text-[16px] py-4 rounded-2xl
                        shadow-lg shadow-[#a0435f]/25 mb-4 block text-center">
-            Cambiar mi destino
+            Empezar mi destino
           </Link>
 
           {/* Garantía */}
