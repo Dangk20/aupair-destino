@@ -1,0 +1,130 @@
+/* styles/responsive.css
+   Importar en app/globals.css con: @import './responsive.css';
+   O importar en app/layout.jsx con: import '@/styles/responsive.css';
+*/
+
+/* ══════════════════════════════════════════════
+   MOBILE — hasta 767px
+══════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ── Contenedor principal de páginas ── */
+  .page-content {
+    padding: 16px !important;
+  }
+
+  /* ── Flex rows → stack vertical ── */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  /* ── Sidebars de contenido (los de 260px, 220px dentro de páginas) ── */
+  .content-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* ── Grids → 1 columna ── */
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+  .mobile-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ── Tablas con scroll horizontal ── */
+  .table-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Ocultar en mobile ── */
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  /* ── Mostrar solo en mobile ── */
+  .mobile-only {
+    display: block !important;
+  }
+
+  /* ── Hero headers más compactos ── */
+  .page-hero {
+    padding: 20px 16px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ── Stats grids → scroll horizontal ── */
+  .stats-row {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .stats-row > * {
+    min-width: 140px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── Botones en header → más pequeños ── */
+  .header-actions {
+    gap: 8px !important;
+  }
+  .header-actions a,
+  .header-actions button {
+    font-size: 11px !important;
+    padding: 7px 10px !important;
+  }
+
+  /* ── Textos en hero ── */
+  .hero-title {
+    font-size: 20px !important;
+  }
+
+  /* ── Formularios ── */
+  .form-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .form-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   TABLET — 768px a 1023px
+══════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  .tablet-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .tablet-grid-3 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .tablet-stack {
+    flex-wrap: wrap !important;
+  }
+  .tablet-sidebar {
+    width: 200px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   OVERFLOW UNIVERSAL — evita que el contenido
+   se salga del viewport en cualquier tamaño
+══════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* Hacer que todo el contenido de las páginas sea scrollable horizontalmente
+     cuando el contenido es más ancho que el viewport */
+  main,
+  [data-main="true"] {
+    overflow-x: hidden !important;
+  }
+
+  /* Inner pages wrapper — permite scroll horizontal en secciones específicas */
+  .inner-page {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
