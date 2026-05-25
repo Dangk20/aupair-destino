@@ -6,8 +6,6 @@ import Link from "next/link";
 import { CheckIcon, ChevronLeftIcon, LockIcon, PlayCircleIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
-const VIDEO_DEMO = "/assets/Bienvenida.mp4";
-
 export default function SesionPage() {
   const { id } = useParams();
   const router  = useRouter();
@@ -29,7 +27,7 @@ export default function SesionPage() {
         if (!d) return;
         setTodas(d.sesiones);
         const encontrada = d.sesiones.find((s) => String(s.id) === String(id));
-        if (!encontrada)              { router.push("/dashboard/curso"); return; }
+        if (!encontrada)                    { router.push("/dashboard/curso"); return; }
         if (encontrada.estado === "locked") { router.push("/dashboard/curso"); return; }
         setSesion(encontrada);
         setYaCompletada(encontrada.estado === "completed");
@@ -48,15 +46,11 @@ export default function SesionPage() {
       });
       if (res.ok) {
         setYaCompletada(true);
-
-        // 🎉 Confetti
         confetti({ particleCount:120, spread:80, origin:{ y:0.6 }, colors:["#a0435f","#e8849a","#fce8ed","#2d1a22","#f0b8c4"] });
         setTimeout(() => {
           confetti({ particleCount:60, angle:60,  spread:55, origin:{ x:0 }, colors:["#a0435f","#e8849a","#fce8ed"] });
           confetti({ particleCount:60, angle:120, spread:55, origin:{ x:1 }, colors:["#a0435f","#e8849a","#fce8ed"] });
         }, 300);
-
-        // ── FIX: vuelve a /dashboard/curso, no al dashboard ──
         setTimeout(() => router.push("/dashboard/curso"), 2500);
       } else {
         const data = await res.json();
@@ -82,11 +76,19 @@ export default function SesionPage() {
   const siguiente    = todas[indiceActual + 1];
   const anterior     = todas[indiceActual - 1];
 
+  /* ── Determinar tipo de video ── */
+  const tieneYoutube = !!sesion.video_youtube_id;
+  const tieneDrive   = !!sesion.video_drive_id;
+  const urlVideo     = sesion.url_video || "";
+  const esYoutube    = !tieneYoutube && !tieneDrive && (urlVideo.includes("youtube.com") || urlVideo.includes("youtu.be"));
+  const esVimeo      = !tieneYoutube && !tieneDrive && urlVideo.includes("vimeo.com");
+  const esMp4        = !tieneYoutube && !tieneDrive && !esYoutube && !esVimeo && !!urlVideo;
+
   return (
     <div className="min-h-screen bg-[#fff8f9]">
       <div className="max-w-3xl mx-auto px-4 py-8">
 
-        {/* ── FIX: breadcrumb apunta a /dashboard/curso ── */}
+        {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link href="/dashboard/curso"
             className="flex items-center gap-1.5 text-[13px] text-[#9a6672] hover:text-[#a0435f] transition">
@@ -97,54 +99,81 @@ export default function SesionPage() {
           <span className="text-[13px] text-[#2d1a22] font-medium">{sesion.titulo}</span>
         </div>
 
-        {/* Video player — reemplaza todo el bloque del aspect-video */}
-<div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full">
-  {sesion.video_youtube_id ? (
-    // YouTube embed
-    <iframe
-      src={`https://www.youtube.com/embed/${sesion.video_youtube_id}?rel=0&modestbranding=1`}
-      className="w-full h-full"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowFullScreen
-    />
-  ) : sesion.video_drive_id ? (
-    // Google Drive embed
-    <iframe
-      src={`https://drive.google.com/file/d/${sesion.video_drive_id}/preview`}
-      className="w-full h-full"
-      allow="autoplay; fullscreen"
-      allowFullScreen
-    />
-  ) : sesion.url_video ? (
-    // Fallback: url_video vieja (YouTube, Vimeo o MP4)
-    sesion.url_video.includes("youtube.com") || sesion.url_video.includes("youtu.be") ? (
-      <iframe
-        src={sesion.url_video.replace("watch?v=", "embed/")}
-        className="w-full h-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    ) : sesion.url_video.includes("vimeo.com") ? (
-      <iframe
-        src={sesion.url_video.replace("vimeo.com/", "player.vimeo.com/video/")}
-        className="w-full h-full"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-      />
-    ) : (
-      <video src={sesion.url_video} controls className="w-full h-full"
-        controlsList="nodownload" onContextMenu={e => e.preventDefault()} />
-    )
-  ) : (
-    // Sin video asignado
-    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-      <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-        <PlayCircleIcon size={28} className="text-[#e8849a]"/>
-      </div>
-      <p className="text-white/60 text-[13px]">Video próximamente disponible</p>
-    </div>
-  )}
-</div>
+        {/* ── VIDEO PLAYER ── */}
+        <div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full relative">
+
+          {tieneYoutube && (
+            <iframe
+              src={`https://www.youtube.com/embed/${sesion.video_youtube_id}?rel=0&modestbranding=1`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+
+          {tieneDrive && (
+            /*
+              ── Técnica: overflow:hidden en el wrapper + margin-top negativo en el iframe
+                 hace que la barra superior de Drive quede cortada (oculta).
+                 No usa ningún div superpuesto, funciona en mobile y desktop.
+                 TOOLBAR_H = altura de la barra de Drive (~40px desktop, ~52px mobile).
+                 Usamos 52px para cubrir ambos.
+            ── */
+            <div style={{ position:"absolute", inset:0, overflow:"hidden" }}>
+              <iframe
+                src={`https://drive.google.com/file/d/${sesion.video_drive_id}/preview`}
+                style={{
+                  width: "100%",
+                  height: "calc(100% + 52px)",
+                  marginTop: -52,
+                  border: "none",
+                  display: "block",
+                }}
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              />
+            </div>
+          )}
+
+          {esYoutube && (
+            <iframe
+              src={urlVideo.replace("watch?v=", "embed/")}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+
+          {esVimeo && (
+            <iframe
+              src={urlVideo.replace("vimeo.com/", "player.vimeo.com/video/")}
+              className="w-full h-full"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+
+          {esMp4 && (
+            <>
+              <video
+                src={urlVideo}
+                controls
+                className="w-full h-full"
+                controlsList="nodownload nofullscreen noremoteplayback"
+                onContextMenu={e => e.preventDefault()}
+              />
+            </>
+          )}
+
+          {!tieneYoutube && !tieneDrive && !urlVideo && (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <PlayCircleIcon size={28} className="text-[#e8849a]"/>
+              </div>
+              <p className="text-white/60 text-[13px]">Video próximamente disponible</p>
+            </div>
+          )}
+        </div>
 
         {/* Info sesión */}
         <div className="bg-white rounded-2xl border border-[#f0dde2] p-6 mb-4">
@@ -166,7 +195,7 @@ export default function SesionPage() {
                 <PlayCircleIcon size={12} /> En curso
               </div>
             )}
-          </div>  
+          </div>
           {sesion.descripcion && (
             <p className="text-[14px] text-[#7a4a54] leading-relaxed">{sesion.descripcion}</p>
           )}
@@ -196,7 +225,7 @@ export default function SesionPage() {
           </div>
         )}
 
-        {/* Navegación anterior / siguiente */}
+        {/* Navegación */}
         <div className="flex items-center justify-between gap-3">
           {anterior ? (
             <Link href={`/dashboard/sesion/${anterior.id}`}
@@ -205,14 +234,12 @@ export default function SesionPage() {
               {anterior.titulo}
             </Link>
           ) : (
-            /* Si no hay anterior, botón para volver al curso */
             <Link href="/dashboard/curso"
               className="flex items-center gap-2 text-[13px] text-[#9a6672] hover:text-[#a0435f] border border-[#f0dde2] bg-white px-4 py-2.5 rounded-xl transition">
               <ChevronLeftIcon size={14} />
               Volver al curso
             </Link>
           )}
-
           {siguiente && siguiente.estado !== "locked" ? (
             <Link href={`/dashboard/sesion/${siguiente.id}`}
               className="flex items-center gap-2 text-[13px] text-white bg-[#a0435f] hover:bg-[#8a3550] px-4 py-2.5 rounded-xl transition ml-auto">

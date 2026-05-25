@@ -50,9 +50,9 @@ const avatars = [
 
 const sessions = [
   { label: "Bienvenida",                    sub: "Completado",   status: "done"   },
-  { label: "Sesión 1 - ¿Qué es ser au pair?", sub: "Completado", status: "done"   },
-  { label: "Sesión 2 - Visa y documentación", sub: "En progreso", status: "active" },
-  { label: "Sesión 3 - Buscar familia",     sub: "Bloqueado",    status: "locked" },
+  { label: "Sesión 1 - La realidad de ser Au pair", sub: "Completado", status: "done"   },
+  { label: "Sesión 2 - ¿Cumples con los requisitos?", sub: "En progreso", status: "active" },
+  { label: "Sesión 3 - ¿Cómo crear un perfil?",     sub: "Bloqueado",    status: "locked" },
 ];
 
 export default function LoginPage() {
