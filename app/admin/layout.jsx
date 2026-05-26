@@ -8,13 +8,14 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboardIcon, UsersIcon, VideoIcon, LogOutIcon,
   MenuIcon, XIcon, UserPlusIcon, BarChart2Icon,
-  SettingsIcon, BellIcon, CreditCardIcon, CalendarIcon,
+  SettingsIcon, BellIcon, CreditCardIcon, CalendarIcon, TagIcon as TagIcon,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 
 const navItems = [
   { label:"Resumen",                href:"/admin",                icon:LayoutDashboardIcon },
   { label:"Referidos y comisiones", href:"/admin/referidos",      icon:UserPlusIcon        },
+  { label:"Códigos promo",          href:"/admin/codigos-promo",  icon: TagIcon            },
   { label:"Pagos y comisiones",     href:"/admin/pagos",          icon:CreditCardIcon      },
   { label:"Usuarios",               href:"/admin/usuarias",       icon:UsersIcon           },
   { label:"Perfiles",               href:"/admin/perfiles",       icon:UsersIcon           },

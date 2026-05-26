@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 
+
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session) return unauthorized();

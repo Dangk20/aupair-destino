@@ -3,82 +3,96 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 
-// Columnas permitidas para toggle
 const SECCIONES = [
-  "tiene_acceso",
-  "perfil_habilitado",
-  "acceso_documentos",
-  "acceso_recursos",
-  "acceso_reuniones",
-  "acceso_mensajes",
-  "acceso_comunidad",
+  "tiene_acceso","perfil_habilitado","acceso_documentos",
+  "acceso_recursos","acceso_reuniones","acceso_mensajes","acceso_comunidad",
 ];
 
-/* ── POST: activar/desactivar acceso + registrar pago si aplica ── */
 export async function POST(req) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
 
   try {
-    const { id, tiene_acceso, monto = 35, seccion = "tiene_acceso", valor } = await req.json();
+    const { id, tiene_acceso, monto = 35, seccion, valor } = await req.json();
     if (!id) return NextResponse.json({ error: "id requerido" }, { status: 400 });
 
-    // Si viene seccion + valor → toggle de sección específica
+    // Toggle sección específica
     if (seccion && seccion !== "tiene_acceso" && valor !== undefined) {
       if (!SECCIONES.includes(seccion))
         return NextResponse.json({ error: "Sección no permitida" }, { status: 400 });
-
-      await dbAupair.query(
-        `UPDATE usuarios SET ${seccion} = ? WHERE id = ?`,
-        [valor ? 1 : 0, id]
-      );
-      return NextResponse.json({ ok: true, [seccion]: valor ? 1 : 0 });
+      await dbAupair.query(`UPDATE usuarios SET ${seccion} = ? WHERE id = ?`, [valor?1:0, id]);
+      return NextResponse.json({ ok: true, [seccion]: valor?1:0 });
     }
 
-    // Toggle de acceso completo (tiene_acceso)
-    const activar = tiene_acceso;
-    await dbAupair.query(
-      "UPDATE usuarios SET tiene_acceso = ? WHERE id = ?",
-      [activar ? 1 : 0, id]
-    );
+    // Toggle acceso completo
+    const activar = valor !== undefined ? valor : tiene_acceso;
+    await dbAupair.query("UPDATE usuarios SET tiene_acceso = ? WHERE id = ?", [activar?1:0, id]);
 
-    if (activar) {
+    if (tiene_acceso) {
       const [[usuario]] = await dbAupair.query(
-        "SELECT codigo_referido FROM usuarios WHERE id = ?", [id]
+        "SELECT codigo_referido, codigo_promo_usado FROM usuarios WHERE id = ?", [id]
       );
+
+      // ── Referido ──────────────────────────────────────
       let referidoId = null;
       if (usuario?.codigo_referido) {
         const [[ref]] = await dbAupair.query(
-          "SELECT id FROM referidos WHERE codigo = ?",
-          [usuario.codigo_referido]
-        ).catch(() => [[null]]);
+          "SELECT id FROM referidos WHERE codigo = ?", [usuario.codigo_referido]
+        ).catch(()=>[[null]]);
         referidoId = ref?.id || null;
       }
+
       const [[registro]] = await dbAupair.query(
         "SELECT id FROM referido_registros WHERE usuario_id = ?", [id]
-      ).catch(() => [[null]]);
+      ).catch(()=>[[null]]);
 
       if (registro) {
         await dbAupair.query(
           `UPDATE referido_registros
-           SET pago_realizado = 1, monto_pagado = ?,
-               referido_id = COALESCE(referido_id, ?)
-           WHERE id = ?`,
+           SET pago_realizado=1, monto_pagado=?,
+               referido_id=COALESCE(referido_id,?)
+           WHERE id=?`,
           [Number(monto), referidoId, registro.id]
         );
       } else if (referidoId) {
         await dbAupair.query(
-          `INSERT INTO referido_registros
-           (usuario_id, referido_id, monto_pagado, pago_realizado)
+          `INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado)
            VALUES (?,?,?,1)`,
           [id, referidoId, Number(monto)]
         );
       }
+
+      // ── Código promo ───────────────────────────────────
+      if (usuario?.codigo_promo_usado) {
+        const [[promo]] = await dbAupair.query(
+          "SELECT id FROM codigos_promo WHERE codigo = ?", [usuario.codigo_promo_usado]
+        ).catch(()=>[[null]]);
+
+        if (promo) {
+          // Verificar que no se haya registrado ya
+          const [[yaUso]] = await dbAupair.query(
+            "SELECT id FROM codigos_promo_usos WHERE codigo_id=? AND usuario_id=?",
+            [promo.id, id]
+          ).catch(()=>[[null]]);
+
+          if (!yaUso) {
+            await dbAupair.query(
+              "INSERT INTO codigos_promo_usos (codigo_id, usuario_id, monto_pagado) VALUES (?,?,?)",
+              [promo.id, id, Number(monto)]
+            ).catch(()=>{});
+            await dbAupair.query(
+              "UPDATE codigos_promo SET usos_actuales = usos_actuales + 1 WHERE id=?",
+              [promo.id]
+            ).catch(()=>{});
+          }
+        }
+      }
+
     } else {
+      // Desactivar → revertir pago referido
       await dbAupair.query(
-        "UPDATE referido_registros SET pago_realizado = 0, monto_pagado = 0 WHERE usuario_id = ?",
-        [id]
-      ).catch(() => {});
+        "UPDATE referido_registros SET pago_realizado=0, monto_pagado=0 WHERE usuario_id=?", [id]
+      ).catch(()=>{});
     }
 
     const [[updated]] = await dbAupair.query(
@@ -92,7 +106,6 @@ export async function POST(req) {
   }
 }
 
-/* ── PUT: corregir monto de pago ya existente ── */
 export async function PUT(req) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
@@ -103,8 +116,7 @@ export async function PUT(req) {
       return NextResponse.json({ error: "usuario_id y monto requeridos" }, { status: 400 });
 
     const [r] = await dbAupair.query(
-      `UPDATE referido_registros SET monto_pagado = ?
-       WHERE usuario_id = ? AND pago_realizado = 1`,
+      "UPDATE referido_registros SET monto_pagado=? WHERE usuario_id=? AND pago_realizado=1",
       [Number(monto), usuario_id]
     );
 
@@ -115,17 +127,15 @@ export async function PUT(req) {
       let referidoId = null;
       if (usuario?.codigo_referido) {
         const [[ref]] = await dbAupair.query(
-          "SELECT id FROM referidos WHERE codigo = ?",
-          [usuario.codigo_referido]
-        ).catch(() => [[null]]);
+          "SELECT id FROM referidos WHERE codigo = ?", [usuario.codigo_referido]
+        ).catch(()=>[[null]]);
         referidoId = ref?.id || null;
       }
       await dbAupair.query(
-        `INSERT INTO referido_registros
-         (usuario_id, referido_id, monto_pagado, pago_realizado)
+        `INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado)
          VALUES (?,?,?,1)`,
         [usuario_id, referidoId, Number(monto)]
-      ).catch(() => {});
+      ).catch(()=>{});
     }
 
     return NextResponse.json({ ok: true });

@@ -266,18 +266,20 @@ export default function AdminReunionesPage() {
   };
 
   /* ── Mapa días ── */
-  const diasMapa = useMemo(() => {
-    const mapa = {};
-    slots.forEach(s => {
-      if (!mapa[s.fecha]) mapa[s.fecha]={slots:[],eventos:[]};
-      mapa[s.fecha].slots.push(s);
-    });
-    eventos.forEach(e => {
-      if (!mapa[e.fecha]) mapa[e.fecha]={slots:[],eventos:[]};
-      mapa[e.fecha].eventos.push(e);
-    });
-    return mapa;
-  }, [slots, eventos]);
+const diasMapa = useMemo(() => {
+  const mapa = {};
+  slots.forEach(s => {
+    const f = cleanFecha(s.fecha);
+    if (!mapa[f]) mapa[f]={slots:[],eventos:[]};
+    mapa[f].slots.push(s);
+  });
+  eventos.forEach(e => {
+    const f = cleanFecha(e.fecha);
+    if (!mapa[f]) mapa[f]={slots:[],eventos:[]};
+    mapa[f].eventos.push(e);
+  });
+  return mapa;
+}, [slots, eventos]);
 
   const celdas = useMemo(() => {
     const primero = new Date(mesActual.y,mesActual.m,1);

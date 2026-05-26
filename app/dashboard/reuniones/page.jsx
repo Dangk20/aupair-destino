@@ -32,6 +32,12 @@ function buildCalendarUrl(titulo, fecha, horaInicio, horaFin, meetUrl) {
   const p = new URLSearchParams({ action:"TEMPLATE", text:titulo||"Reunión Destino Au Pair", dates:`${start}/${end}`, location:meetUrl||"Google Meet" });
   return `https://calendar.google.com/calendar/render?${p}`;
 }
+function cleanFecha(f) {
+  if (!f) return "";
+  if (typeof f === "string") return f.split("T")[0];
+  if (f instanceof Date) return fechaStr(f);
+  return String(f).split("T")[0];
+}
 
 /* ── Tipo de evento → config ── */
 const TIPO_CFG = {
@@ -231,23 +237,25 @@ export default function ReunionesPage() {
 
   /* ── Construir mapa de días ── */
   const diasMapa = useMemo(() => {
-    const mapa = {};
-    slots.forEach(s => {
-      if (!mapa[s.fecha]) mapa[s.fecha] = { slots:[], eventos:[], miReunion:null };
-      mapa[s.fecha].slots.push(s);
-      if (s.reservado_por === user?.id) mapa[s.fecha].miReunion = s;
-    });
-    eventos.forEach(e => {
-      if (!mapa[e.fecha]) mapa[e.fecha] = { slots:[], eventos:[], miReunion:null };
-      mapa[e.fecha].eventos.push(e);
-    });
-    if (miReunion) {
-      const f = miReunion.fecha?.split("T")[0]||miReunion.fecha;
-      if (!mapa[f]) mapa[f] = { slots:[], eventos:[], miReunion:null };
-      mapa[f].miReunion = miReunion;
-    }
-    return mapa;
-  }, [slots, eventos, miReunion, user]);
+  const mapa = {};
+  slots.forEach(s => {
+    const f = cleanFecha(s.fecha);
+    if (!mapa[f]) mapa[f] = { slots:[], eventos:[], miReunion:null };
+    mapa[f].slots.push(s);
+    if (s.reservado_por === user?.id) mapa[f].miReunion = s;
+  });
+  eventos.forEach(e => {
+    const f = cleanFecha(e.fecha);
+    if (!mapa[f]) mapa[f] = { slots:[], eventos:[], miReunion:null };
+    mapa[f].eventos.push(e);
+  });
+  if (miReunion) {
+    const f = cleanFecha(miReunion.fecha);
+    if (!mapa[f]) mapa[f] = { slots:[], eventos:[], miReunion:null };
+    mapa[f].miReunion = miReunion;
+  }
+  return mapa;
+}, [slots, eventos, miReunion, user]);
 
   /* ── Celdas del mes ── */
   const celdas = useMemo(() => {

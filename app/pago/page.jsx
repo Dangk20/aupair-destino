@@ -67,22 +67,36 @@ const [errorCodigo,      setErrorCodigo]      = useState("");
 
   const precioTachado   = 60;
   const precioRegular   = 35;
-  const precioConCodigo = 29;
-  const precioFinal     = codigoAplicado ? precioConCodigo : precioRegular;
+  const [precioConCodigo, setPrecioConCodigo] = useState(29);
+const precioFinal = codigoAplicado ? precioConCodigo : precioRegular;
 
   const handleAplicar = async () => {
   if (!codigo.trim()) return;
   setValidandoCodigo(true);
   setErrorCodigo("");
 
-  const res = await fetch(`/api/pago/validar-codigo?codigo=${codigo.trim()}`);
+  const res = await fetch("/api/codigos-promo/validar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ codigo: codigo.trim() }),
+  });
   const data = await res.json();
 
-  if (data.valido) {
-    setCodigoAplicado(true);
-    setErrorCodigo("");
-  } else {
-    setErrorCodigo(data.mensaje || "Código no válido. Verifica e intenta de nuevo.");
+  if (res.ok && data.ok) {
+  setPrecioConCodigo(Number(data.precio_final));
+  setCodigoAplicado(true);
+  setErrorCodigo("");
+
+  // Guardar código en perfil
+  const usarRes = await fetch("/api/codigos-promo/usar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ codigo: codigo.trim() }),
+  });
+  const usarData = await usarRes.json();
+  console.log("Resultado guardar código:", usarData); // Ver en consola F12
+}  else {
+    setErrorCodigo(data.error || "Código no válido. Verifica e intenta de nuevo.");
   }
   setValidandoCodigo(false);
 };

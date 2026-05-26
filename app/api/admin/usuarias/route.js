@@ -31,6 +31,7 @@ export async function GET(req) {
         u.acceso_comunidad,
         u.created_at,
         u.codigo_referido,
+        u.codigo_promo_usado,
         COUNT(p.id)                                        AS sesiones_completadas,
         ROUND(COUNT(p.id) / ? * 100)                       AS porcentaje,
         rr.monto_pagado,
