@@ -47,20 +47,16 @@ export async function POST(req) {
       ).catch(()=>[[null]]);
 
       if (registro) {
-        await dbAupair.query(
-          `UPDATE referido_registros
-           SET pago_realizado=1, monto_pagado=?,
-               referido_id=COALESCE(referido_id,?)
-           WHERE id=?`,
-          [Number(monto), referidoId, registro.id]
-        );
-      } else if (referidoId) {
-        await dbAupair.query(
-          `INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado)
-           VALUES (?,?,?,1)`,
-          [id, referidoId, Number(monto)]
-        );
-      }
+      await dbAupair.query(
+      `UPDATE referido_registros SET pago_realizado=1, monto_pagado=?, referido_id=COALESCE(referido_id,?) WHERE id=?`,
+      [Number(monto), referidoId, registro.id]
+      );
+      } else {
+       await dbAupair.query(
+      `INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado) VALUES (?,?,?,1)`,
+      [id, referidoId, Number(monto)]
+      );
+    }
 
       // ── Código promo ───────────────────────────────────
       if (usuario?.codigo_promo_usado) {
