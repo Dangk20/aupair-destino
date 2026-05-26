@@ -52,6 +52,7 @@ function ModalVer({ u, onClose }) {
             {label:"ID",              val:`#${u.id}`},
             {label:"Progreso",        val:`${u.porcentaje||0}% (${u.sesiones_completadas||0} ses.)`},
             {label:"Código referido", val:u.codigo_referido||"Sin código"},
+            {label:"Código promo",    val:u.codigo_promo_usado||"—"},
             {label:"Referida por",    val:u.referente_nombre||"—"},
             {label:"Pago",            val:u.monto_pagado?`$${u.monto_pagado} USD`:"—"},
             {label:"Comisión",        val:u.comision_generada?`$${u.comision_generada} USD`:"—"},
@@ -183,8 +184,18 @@ function ModalAccesos({ u, onClose, onToggle }) {
   );
 }
 
+/* ── Modal Pago — versión corregida con type="button" explícito ── */
 function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar }) {
   const [monto, setMonto] = useState(String(usuaria.monto_pagado||"35"));
+  const [guardando, setGuardando] = useState(false);
+
+  const handleConfirmar = async () => {
+    if (!monto || Number(monto) <= 0) return;
+    setGuardando(true);
+    await onConfirmar(monto);
+    setGuardando(false);
+  };
+
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(45,26,34,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16 }}
       onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -193,27 +204,37 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
         <div style={{ padding:24 }}>
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#2d1a22",margin:"0 0 6px" }}>{titulo}</h2>
           <p style={{ fontSize:13,color:"#9a6672",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
-          <label style={{ display:"flex",flexDirection:"column",gap:6 }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
             <span style={{ fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.6 }}>Monto (USD)</span>
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9a7080",fontWeight:600 }}>$</span>
-              <input type="number" min="0" step="1" value={monto} onChange={e=>setMonto(e.target.value)}
-                style={{ width:"100%",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#1e1033",outline:"none",boxSizing:"border-box" }} autoFocus/>
+              <input
+                type="number" min="1" step="1" value={monto}
+                onChange={e=>setMonto(e.target.value)}
+                autoFocus
+                style={{ width:"100%",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#1e1033",outline:"none",boxSizing:"border-box" }}
+              />
             </div>
             <div style={{ display:"flex",gap:8,marginTop:4 }}>
               {["29","35","300"].map(p=>(
-                <button key={p} onClick={()=>setMonto(p)}
+                <button key={p} type="button" onClick={()=>setMonto(p)}
                   style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#a0435f":"#f0dde2"}`,background:monto===p?"#fce8ed":"#fff",color:monto===p?"#a0435f":"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                   ${p}
                 </button>
               ))}
             </div>
-          </label>
+          </div>
           <div style={{ display:"flex",gap:10,marginTop:20 }}>
-            <button onClick={onClose} style={{ flex:1,padding:"10px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Cancelar</button>
-            <button onClick={()=>onConfirmar(monto)} disabled={!monto||Number(monto)<=0}
-              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(!monto||Number(monto)<=0)?"#f0dde2":"#a0435f",color:(!monto||Number(monto)<=0)?"#c0909a":"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-              ✓ Confirmar
+            <button type="button" onClick={onClose}
+              style={{ flex:1,padding:"10px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmar}
+              disabled={!monto||Number(monto)<=0||guardando}
+              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(!monto||Number(monto)<=0)?"#f0dde2":"#a0435f",color:(!monto||Number(monto)<=0)?"#c0909a":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
+              {guardando?"Guardando...":"✓ Confirmar"}
             </button>
           </div>
         </div>
@@ -268,44 +289,73 @@ export default function AdminUsuariosPage() {
   };
   useEffect(()=>{ cargar(); },[]);
 
-  const toggleAcceso = (u) => { if (!u.tiene_acceso) setModalPago(u); else confirmarToggle(u.id,false,0); };
+  const toggleAcceso = (u) => {
+    if (!u.tiene_acceso) setModalPago(u);
+    else confirmarToggle(u.id, false, 0);
+  };
 
-  const confirmarToggle = async(id,tiene_acceso,monto) => {
-    console.log("confirmarToggle llamado:", { id, tiene_acceso, monto });
+  const confirmarToggle = async(id, tiene_acceso, monto) => {
     setModalPago(null);
-    const res = await fetch("/api/admin/toggle-acceso",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,tiene_acceso,monto:Number(monto)})});
+    const res = await fetch("/api/admin/toggle-acceso", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ id, tiene_acceso, monto: Number(monto) }),
+    });
     const data = await res.json();
-    if (data.ok) { 
-    showToast(tiene_acceso?"✓ Acceso activado":"Acceso desactivado"); 
-    await cargar(); // await para que no haya race condition
+    if (data.ok) {
+      showToast(tiene_acceso ? "✓ Acceso activado" : "Acceso desactivado");
+      await cargar();
+    } else {
+      showToast(data.error || "Error al actualizar acceso", "error");
     }
   };
 
-  const toggleSeccion = async(usuarioId,seccion,valor) => {
+  const toggleSeccion = async(usuarioId, seccion, valor) => {
     setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,[seccion]:valor?1:0}:u));
     setModalAccesos(prev=>prev?{...prev,[seccion]:valor?1:0}:prev);
-    const res = await fetch("/api/admin/toggle-acceso",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:usuarioId,seccion,valor})});
+    const res = await fetch("/api/admin/toggle-acceso", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ id:usuarioId, seccion, valor }),
+    });
     const data = await res.json();
-    if (!data.ok) { setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,[seccion]:!valor?1:0}:u)); showToast("Error al actualizar","error"); }
-    else showToast(`${SECCIONES.find(s=>s.key===seccion)?.label} ${valor?"activado":"desactivado"} ✓`);
+    if (!data.ok) {
+      setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,[seccion]:!valor?1:0}:u));
+      showToast("Error al actualizar","error");
+    } else {
+      showToast(`${SECCIONES.find(s=>s.key===seccion)?.label} ${valor?"activado":"desactivado"} ✓`);
+    }
   };
 
-  const corregirMonto = async(usuarioId,monto) => {
+  const corregirMonto = async(usuarioId, monto) => {
     setModalEditPago(null);
-    const res = await fetch("/api/admin/toggle-acceso",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({usuario_id:usuarioId,monto:Number(monto)})});
-    const data = await res.json();
-    if (data.ok) { setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,monto_pagado:Number(monto)}:u)); showToast("Monto corregido ✓"); }
-    else showToast("Error al corregir monto","error");
+    try {
+      const res = await fetch("/api/admin/toggle-acceso", {
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ usuario_id: usuarioId, monto: Number(monto) }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("Monto corregido ✓");
+        await cargar();
+      } else {
+        showToast(data.error || "Error al corregir monto", "error");
+      }
+    } catch(e) {
+      showToast("Error de conexión", "error");
+    }
   };
 
-  const guardarEdicion = async(id,form) => {
-    await fetch(`/api/admin/usuarias/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    showToast("Usuario actualizado ✓"); cargar();
+  const guardarEdicion = async(id, form) => {
+    await fetch(`/api/admin/usuarias/${id}`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
+    showToast("Usuario actualizado ✓");
+    await cargar();
   };
 
   const crearUsuario = async(form) => {
-    const res = await fetch("/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    if (res.ok) { showToast("Usuario creado ✓"); cargar(); }
+    const res = await fetch("/api/auth/register", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
+    if (res.ok) { showToast("Usuario creado ✓"); await cargar(); }
     else showToast("Error al crear usuario","error");
   };
 
@@ -320,11 +370,11 @@ export default function AdminUsuariosPage() {
   const hoy = new Date();
   const esteMes = u=>{ const d=new Date(u.created_at); return d.getMonth()===hoy.getMonth()&&d.getFullYear()===hoy.getFullYear(); };
   const tabs = [
-    {id:"todos",     label:"Todos",       count:usuarios.length},
-    {id:"acceso",    label:"Con acceso",  count:usuarios.filter(u=>u.tiene_acceso).length},
-    {id:"gratis",    label:"Gratis",      count:usuarios.filter(u=>!u.tiene_acceso).length},
-    {id:"inactivos", label:"Inactivos",   count:usuarios.filter(u=>!u.sesiones_completadas).length},
-    {id:"nuevos",    label:"Este mes",    count:usuarios.filter(esteMes).length},
+    {id:"todos",     label:"Todos",      count:usuarios.length},
+    {id:"acceso",    label:"Con acceso", count:usuarios.filter(u=>u.tiene_acceso).length},
+    {id:"gratis",    label:"Gratis",     count:usuarios.filter(u=>!u.tiene_acceso).length},
+    {id:"inactivos", label:"Inactivos",  count:usuarios.filter(u=>!u.sesiones_completadas).length},
+    {id:"nuevos",    label:"Este mes",   count:usuarios.filter(esteMes).length},
   ];
 
   let filtrados = usuarios.filter(u=>{
@@ -345,7 +395,6 @@ export default function AdminUsuariosPage() {
     <div style={{ display:"flex",gap:20,padding:isMobile?"14px 16px":"20px 28px",background:"#fff8f9",minHeight:"100%",flexDirection:isMobile?"column":"row" }}>
       <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
 
-        {/* Toast */}
         {toast && (
           <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#ef4444":"#a0435f" }}>
             <CheckIcon size={14}/>{toast.msg}
@@ -372,10 +421,10 @@ export default function AdminUsuariosPage() {
         {/* Stats */}
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
           {[
-            {emoji:"👥",label:"Usuarios totales",       val:s.total?.toLocaleString("es-CO"),    change:"+18%"},
-            {emoji:"🔓",label:"Con acceso completo",    val:s.conAcceso?.toLocaleString("es-CO"), change:"+22%"},
-            {emoji:"🎁",label:"Solo bienvenida gratis", val:s.soloGratis?.toLocaleString("es-CO"),change:"+9%"},
-            {emoji:"📈",label:"Conversión total",        val:`${s.conversion||0}%`,               change:"+15%"},
+            {emoji:"👥",label:"Usuarios totales",       val:s.total?.toLocaleString("es-CO"),     change:"+18%"},
+            {emoji:"🔓",label:"Con acceso completo",    val:s.conAcceso?.toLocaleString("es-CO"),  change:"+22%"},
+            {emoji:"🎁",label:"Solo bienvenida gratis", val:s.soloGratis?.toLocaleString("es-CO"), change:"+9%"},
+            {emoji:"📈",label:"Conversión total",       val:`${s.conversion||0}%`,                 change:"+15%"},
           ].map((st,i)=>(
             <div key={i} style={{ background:"#fff",border:"1px solid #f0dde2",borderRadius:16,padding:isMobile?"12px":"16px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ fontSize:isMobile?20:22,marginBottom:8 }}>{st.emoji}</div>
@@ -425,7 +474,7 @@ export default function AdminUsuariosPage() {
           ))}
         </div>
 
-        {/* Contenido — tabla desktop / cards mobile */}
+        {/* Tabla / Cards */}
         <div style={{ background:"#fff",borderRadius:20,border:"1px solid #f0dde2",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           {loading ? (
             <div style={{ padding:"48px 24px",display:"flex",justifyContent:"center" }}>
@@ -435,14 +484,12 @@ export default function AdminUsuariosPage() {
           ) : paginados.length===0 ? (
             <p style={{ padding:"48px 24px",textAlign:"center",fontSize:13,color:"#9a6672" }}>No se encontraron usuarios.</p>
           ) : isMobile ? (
-            /* ── CARDS MOBILE ── */
             <div style={{ display:"flex",flexDirection:"column" }}>
               {paginados.map((u,i)=>{
                 const secActivas = SECCIONES.filter(s=>u[s.key]);
                 return (
                   <div key={u.id} style={{ padding:"14px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none" }}>
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:10 }}>
-                      {/* Avatar + nombre */}
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
                         <div style={{ width:38,height:38,borderRadius:"50%",background:"#fce8ed",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                           {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:12,fontWeight:700 }}>{u.nombre?.[0]}</span>}
@@ -452,7 +499,6 @@ export default function AdminUsuariosPage() {
                           <p style={{ fontSize:11,color:"#9a6672",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
                         </div>
                       </div>
-                      {/* Estado */}
                       <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,flexShrink:0,
                         background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#f5f0ff":"#fdf3e3",
                         color:u.tiene_acceso?"#5a8a3a":!u.sesiones_completadas?"#6b4f9e":"#c9973a",
@@ -460,8 +506,6 @@ export default function AdminUsuariosPage() {
                         {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
                       </span>
                     </div>
-
-                    {/* Progreso + accesos */}
                     <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
                       <div style={{ flex:1 }}>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
@@ -472,7 +516,6 @@ export default function AdminUsuariosPage() {
                         </div>
                         <p style={{ fontSize:10,color:"#c0909a",margin:0 }}>{u.sesiones_completadas||0}/8 sesiones</p>
                       </div>
-                      {/* Íconos de accesos */}
                       <div style={{ display:"flex",gap:4 }}>
                         {secActivas.slice(0,4).map(sec=>{
                           const Icon=sec.icon;
@@ -481,8 +524,6 @@ export default function AdminUsuariosPage() {
                         {secActivas.length>4&&<span style={{ fontSize:10,color:"#9a6672",fontWeight:700 }}>+{secActivas.length-4}</span>}
                       </div>
                     </div>
-
-                    {/* Acciones */}
                     <div style={{ display:"flex",gap:6 }}>
                       <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #f0dde2",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <EyeIcon size={12}/>Ver
@@ -499,7 +540,6 @@ export default function AdminUsuariosPage() {
               })}
             </div>
           ) : (
-            /* ── TABLA DESKTOP ── */
             <>
               <div style={{ padding:"10px 16px",borderBottom:"1px solid #fce8ed",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
                 {["Usuario","Estado","Progreso","Código","Pago","Accesos","Acciones"].map((h,i)=>(
@@ -534,7 +574,13 @@ export default function AdminUsuariosPage() {
                         </div>
                         <p style={{ fontSize:9,color:"#c0909a",margin:0 }}>{u.sesiones_completadas||0}/8 ses.</p>
                       </div>
-                      <div>{u.codigo_referido?<span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>{u.codigo_referido}</span>:<span style={{ fontSize:10,color:"#c0a0a8" }}>—</span>}</div>
+                      <div>
+                        {u.codigo_referido
+                          ? <span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>{u.codigo_referido}</span>
+                          : u.codigo_promo_usado
+                          ? <span style={{ fontSize:11,fontWeight:700,color:"#7c5cc4" }}>🎟 {u.codigo_promo_usado}</span>
+                          : <span style={{ fontSize:10,color:"#c0a0a8" }}>—</span>}
+                      </div>
                       <div>
                         {u.tiene_acceso?(
                           <div style={{ display:"flex",alignItems:"center",gap:4 }}>
@@ -542,7 +588,10 @@ export default function AdminUsuariosPage() {
                               <p style={{ fontSize:11,fontWeight:700,color:"#2d1a22",margin:0 }}>{u.monto_pagado?`$${u.monto_pagado} USD`:"$35 USD"}</p>
                               <span style={{ fontSize:9,background:"#e8f0e0",color:"#5a8a3a",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
                             </div>
-                            <button onClick={()=>setModalEditPago(u)} style={{ width:20,height:20,borderRadius:6,background:"#fdf3e3",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                            <button
+                              type="button"
+                              onClick={()=>setModalEditPago({...u})}
+                              style={{ width:20,height:20,borderRadius:6,background:"#fdf3e3",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                               <PencilIcon size={9} style={{ color:"#c9973a" }}/>
                             </button>
                           </div>
@@ -556,13 +605,13 @@ export default function AdminUsuariosPage() {
                         {secActivas.length>3&&<span style={{ fontSize:10,color:"#9a6672",fontWeight:700 }}>+{secActivas.length-3}</span>}
                       </div>
                       <div style={{ display:"flex",gap:4 }}>
-                        <button onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }} title="Ver">
+                        <button type="button" onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <EyeIcon size={12} style={{ color:"#a0435f" }}/>
                         </button>
-                        <button onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }} title="Editar">
+                        <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <PencilIcon size={12} style={{ color:"#a0435f" }}/>
                         </button>
-                        <button onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }} title="Accesos">
+                        <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <ShieldIcon size={12} style={{ color:"#5a8a3a" }}/>
                         </button>
                       </div>
@@ -590,7 +639,7 @@ export default function AdminUsuariosPage() {
         </div>
       </div>
 
-      {/* PANEL LATERAL — solo desktop */}
+      {/* PANEL LATERAL */}
       {!isMobile && (
         <div style={{ width:280,flexShrink:0,display:"flex",flexDirection:"column",gap:14 }}>
           <div style={{ background:"#fff",border:"1px solid #f0dde2",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
@@ -652,12 +701,32 @@ export default function AdminUsuariosPage() {
       )}
 
       {/* Modales */}
-      {modalVer     && <ModalVer     u={modalVer}    onClose={()=>setModalVer(null)}/>}
-      {modalEditar  && <ModalEditar  u={modalEditar} onClose={()=>setModalEditar(null)} onSave={guardarEdicion}/>}
-      {modalNuevo   && <ModalNuevo   onClose={()=>setModalNuevo(false)} onSave={crearUsuario}/>}
+      {modalVer     && <ModalVer u={modalVer} onClose={()=>setModalVer(null)}/>}
+      {modalEditar  && <ModalEditar u={modalEditar} onClose={()=>setModalEditar(null)} onSave={guardarEdicion}/>}
+      {modalNuevo   && <ModalNuevo onClose={()=>setModalNuevo(false)} onSave={crearUsuario}/>}
       {modalAccesos && <ModalAccesos u={modalAccesos} onClose={()=>setModalAccesos(null)} onToggle={toggleSeccion}/>}
-      {modalPago    && <ModalPago usuaria={modalPago} titulo="Confirmar pago" subtitulo="¿Cuánto pagó" gradiente="linear-gradient(90deg,#a0435f,#e8849a)" onClose={()=>setModalPago(null)} onConfirmar={(monto)=>confirmarToggle(modalPago.id,true,monto)}/>}
-      {modalEditPago&& <ModalPago usuaria={modalEditPago} titulo="Corregir monto de pago" subtitulo="Editando pago de" gradiente="linear-gradient(90deg,#5a8a3a,#90d060)" onClose={()=>setModalEditPago(null)} onConfirmar={(monto)=>corregirMonto(modalEditPago.id,monto)}/>}
+
+      {modalPago && (
+        <ModalPago
+          usuaria={modalPago}
+          titulo="Confirmar pago"
+          subtitulo="¿Cuánto pagó"
+          gradiente="linear-gradient(90deg,#a0435f,#e8849a)"
+          onClose={()=>setModalPago(null)}
+          onConfirmar={async(monto)=>{ await confirmarToggle(modalPago.id, true, monto); }}
+        />
+      )}
+
+      {modalEditPago && (
+        <ModalPago
+          usuaria={modalEditPago}
+          titulo="Corregir monto de pago"
+          subtitulo="Editando pago de"
+          gradiente="linear-gradient(90deg,#5a8a3a,#90d060)"
+          onClose={()=>setModalEditPago(null)}
+          onConfirmar={async(monto)=>{ await corregirMonto(modalEditPago.id, monto); }}
+        />
+      )}
     </div>
   );
 }

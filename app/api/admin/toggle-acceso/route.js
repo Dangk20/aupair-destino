@@ -28,7 +28,7 @@ export async function POST(req) {
     const activar = valor !== undefined ? valor : tiene_acceso;
     await dbAupair.query("UPDATE usuarios SET tiene_acceso = ? WHERE id = ?", [activar?1:0, id]);
 
-    if (tiene_acceso) {
+    if (activar) {
       const [[usuario]] = await dbAupair.query(
         "SELECT codigo_referido, codigo_promo_usado FROM usuarios WHERE id = ?", [id]
       );
