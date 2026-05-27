@@ -36,7 +36,7 @@ export default function Navbar() {
       {/* Logo */}
       <Link href="/" className="shrink-0">
         <Image
-          src="/assets/destino-aupair-logo.svg"
+          src="/assets/destino-aupair-logo2.svg"
           alt="Destino Au Pair"
           width={72}
           height={72}

@@ -116,7 +116,7 @@ export default function HeroSection() {
           <div className="relative w-full" style={{ height:"60vw", minHeight:240, maxHeight:380 }}>
             {/* Imagen con degradado abajo */}
             <img
-              src="/assets/portada.jpg"
+              src="/assets/portada1.jpeg"
               alt="Au pair"
               className="w-full h-full object-cover object-[50%_30%]"
               onError={e => { e.target.src = "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=800&q=90"; }}
@@ -224,18 +224,19 @@ export default function HeroSection() {
           style={{
             width:        "clamp(660px, 60vw, 1150px)",
             height:       "clamp(760px, 60vw, 1260px)",
-            borderRadius: "60%",
-            top:          "clamp(-190px, -13vw, -70px)",
-            right:        "clamp(-100px, -4vw, -40px)",
+            borderRadius: "70%",
+            top:          "clamp(-50px, -13vw, -70px)",
+            right:        "-115px",
             zIndex:       0,
           }}
         >
           <img
-            src="/assets/portada.jpg"
-            alt="Au pair"
-            className="w-full h-full object-cover object-[50%_35%] scale-105"
-            onError={e => { e.target.src = "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=1200&q=90"; }}
-          />
+  src="/assets/portada1.jpeg"
+  alt="Au pair"
+  className="w-full h-full object-cover scale-105"
+  style={{ objectPosition: "50% 80%" }}
+  onError={e => { e.target.src = "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=1200&q=90"; }}
+/>
           <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f9]/20 via-transparent to-transparent" />
         </div>
 

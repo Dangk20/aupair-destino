@@ -35,10 +35,10 @@ const WAIcon = () => (
 );
 
 const socialLinks = [
-  { icon: IGIcon, label: "Instagram", handle: "@destinoaupair",  href: "#", bg: "bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888]", color: "text-white" },
-  { icon: YTIcon, label: "YouTube",   handle: "Destino Au Pair", href: "#", bg: "bg-[#FF0000]", color: "text-white" },
-  { icon: TKIcon, label: "TikTok",    handle: "@destinoaupair",  href: "#", bg: "bg-[#010101]", color: "text-white" },
-  { icon: FBIcon, label: "Facebook",  handle: "Destino Au Pair", href: "#", bg: "bg-[#1877F2]", color: "text-white" },
+  { icon: IGIcon, label: "Instagram", handle: "@destino.aupair",  href: "https://www.instagram.com/destino.aupair?igsh=MWtlMGJueDExdjRkeg%3D%3D&utm_source=qr", bg: "bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888]", color: "text-white" },
+  { icon: YTIcon, label: "YouTube",   handle: "Destino Au Pair", href: "https://youtube.com/@destinoaupair?si=MUalQkIqJdI2H956", bg: "bg-[#FF0000]", color: "text-white" },
+  { icon: TKIcon, label: "TikTok",    handle: "@destino.au.pair",  href: "https://www.tiktok.com/@destino.au.pair?_r=1&_t=ZT-96fLiy6J8LF", bg: "bg-[#010101]", color: "text-white" },
+  { icon: FBIcon, label: "Facebook",  handle: "Destino Au Pair", href: "https://www.facebook.com/share/1JgczUvRmG/?mibextid=wwXIfr", bg: "bg-[#1877F2]", color: "text-white" },
   { icon: WAIcon, label: "WhatsApp",  handle: "+57 300 123 4567",href: "https://wa.me/573001234567", bg: "bg-[#25D366]", color: "text-white" },
 ];
 
