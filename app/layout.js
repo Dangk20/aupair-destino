@@ -19,7 +19,7 @@ export const metadata = {
     siteName: "Destino Au Pair",
     images: [
       {
-        url: "/assets/logo1-internet.png",
+        url: "/assets/favicon.png",
         width: 800,
         height: 800,
         alt: "Destino Au Pair",
@@ -32,12 +32,12 @@ export const metadata = {
     card: "summary_large_image",
     title: "Destino Au Pair",
     description: "Descubre el mundo como Au Pair.",
-    images: ["/assets/logo1-internet.png"],
+    images: ["/assets/favicon.png"],
   },
 
   icons: {
-    icon: "/assets/logo1-internet.png",
-    apple: "/assets/logo1-internet.png",
+    icon: "/assets/favicon.png",
+    apple: "/assets/favicon.png",
   },
 
   icons: {
