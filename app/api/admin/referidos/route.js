@@ -65,3 +65,22 @@ export async function GET() {
     return NextResponse.json({ referentes: [], totales: {}, error: err.message });
   }
 }
+export async function POST(req) {
+  try {
+    const { nombre, email, codigo, porcentaje } = await req.json();
+
+    if (!nombre || !codigo)
+      return NextResponse.json({ error: "Nombre y código son requeridos" }, { status: 400 });
+
+    const [res] = await dbAupair.query(
+      "INSERT INTO referidos (nombre, email, codigo, porcentaje, estado) VALUES (?, ?, ?, ?, 'Pendiente')",
+      [nombre, email || null, codigo.toUpperCase(), porcentaje || 10]
+    );
+
+    return NextResponse.json({ ok: true, id: res.insertId });
+  } catch (e) {
+    if (e.code === "ER_DUP_ENTRY")
+      return NextResponse.json({ error: "Ese código ya existe" }, { status: 409 });
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}

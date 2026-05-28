@@ -21,10 +21,10 @@ export async function GET(req) {
   if (!session || session.rol !== "admin") return unauthorized();
 
   try {
-    const r1  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol = 'usuaria'");
+    const r1  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol NOT IN ('admin')");
     const totalUsuarias = Number(r1?.n ?? 0);
 
-    const r2  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol = 'usuaria' AND tiene_acceso = TRUE");
+    const r2  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol NOT IN ('admin') AND tiene_acceso = TRUE");
     const conAcceso = Number(r2?.n ?? 0);
 
     const r3  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM sesiones");
@@ -45,7 +45,7 @@ export async function GET(req) {
           (SELECT COUNT(*) FROM sesiones) AS total_sesiones
         FROM usuarios u
         LEFT JOIN progreso_usuario p ON p.id_usuario = u.id AND p.completada = TRUE
-        WHERE u.rol = 'usuaria' GROUP BY u.id
+        WHERE u.rol NOT IN ('admin') GROUP BY u.id
       ) t
     `);
     const progresoPromedio = Number(r5?.prom ?? 0);
@@ -64,12 +64,12 @@ export async function GET(req) {
         ROUND(COUNT(p.id) / GREATEST((SELECT COUNT(*) FROM sesiones),1) * 100) AS porcentaje
       FROM usuarios u
       LEFT JOIN progreso_usuario p ON p.id_usuario = u.id AND p.completada = TRUE
-      WHERE u.rol = 'usuaria' GROUP BY u.id ORDER BY u.created_at DESC LIMIT 5
+      WHERE u.rol NOT IN ('admin') GROUP BY u.id ORDER BY u.created_at DESC LIMIT 5
     `);
     const ultimasUsuarias = r7 ?? [];
 
     const r8  = await q1(dbAupair, `
-      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol = 'usuaria'
+      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol NOT IN ('admin')
       AND NOT EXISTS (SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE)
     `);
     const sinProgreso = Number(r8?.n ?? 0);
@@ -77,13 +77,13 @@ export async function GET(req) {
     const r9  = await q(dbAupair, `
       SELECT DATE_FORMAT(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY), '%d/%m') AS semana,
         COUNT(*) AS total
-      FROM usuarios WHERE rol = 'usuaria' AND created_at >= DATE_SUB(NOW(), INTERVAL 8 WEEK)
+      FROM usuarios WHERE rol NOT IN ('admin') AND created_at >= DATE_SUB(NOW(), INTERVAL 8 WEEK)
       GROUP BY semana ORDER BY MIN(created_at) ASC
     `);
     const registrosPorSemana = r9 ?? [];
 
     const r10 = await q1(dbAupair, `
-      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol = 'usuaria'
+      SELECT COUNT(*) AS n FROM usuarios u WHERE u.rol NOT IN ('admin')
       AND EXISTS (SELECT 1 FROM progreso_usuario p WHERE p.id_usuario = u.id AND p.completada = TRUE)
       AND u.id NOT IN (
         SELECT id_usuario FROM progreso_usuario WHERE completada = TRUE
@@ -119,14 +119,12 @@ export async function GET(req) {
     const tiempo_promedio = "—";         // requiere columna duracion_minutos
 
     return NextResponse.json({
-      totalUsuarias, conAcceso, totalSesiones, completaron,
-      progresoPromedio,
-      tasaConversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
-      sinProgreso, registrosPorSemana, sesionesPopulares, ultimasUsuarias,
-      publicadas, tiempo_promedio,
-      completadas_pct, en_progreso_pct, sin_iniciar_pct,
-      recursos_por_tipo, total_recursos, actividad,
-    });
+    total: totalUsuarias,
+    conAcceso,
+    soloGratis: totalUsuarias - conAcceso,
+    conversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
+    ...resto
+  });
 
   } catch (err) {
     console.error("[GET /api/admin/stats]", err.message);

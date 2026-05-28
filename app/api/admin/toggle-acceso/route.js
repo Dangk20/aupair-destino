@@ -111,12 +111,16 @@ export async function PUT(req) {
     if (!usuario_id || !monto)
       return NextResponse.json({ error: "usuario_id y monto requeridos" }, { status: 400 });
 
-    const [r] = await dbAupair.query(
-      "UPDATE referido_registros SET monto_pagado=? WHERE usuario_id=? AND pago_realizado=1",
-      [Number(monto), usuario_id]
+    const [[existing]] = await dbAupair.query(
+      "SELECT id FROM referido_registros WHERE usuario_id = ?", [usuario_id]
     );
 
-    if (r.affectedRows === 0) {
+    if (existing) {
+      await dbAupair.query(
+        "UPDATE referido_registros SET monto_pagado = ?, pago_realizado = 1 WHERE usuario_id = ?",
+        [Number(monto), usuario_id]
+      );
+    } else {
       const [[usuario]] = await dbAupair.query(
         "SELECT codigo_referido FROM usuarios WHERE id = ?", [usuario_id]
       );
@@ -128,10 +132,9 @@ export async function PUT(req) {
         referidoId = ref?.id || null;
       }
       await dbAupair.query(
-        `INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado)
-         VALUES (?,?,?,1)`,
+        "INSERT INTO referido_registros (usuario_id, referido_id, monto_pagado, pago_realizado) VALUES (?,?,?,1)",
         [usuario_id, referidoId, Number(monto)]
-      ).catch(()=>{});
+      );
     }
 
     return NextResponse.json({ ok: true });

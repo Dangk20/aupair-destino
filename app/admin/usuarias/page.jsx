@@ -328,24 +328,24 @@ export default function AdminUsuariosPage() {
   };
 
   const corregirMonto = async(usuarioId, monto) => {
-    setModalEditPago(null);
-    try {
-      const res = await fetch("/api/admin/toggle-acceso", {
-        method:"PUT",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ usuario_id: usuarioId, monto: Number(monto) }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        showToast("Monto corregido ✓");
-        await cargar();
-      } else {
-        showToast(data.error || "Error al corregir monto", "error");
-      }
-    } catch(e) {
-      showToast("Error de conexión", "error");
+  try {
+    const res = await fetch("/api/admin/toggle-acceso", {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ usuario_id: usuarioId, monto: Number(monto) }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setModalEditPago(null); // ← cerrar DESPUÉS del fetch
+      showToast("Monto corregido ✓");
+      await cargar();
+    } else {
+      showToast(data.error || "Error al corregir monto", "error");
     }
-  };
+  } catch(e) {
+    showToast("Error de conexión", "error");
+  }
+};
 
   const guardarEdicion = async(id, form) => {
     await fetch(`/api/admin/usuarias/${id}`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});

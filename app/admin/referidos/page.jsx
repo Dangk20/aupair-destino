@@ -316,15 +316,16 @@ export default function ReferidosPage() {
   },[tab]);
 
   /* ── Guardar referente ── */
-  const handleSave=async(form)=>{
-    const method=form.id?"PUT":"POST";
-    const res=await fetch("/api/admin/referidos",{
-      method,headers:{"Content-Type":"application/json"},body:JSON.stringify(form),
-    });
-    const d = await res.json().catch(() => ({}));
-    if(res.ok){ showToast(form.id?"Referente actualizado":"Referente añadido"); cargar(); }
-    else showToast(d.error||"Error al guardar","error");
-  };
+  const handleSave = async(form) => {
+  const url    = form.id ? `/api/admin/referidos/${form.id}` : "/api/admin/referidos";
+  const method = form.id ? "PUT" : "POST";
+  const res = await fetch(url, {
+    method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(form),
+  });
+  const d = await res.json().catch(() => ({}));
+  if(res.ok){ showToast(form.id?"Referente actualizado":"Referente añadido"); cargar(); }
+  else showToast(d.error||"Error al guardar","error");
+};
 
   /* ── Eliminar referente ── */
   const handleEliminar=async()=>{
