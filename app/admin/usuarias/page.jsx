@@ -144,6 +144,134 @@ function ModalNuevo({ onClose, onSave }) {
   );
 }
 
+function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
+  const [paso, setPaso] = useState(1); // 1: seleccionar rol, 2: configurar código (si asociada)
+  const [rolSeleccionado, setRolSeleccionado] = useState(null);
+  const [codigoPersonalizado, setCodigoPersonalizado] = useState("");
+  const [codigoGenerado, setCodigoGenerado] = useState(null);
+
+  const rolesDisponibles = [
+    { valor: "usuaria", label: "Usuaria (Estudiante)", color: "bg-blue-100 text-blue-700", icon: "👩‍🎓" },
+    { valor: "asociada", label: "Asociada (Asesora)", color: "bg-purple-100 text-purple-700", icon: "👩‍🏫" },
+    { valor: "admin", label: "Admin (Administrador)", color: "bg-red-100 text-red-700", icon: "👨‍💼" },
+  ];
+
+  const handleSeleccionarRol = (nuevoRol) => {
+    setRolSeleccionado(nuevoRol);
+    
+    // Si es asociada, ir al paso 2; si no, aplicar directamente
+    if (nuevoRol === "asociada") {
+      setPaso(2);
+    } else {
+      onCambiar(u.id, nuevoRol);
+      handleCerrar();
+    }
+  };
+
+  const handleConfirmarCambio = async () => {
+    if (rolSeleccionado === "asociada") {
+      // Pasar el código personalizado si existe
+      await onCambiar(u.id, rolSeleccionado, codigoPersonalizado);
+    }
+    handleCerrar();
+  };
+
+  const handleCerrar = () => {
+    setPaso(1);
+    setRolSeleccionado(null);
+    setCodigoPersonalizado("");
+    setCodigoGenerado(null);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={handleCerrar}/>
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="h-1.5 bg-gradient-to-r from-[#7c5cc4] via-[#a0435f] to-[#7c5cc4]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
+          <div>
+            <h3 className="font-bold text-[16px] text-[#2d1a22]">
+              {paso === 1 ? "Cambiar rol de usuario" : "Configurar código de referido"}
+            </h3>
+            <p className="text-[11px] text-[#9a6672]">{u.nombre} {u.apellido}</p>
+          </div>
+          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+        </div>
+
+        {paso === 1 ? (
+          // PASO 1: Seleccionar rol
+          <div className="px-5 py-4 space-y-2">
+            {rolesDisponibles.map(rol => (
+              <button
+                key={rol.valor}
+                onClick={() => handleSeleccionarRol(rol.valor)}
+                disabled={u.rol === rol.valor || cargando === u.id}
+                className={`w-full p-4 rounded-xl border-2 transition text-left font-medium text-[13px] ${
+                  u.rol === rol.valor
+                    ? `${rol.color} opacity-50 cursor-not-allowed border-opacity-50`
+                    : `${rol.color} hover:opacity-80 active:opacity-100 cursor-pointer border-opacity-0 hover:border-opacity-20`
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{rol.icon} {rol.label}</span>
+                  {cargando === u.id && <div className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          // PASO 2: Configurar código para asociada
+          <div className="px-5 py-4 space-y-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+              <p className="text-[11px] text-purple-600 font-semibold mb-1">✨ CÓDIGO DE REFERIDO</p>
+              <p className="text-[12px] text-purple-700">
+                Las nuevas usuarias que se registren con este código serán asignadas automáticamente a esta asesora.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-[12px] font-bold text-[#2d1a22] mb-2 block">
+                Código personalizado (opcional)
+              </label>
+              <input
+                type="text"
+                value={codigoPersonalizado}
+                onChange={(e) => setCodigoPersonalizado(e.target.value.toUpperCase())}
+                placeholder="Ej: ANA2024, PROMO001..."
+                className="w-full px-3 py-2 border border-[#e0d0d8] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c5cc4] font-mono text-[12px]"
+              />
+              <p className="text-[10px] text-[#9a6672] mt-1">
+                Dejar vacío para generar uno automáticamente
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPaso(1)}
+                className="flex-1 px-3 py-2 border border-[#f0dde2] text-[#9a6672] rounded-xl font-medium text-[12px] hover:bg-[#f5f0f0]"
+              >
+                ← Atrás
+              </button>
+              <button
+                onClick={handleConfirmarCambio}
+                disabled={cargando === u.id}
+                className="flex-1 px-3 py-2 bg-[#7c5cc4] text-white rounded-xl font-medium text-[12px] hover:bg-[#6a4ab0] disabled:opacity-50"
+              >
+                {cargando === u.id ? "Procesando..." : "Cambiar a Asesora"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="px-5 pb-5 border-t border-[#f0dde2]">
+          <button onClick={handleCerrar} className="w-full border border-[#f0dde2] text-[#9a6672] text-[13px] font-semibold py-3 rounded-xl mt-3">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ModalAccesos({ u, onClose, onToggle }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -258,14 +386,16 @@ export default function AdminUsuariosPage() {
   const [codigoFiltro,  setCodigoFiltro]  = useState("");
   const [tabActivo,     setTabActivo]     = useState("todos");
   const [ordenar,       setOrdenar]       = useState("recientes");
-  const [modalVer,      setModalVer]      = useState(null);
-  const [modalEditar,   setModalEditar]   = useState(null);
-  const [modalNuevo,    setModalNuevo]    = useState(false);
-  const [modalAccesos,  setModalAccesos]  = useState(null);
-  const [modalPago,     setModalPago]     = useState(null);
-  const [modalEditPago, setModalEditPago] = useState(null);
-  const [toast,         setToast]         = useState(null);
-  const [pagina,        setPagina]        = useState(1);
+  const [modalVer,          setModalVer]          = useState(null);
+  const [modalEditar,       setModalEditar]       = useState(null);
+  const [modalNuevo,        setModalNuevo]        = useState(false);
+  const [modalAccesos,      setModalAccesos]      = useState(null);
+  const [modalPago,         setModalPago]         = useState(null);
+  const [modalEditPago,     setModalEditPago]     = useState(null);
+  const [modalCambiarRol,   setModalCambiarRol]   = useState(null);
+  const [cargandoRol,       setCargandoRol]       = useState(null);
+  const [toast,             setToast]             = useState(null);
+  const [pagina,            setPagina]            = useState(1);
   const POR_PAGINA = isMobile ? 6 : 8;
 
   const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
@@ -357,6 +487,44 @@ export default function AdminUsuariosPage() {
     const res = await fetch("/api/auth/register", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
     if (res.ok) { showToast("Usuario creado ✓"); await cargar(); }
     else showToast("Error al crear usuario","error");
+  };
+
+  const handleCambiarRol = async(usuarioId, nuevoRol, codigoReferido) => {
+    setCargandoRol(usuarioId);
+    try {
+      const body = { nuevoRol };
+      if (codigoReferido) {
+        body.codigoReferido = codigoReferido;
+      }
+      
+      const res = await fetch(`/api/admin/usuarios/${usuarioId}/cambiar-rol`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const roleNames = {
+          "asociada": "Asociada",
+          "admin": "Admin",
+          "usuaria": "Usuaria"
+        };
+        let message = `Rol cambiado a ${roleNames[nuevoRol]} ✓`;
+        if (data.codigoReferido) {
+          message += ` | Código: ${data.codigoReferido}`;
+        }
+        showToast(message);
+        setModalCambiarRol(null);
+        await cargar();
+      } else {
+        showToast(data.error || "Error al cambiar rol", "error");
+      }
+    } catch(err) {
+      console.error("Error changing role:", err);
+      showToast("Error al cambiar el rol", "error");
+    } finally {
+      setCargandoRol(null);
+    }
   };
 
   const exportar = () => {
@@ -531,6 +699,9 @@ export default function AdminUsuariosPage() {
                       <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #f0dde2",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <PencilIcon size={12}/>Editar
                       </button>
+                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #ede9f8",background:"#f5f0ff",fontSize:11,fontWeight:600,color:"#7c5cc4",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                        <ShieldIcon size={12}/>Rol
+                      </button>
                       <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #e8f0e0",background:"#f0fdf4",fontSize:11,fontWeight:600,color:"#5a8a3a",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <ShieldIcon size={12}/>Accesos
                       </button>
@@ -541,8 +712,8 @@ export default function AdminUsuariosPage() {
             </div>
           ) : (
             <>
-              <div style={{ padding:"10px 16px",borderBottom:"1px solid #fce8ed",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
-                {["Usuario","Estado","Progreso","Código","Pago","Accesos","Acciones"].map((h,i)=>(
+              <div style={{ padding:"10px 16px",borderBottom:"1px solid #fce8ed",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
+                {["Usuario","Rol","Estado","Progreso","Código","Pago","Accesos","Acciones"].map((h,i)=>(
                   <p key={i} style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"#9a6672",margin:0 }}>{h}</p>
                 ))}
               </div>
@@ -550,7 +721,7 @@ export default function AdminUsuariosPage() {
                 {paginados.map((u,i)=>{
                   const secActivas=SECCIONES.filter(s=>u[s.key]);
                   return (
-                    <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
+                    <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
                         <div style={{ width:34,height:34,borderRadius:"50%",background:"#fce8ed",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                           {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:11,fontWeight:700 }}>{u.nombre?.[0]}</span>}
@@ -559,6 +730,11 @@ export default function AdminUsuariosPage() {
                           <p style={{ fontSize:12,fontWeight:600,color:"#2d1a22",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
                           <p style={{ fontSize:10,color:"#9a6672",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
                         </div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#fee2e2":u.rol==="asociada"?"#ede9f8":"#dbeafe",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#5b21b6":"#1e40af" }}>
+                          {u.rol==="admin"?"👨‍💼 Admin":u.rol==="asociada"?"👩‍🏫 Asociada":"👩‍🎓 Usuaria"}
+                        </span>
                       </div>
                       <div>
                         <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#f5f0ff":"#fdf3e3",color:u.tiene_acceso?"#5a8a3a":!u.sesiones_completadas?"#6b4f9e":"#c9973a" }}>
@@ -610,6 +786,9 @@ export default function AdminUsuariosPage() {
                         </button>
                         <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <PencilIcon size={12} style={{ color:"#a0435f" }}/>
+                        </button>
+                        <button type="button" onClick={()=>setModalCambiarRol(u)} style={{ width:28,height:28,borderRadius:8,background:"#ede9f8",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          <ShieldIcon size={12} style={{ color:"#7c5cc4" }}/>
                         </button>
                         <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <ShieldIcon size={12} style={{ color:"#5a8a3a" }}/>
@@ -701,10 +880,11 @@ export default function AdminUsuariosPage() {
       )}
 
       {/* Modales */}
-      {modalVer     && <ModalVer u={modalVer} onClose={()=>setModalVer(null)}/>}
-      {modalEditar  && <ModalEditar u={modalEditar} onClose={()=>setModalEditar(null)} onSave={guardarEdicion}/>}
-      {modalNuevo   && <ModalNuevo onClose={()=>setModalNuevo(false)} onSave={crearUsuario}/>}
-      {modalAccesos && <ModalAccesos u={modalAccesos} onClose={()=>setModalAccesos(null)} onToggle={toggleSeccion}/>}
+      {modalVer         && <ModalVer u={modalVer} onClose={()=>setModalVer(null)}/>}
+      {modalEditar      && <ModalEditar u={modalEditar} onClose={()=>setModalEditar(null)} onSave={guardarEdicion}/>}
+      {modalNuevo       && <ModalNuevo onClose={()=>setModalNuevo(false)} onSave={crearUsuario}/>}
+      {modalCambiarRol  && <ModalCambiarRol u={modalCambiarRol} onClose={()=>setModalCambiarRol(null)} onCambiar={handleCambiarRol} cargando={cargandoRol}/>}
+      {modalAccesos     && <ModalAccesos u={modalAccesos} onClose={()=>setModalAccesos(null)} onToggle={toggleSeccion}/>}
 
       {modalPago && (
         <ModalPago

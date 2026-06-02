@@ -6,6 +6,7 @@ export async function GET() {
     const [referentes] = await dbAupair.query(`
       SELECT
         r.id, r.nombre, r.email, r.codigo, r.porcentaje, r.estado,
+        u.id as asesora_id, u.nombre as asesora_nombre, u.apellido as asesora_apellido,
         COUNT(DISTINCT rr.usuario_id) AS registradas,
         COUNT(DISTINCT CASE WHEN rr.pago_realizado = 1 THEN rr.usuario_id END) AS pagaron,
         COALESCE(SUM(CASE WHEN rr.pago_realizado = 1 THEN rr.monto_pagado ELSE 0 END), 0) AS ingresos_generados,
@@ -14,6 +15,7 @@ export async function GET() {
           THEN COALESCE(SUM(CASE WHEN rr.pago_realizado = 1 THEN rr.monto_pagado * r.porcentaje / 100 ELSE 0 END), 0)
           ELSE 0 END AS comision_pagada
       FROM referidos r
+      LEFT JOIN usuarios u ON u.email = r.email AND u.rol = 'asociada'
       LEFT JOIN referido_registros rr ON rr.referido_id = r.id
       GROUP BY r.id
       ORDER BY ingresos_generados DESC
@@ -55,6 +57,8 @@ export async function GET() {
       comision_num:  Number(r.comision_generada),
       pagada_num:    Number(r.comision_pagada),
       pendiente_num: Math.max(Number(r.comision_generada) - Number(r.comision_pagada), 0),
+      asesora:       r.asesora_id ? `${r.asesora_nombre} ${r.asesora_apellido}` : null,
+      asesora_id:    r.asesora_id,
     }));
 
     // ← Este es el único return, al final

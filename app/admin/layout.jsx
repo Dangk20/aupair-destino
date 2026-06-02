@@ -9,6 +9,7 @@ import {
   LayoutDashboardIcon, UsersIcon, VideoIcon, LogOutIcon,
   MenuIcon, XIcon, UserPlusIcon, BarChart2Icon,
   SettingsIcon, BellIcon, CreditCardIcon, CalendarIcon, TagIcon as TagIcon,
+  ShieldIcon, DatabaseIcon,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 
@@ -18,9 +19,12 @@ const navItems = [
   { label:"Códigos promo",          href:"/admin/codigos-promo",  icon: TagIcon            },
   { label:"Pagos y comisiones",     href:"/admin/pagos",          icon:CreditCardIcon      },
   { label:"Usuarios",               href:"/admin/usuarias",       icon:UsersIcon           },
+  //{ label:"Cambiar Roles",          href:"/admin/cambiar-roles",  icon:ShieldIcon          },
+  { label:"Asesoras/Asociadas",     href:"/admin/asociadas",      icon:UsersIcon           },
   { label:"Perfiles",               href:"/admin/perfiles",       icon:UsersIcon           },
   { label:"Sesiones",               href:"/admin/sesiones",       icon:VideoIcon           },
   { label:"Calendario",             href:"/admin/reuniones",     icon:CalendarIcon        },
+  //{ label:"Verificar BD",           href:"/admin/bd-verificar",   icon:DatabaseIcon        },
   { label:"Reportes",               href:"/admin/reportes",       icon:BarChart2Icon       },
   { label:"Configuración",          href:"/admin/configuracion",  icon:SettingsIcon        },
   { label:"Notificaciones",         href:"/admin/notificaciones", icon:BellIcon            },

@@ -45,7 +45,9 @@ console.log("Hash en BD:", rows[0]?.password);
     });
 
     // Redirige según rol
-    const redirect = user.rol === "admin" ? "/admin" : "/dashboard";
+    let redirect = "/dashboard";
+    if (user.rol === "admin") redirect = "/admin";
+    if (user.rol === "asociada") redirect = "/asociada";
 
     const response = NextResponse.json({ ok: true, redirect });
     response.cookies.set("dap_token", token, {

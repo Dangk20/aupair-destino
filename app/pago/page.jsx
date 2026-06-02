@@ -75,28 +75,48 @@ const precioFinal = codigoAplicado ? precioConCodigo : precioRegular;
   setValidandoCodigo(true);
   setErrorCodigo("");
 
-  const res = await fetch("/api/codigos-promo/validar", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ codigo: codigo.trim() }),
-  });
-  const data = await res.json();
+  try {
+    // 1. Intentar validar como código de promo
+    const resPromo = await fetch("/api/codigos-promo/validar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codigo: codigo.trim() }),
+    });
+    const dataPromo = await resPromo.json();
 
-  if (res.ok && data.ok) {
-  setPrecioConCodigo(Number(data.precio_final));
-  setCodigoAplicado(true);
-  setErrorCodigo("");
+    if (resPromo.ok && dataPromo.ok) {
+      // ✅ Es código de promo válido
+      setPrecioConCodigo(Number(dataPromo.precio_final));
+      setCodigoAplicado(true);
+      setErrorCodigo("");
 
-  // Guardar código en perfil
-  const usarRes = await fetch("/api/codigos-promo/usar", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ codigo: codigo.trim() }),
-  });
-  const usarData = await usarRes.json();
-  console.log("Resultado guardar código:", usarData); // Ver en consola F12
-}  else {
-    setErrorCodigo(data.error || "Código no válido. Verifica e intenta de nuevo.");
+      // Guardar código en perfil
+      const usarRes = await fetch("/api/codigos-promo/usar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: codigo.trim() }),
+      });
+      const usarData = await usarRes.json();
+      console.log("Resultado guardar código de promo:", usarData);
+    } else {
+      // 2. Si no es promo, intentar validar como código de referido
+      const resReferido = await fetch(`/api/pago/validar-codigo?codigo=${codigo.trim().toUpperCase()}`);
+      const dataReferido = await resReferido.json();
+
+      if (resReferido.ok && dataReferido.valido) {
+        // ✅ Es código de referido válido
+        setPrecioConCodigo(Number(dataReferido.precioFinal));
+        setCodigoAplicado(true);
+        setErrorCodigo("");
+        console.log("Código de referido válido:", dataReferido.referente);
+      } else {
+        // ❌ Ni promo ni referido
+        setErrorCodigo(dataPromo.error || dataReferido.mensaje || "Código no válido. Verifica e intenta de nuevo.");
+      }
+    }
+  } catch (err) {
+    console.error("Error validando código:", err);
+    setErrorCodigo("Error al validar el código. Intenta de nuevo.");
   }
   setValidandoCodigo(false);
 };

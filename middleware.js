@@ -38,6 +38,7 @@ const PC_PROTECTED_PREFIXES = [
 const DAP_PROTECTED_PREFIXES = [
   "/dashboard",
   "/admin",
+  "/asociada",
 ];
 
 const DAP_PUBLIC_PATHS = [
@@ -105,8 +106,11 @@ export async function middleware(request) {
       return res;
     }
 
-    // Admin solo puede ir a /admin, usuaria solo a /dashboard
+    // Validar rutas por rol
     if (pathname.startsWith("/admin") && payload.rol !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    if (pathname.startsWith("/asociada") && payload.rol !== "asociada") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

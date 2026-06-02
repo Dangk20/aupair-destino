@@ -479,14 +479,14 @@ export default function ReferidosPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#fce8ed]">
-                      {["Referente","Código","Registradas","Pagaron","Ingresos generados","Comisión generada","Comisión pagada","Pendiente por pagar","Estado","Acciones"].map((h,i)=>(
+                      {["Referente","Código","Asesora vinculada","Registradas","Pagaron","Ingresos generados","Comisión generada","Comisión pagada","Pendiente por pagar","Estado","Acciones"].map((h,i)=>(
                         <th key={i} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-[#9a6672] whitespace-nowrap bg-[#fff8f9]">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#fff0f3]">
                     {filtrados.length===0?(
-                      <tr><td colSpan={10} className="text-center py-10 text-[13px] text-[#9a6672]">No se encontraron resultados.</td></tr>
+                      <tr><td colSpan={11} className="text-center py-10 text-[13px] text-[#9a6672]">No se encontraron resultados.</td></tr>
                     ):filtrados.map(r=>(
                       <tr key={r.id} className="hover:bg-[#fff8f9] transition">
                         <td className="px-4 py-3.5">
@@ -507,6 +507,15 @@ export default function ReferidosPage() {
                               {copiado===r.id?<CheckIcon size={11} className="text-[#5a8a3a]"/>:<CopyIcon size={11}/>}
                             </button>
                           </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {r.asesora ? (
+                            <span className="text-[12px] font-semibold text-[#7c5cc4] bg-purple-50 px-2.5 py-1 rounded-lg">
+                              {r.asesora}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-gray-400">Sin vincular</span>
+                          )}
                         </td>
                         <td className="px-4 py-3.5 text-[12px] text-[#2d1a22] font-medium">{r.registradas}</td>
                         <td className="px-4 py-3.5 text-[12px] text-[#5a8a3a] font-bold">{r.pagaron}</td>

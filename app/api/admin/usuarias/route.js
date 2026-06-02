@@ -22,6 +22,7 @@ export async function GET(req) {
         u.foto_url,
         u.ciudad,
         u.pais,
+        u.rol,
         u.tiene_acceso,
         u.perfil_habilitado,
         u.acceso_documentos,
@@ -45,7 +46,6 @@ export async function GET(req) {
         ON rr.usuario_id = u.id AND rr.pago_realizado = 1
       LEFT JOIN referidos ref
         ON ref.id = rr.referido_id
-      WHERE u.rol = 'usuaria'
       GROUP BY u.id, rr.monto_pagado, ref.porcentaje, ref.nombre, ref.email
       ORDER BY u.created_at DESC
     `, [total]);
