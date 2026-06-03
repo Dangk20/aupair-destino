@@ -243,12 +243,6 @@ export default function AdminAsociadasPage() {
                     Usuarias
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Reuniones
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Progreso Promedio
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wide">
                     Acciones
                   </th>
                 </tr>
@@ -308,34 +302,8 @@ export default function AdminAsociadasPage() {
                     <td className="px-6 py-4 text-center">
                       <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                         <UserPlusIcon size={14} />
-                        {asociada.usuarias_asignadas}
+                        {asociada.usuarias_asignadas || 0}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1 text-sm">
-                        <span className="font-medium text-gray-900">
-                          {asociada.reuniones_confirmadas}
-                        </span>
-                        <span className="text-gray-500">/</span>
-                        <span className="text-gray-600">
-                          {asociada.reuniones_totales}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-[#7c5cc4] h-2 rounded-full"
-                            style={{
-                              width: `${Math.round(asociada.promedio_progreso_usuarias)}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-600 w-8">
-                          {Math.round(asociada.promedio_progreso_usuarias)}%
-                        </span>
-                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

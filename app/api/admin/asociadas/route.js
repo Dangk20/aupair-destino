@@ -8,6 +8,7 @@ export async function GET(req) {
   if (!session || session.rol !== "admin") return unauthorized();
 
   try {
+    // Query simple primero
     const [asociadas] = await dbAupair.query(`
       SELECT 
         u.id,
@@ -17,20 +18,35 @@ export async function GET(req) {
         u.telefono,
         u.ciudad,
         u.pais,
-        u.foto_url,
         u.codigo_referido,
-        u.created_at,
-        GROUP_CONCAT(DISTINCT r.codigo SEPARATOR ', ') AS codigos_referidos_promo,
-        COUNT(DISTINCT ua.id) as usuarias_asignadas
+        u.created_at
       FROM usuarios u
-      LEFT JOIN usuarios ua ON ua.asesora_asignada_id = u.id AND ua.rol = 'usuaria'
-      LEFT JOIN referidos r ON r.email = u.email
       WHERE u.rol = 'asociada'
-      GROUP BY u.id
       ORDER BY u.created_at DESC
     `);
 
-    return NextResponse.json({ ok: true, asociadas });
+    // Después enriquecer con JOIN
+    const result = await Promise.all(asociadas.map(async (asesora) => {
+      // Contar usuarias asignadas
+      const [[usuarias]] = await dbAupair.query(
+        `SELECT COUNT(*) as count FROM usuarios WHERE asesora_asignada_id = ? AND rol = 'usuaria'`,
+        [asesora.id]
+      );
+
+      // Obtener códigos de referidos
+      const [referidos] = await dbAupair.query(
+        `SELECT codigo FROM referidos WHERE email = ?`,
+        [asesora.email]
+      );
+
+      return {
+        ...asesora,
+        usuarias_asignadas: usuarias?.count || 0,
+        codigos_referidos_promo: referidos.map(r => r.codigo).join(', ') || null
+      };
+    }));
+
+    return NextResponse.json({ ok: true, asociadas: result });
   } catch (err) {
     console.error("[GET /api/admin/asociadas]", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
