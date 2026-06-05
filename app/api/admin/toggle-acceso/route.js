@@ -108,7 +108,7 @@ export async function PUT(req) {
 
   try {
     const { usuario_id, monto } = await req.json();
-    if (!usuario_id || !monto)
+    if (!usuario_id || monto === undefined || monto === null)
       return NextResponse.json({ error: "usuario_id y monto requeridos" }, { status: 400 });
 
     const [[existing]] = await dbAupair.query(

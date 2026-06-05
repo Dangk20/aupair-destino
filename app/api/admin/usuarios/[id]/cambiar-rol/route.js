@@ -72,19 +72,22 @@ export async function PUT(req, { params }) {
     } else if (nuevoRol === "admin") {
       // Los admins no necesitan acceso a secciones de estudiante
       tieneAcceso = 0;
+    } else if (nuevoRol === "usuaria") {
+      // Las usuarias por defecto no tienen acceso
+      tieneAcceso = 0;
     }
 
     // Actualizar rol y código de referido si aplica
     let query = "UPDATE usuarios SET rol = ?";
     let params = [nuevoRol];
     
-    // Limpiar accesos si cambias a asociada o admin
+    // Actualizar tiene_acceso basado en el rol
+    query += ", tiene_acceso = ?";
+    params.push(tieneAcceso);
+    
+    // Limpiar accesos específicos si cambias a asociada o admin
     if (nuevoRol === "asociada" || nuevoRol === "admin") {
-      query += ", tiene_acceso = ?, acceso_documentos = 0, acceso_recursos = 0, acceso_reuniones = 0, acceso_mensajes = 0, acceso_comunidad = 0, perfil_habilitado = 0";
-      params.push(tieneAcceso);
-    } else if (tieneAcceso !== null) {
-      query += ", tiene_acceso = ?";
-      params.push(tieneAcceso);
+      query += ", acceso_documentos = 0, acceso_recursos = 0, acceso_reuniones = 0, acceso_mensajes = 0, acceso_comunidad = 0, perfil_habilitado = 0";
     }
     
     if (nuevoCodigoReferido) {
@@ -97,13 +100,16 @@ export async function PUT(req, { params }) {
 
     await dbAupair.query(query, params);
 
-    // Limpiar accesos y pago si cambias a asociada o admin
+    // Resetear pago si cambias a asociada o admin
     if (nuevoRol === "asociada" || nuevoRol === "admin") {
-      // Resetear pagos en referido_registros
-      await dbAupair.query(
-        "UPDATE referido_registros SET pago_realizado = 0, monto_pagado = 0 WHERE usuario_id = ?",
-        [id]
-      ).catch(() => {});
+      try {
+        await dbAupair.query(
+          "UPDATE referido_registros SET pago_realizado = 0, monto_pagado = 0 WHERE usuario_id = ?",
+          [id]
+        );
+      } catch (e) {
+        console.log("[cambiar-rol] Info: sin registros de pago para limpiar");
+      }
     }
 
     return NextResponse.json({
