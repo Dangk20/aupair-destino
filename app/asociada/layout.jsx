@@ -1,127 +1,110 @@
 "use client";
+// app/asociada/layout.jsx
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  LogOutIcon, MenuIcon, XIcon, BarChart3Icon, UsersIcon, CalendarIcon,
-  SettingsIcon, BellIcon, HelpCircleIcon, ChevronDownIcon,
+  LayoutDashboardIcon, UsersIcon, DollarSignIcon,
+  CalendarIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BellIcon,
 } from "lucide-react";
+import { useMobile } from "@/context/MobileContext";
+
+const NAV = [
+  { href:"/asociada",             label:"Resumen",         icon:LayoutDashboardIcon },
+  { href:"/asociada/usuarias",   label:"Mis referidas",   icon:UsersIcon },
+  { href:"/asociada/comisiones",  label:"Comisiones",      icon:DollarSignIcon },
+  { href:"/asociada/reuniones",  label:"Calendario",      icon:CalendarIcon },
+  { href:"/asociada/configuracion", label:"Configuración", icon:SettingsIcon },
+];
 
 export default function AsociadaLayout({ children }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
+  const pathname  = usePathname();
+  const router    = useRouter();
+  const { isMobile } = useMobile();
+  const [open,     setOpen]     = useState(false);
+  const [user,     setUser]     = useState(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUserData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching user:", err);
-      }
-    };
-    fetchUser();
-  }, []);
+  useEffect(()=>{
+    fetch("/api/auth/me").then(r=>r.ok?r.json():null).then(d=>setUser(d?.user||null)).catch(()=>{});
+  },[]);
 
-  const menuItems = [
-    { href: "/asociada", label: "Dashboard", icon: BarChart3Icon },
-    { href: "/asociada/usuarias", label: "Mis Usuarias", icon: UsersIcon },
-    { href: "/asociada/reuniones", label: "Reuniones", icon: CalendarIcon },
-    { href: "/asociada/configuracion", label: "Configuración", icon: SettingsIcon },
-  ];
+  useEffect(()=>{ setOpen(false); },[pathname]);
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+  const logout = async()=>{
+    await fetch("/api/auth/logout",{method:"POST"});
     router.push("/login");
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ── NAVBAR ── */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            {/* Logo y Menú */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded"
-              >
-                {isOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
-              </button>
-              <Link href="/asociada" className="flex items-center gap-2 font-bold text-lg">
-                <span className="text-[#7c5cc4]">✈️</span>
-                <span>Destino Au Pair</span>
-              </Link>
-            </div>
-
-            {/* Acciones Derecha */}
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded relative">
-                <BellIcon size={20} className="text-gray-600" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
-
-              {userData && (
-                <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-gray-900">{userData.nombre}</p>
-                    <p className="text-xs text-gray-500">Asesora</p>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="p-2 hover:bg-gray-100 rounded"
-                    title="Cerrar sesión"
-                  >
-                    <LogOutIcon size={18} className="text-gray-600" />
-                  </button>
-                </div>
-              )}
-            </div>
+  const Sidebar = () => (
+    <aside style={{ width:220,flexShrink:0,background:"#1e1033",display:"flex",flexDirection:"column",minHeight:"100vh",position:isMobile?"fixed":"sticky",top:0,left:0,zIndex:40,transform:isMobile&&!open?"translateX(-100%)":"translateX(0)",transition:"transform .25s" }}>
+      {/* Logo */}
+      <div style={{ padding:"20px 16px 16px",borderBottom:"1px solid rgba(255,255,255,.08)" }}>
+        <Link href="/asociada" style={{ display:"flex",alignItems:"center",gap:10,textDecoration:"none" }}>
+          <img src="/assets/destino-aupair-logo.svg" alt="Logo" style={{ width:36,height:36,borderRadius:8 }} onError={e=>e.target.style.display="none"}/>
+          <div>
+            <p style={{ fontSize:13,fontWeight:700,color:"#fff",margin:0,lineHeight:1.2 }}>Destino Au Pair</p>
+            <p style={{ fontSize:10,color:"rgba(255,255,255,.5)",margin:0 }}>Asociada / Referidora</p>
           </div>
-        </div>
+        </Link>
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:2 }}>
+        {NAV.map(item=>{
+          const Icon=item.icon;
+          const active = pathname===item.href || (item.href!=="/asociada" && pathname.startsWith(item.href));
+          return (
+            <Link key={item.href} href={item.href}
+              style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,textDecoration:"none",fontSize:13,fontWeight:active?600:400,color:active?"#fff":"rgba(255,255,255,.6)",background:active?"rgba(160,67,95,.4)":"transparent",transition:"all .15s" }}>
+              <Icon size={16} style={{ flexShrink:0 }}/>{item.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="flex">
-        {/* ── SIDEBAR ── */}
-        <aside
-          className={`${
-            isOpen ? "block" : "hidden"
-          } lg:block w-64 bg-white border-r border-gray-200 shadow-sm`}
-        >
-          <div className="p-6 space-y-4">
-            {menuItems.map((item, i) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    isActive
-                      ? "bg-[#7c5cc4] text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Icon size={18} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
+      {/* User */}
+      <div style={{ padding:"12px 14px",borderTop:"1px solid rgba(255,255,255,.08)" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
+          <div style={{ width:34,height:34,borderRadius:"50%",background:"#a0435f",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0 }}>
+            {user?.nombre?.[0]||"A"}
           </div>
-        </aside>
+          <div style={{ minWidth:0 }}>
+            <p style={{ fontSize:12,fontWeight:600,color:"#fff",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user?.nombre} {user?.apellido}</p>
+            <p style={{ fontSize:10,color:"rgba(255,255,255,.5)",margin:0 }}>Asociada</p>
+          </div>
+        </div>
+        <button onClick={logout} style={{ width:"100%",display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,border:"none",background:"rgba(255,255,255,.06)",color:"rgba(255,255,255,.6)",fontSize:12,cursor:"pointer",fontFamily:"inherit" }}>
+          <LogOutIcon size={13}/> Cerrar sesión
+        </button>
+      </div>
+    </aside>
+  );
 
-        {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+  return (
+    <div style={{ display:"flex",minHeight:"100vh",background:"#f9fafb",fontFamily:"system-ui,-apple-system,sans-serif" }}>
+      {/* Overlay mobile */}
+      {isMobile && open && <div onClick={()=>setOpen(false)} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:39 }}/>}
+
+      <Sidebar/>
+
+      {/* Main */}
+      <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column" }}>
+        {/* Topbar mobile */}
+        {isMobile && (
+          <div style={{ background:"#fff",borderBottom:"1px solid #e5e7eb",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:30 }}>
+            <button onClick={()=>setOpen(o=>!o)} style={{ background:"none",border:"none",cursor:"pointer",padding:4,color:"#1e1033" }}>
+              {open?<XIcon size={20}/>:<MenuIcon size={20}/>}
+            </button>
+            <p style={{ fontFamily:"Georgia,serif",fontSize:15,fontWeight:700,color:"#1e1033",margin:0 }}>Destino Au Pair</p>
+            <button style={{ background:"none",border:"none",cursor:"pointer",padding:4,color:"#1e1033",position:"relative" }}>
+              <BellIcon size={18}/>
+              <span style={{ position:"absolute",top:4,right:4,width:6,height:6,background:"#a0435f",borderRadius:"50%" }}/>
+            </button>
+          </div>
+        )}
+
+        <main style={{ flex:1 }}>{children}</main>
       </div>
     </div>
   );

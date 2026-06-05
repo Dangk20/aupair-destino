@@ -69,13 +69,20 @@ export async function PUT(req, { params }) {
           nuevoCodigoReferido = nombrePrimeras + Math.random().toString().substring(2, 6);
         }
       }
+    } else if (nuevoRol === "admin") {
+      // Los admins no necesitan acceso a secciones de estudiante
+      tieneAcceso = 0;
     }
 
     // Actualizar rol y código de referido si aplica
     let query = "UPDATE usuarios SET rol = ?";
     let params = [nuevoRol];
     
-    if (tieneAcceso !== null) {
+    // Limpiar accesos si cambias a asociada o admin
+    if (nuevoRol === "asociada" || nuevoRol === "admin") {
+      query += ", tiene_acceso = ?, acceso_documentos = 0, acceso_recursos = 0, acceso_reuniones = 0, acceso_mensajes = 0, acceso_comunidad = 0, perfil_habilitado = 0";
+      params.push(tieneAcceso);
+    } else if (tieneAcceso !== null) {
       query += ", tiene_acceso = ?";
       params.push(tieneAcceso);
     }
@@ -89,6 +96,15 @@ export async function PUT(req, { params }) {
     params.push(id);
 
     await dbAupair.query(query, params);
+
+    // Limpiar accesos y pago si cambias a asociada o admin
+    if (nuevoRol === "asociada" || nuevoRol === "admin") {
+      // Resetear pagos en referido_registros
+      await dbAupair.query(
+        "UPDATE referido_registros SET pago_realizado = 0, monto_pagado = 0 WHERE usuario_id = ?",
+        [id]
+      ).catch(() => {});
+    }
 
     return NextResponse.json({
       ok: true,

@@ -318,7 +318,7 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
   const [guardando, setGuardando] = useState(false);
 
   const handleConfirmar = async () => {
-    if (!monto || Number(monto) <= 0) return;
+    if (monto === "" || Number(monto) < 0) return;
     setGuardando(true);
     await onConfirmar(monto);
     setGuardando(false);
@@ -337,14 +337,14 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9a7080",fontWeight:600 }}>$</span>
               <input
-                type="number" min="1" step="1" value={monto}
+                type="number" min="0" step="1" value={monto}
                 onChange={e=>setMonto(e.target.value)}
                 autoFocus
                 style={{ width:"100%",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#1e1033",outline:"none",boxSizing:"border-box" }}
               />
             </div>
             <div style={{ display:"flex",gap:8,marginTop:4 }}>
-              {["29","35","300"].map(p=>(
+              {["0","29","35","300"].map(p=>(
                 <button key={p} type="button" onClick={()=>setMonto(p)}
                   style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#a0435f":"#f0dde2"}`,background:monto===p?"#fce8ed":"#fff",color:monto===p?"#a0435f":"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                   ${p}
@@ -360,8 +360,8 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
             <button
               type="button"
               onClick={handleConfirmar}
-              disabled={!monto||Number(monto)<=0||guardando}
-              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(!monto||Number(monto)<=0)?"#f0dde2":"#a0435f",color:(!monto||Number(monto)<=0)?"#c0909a":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
+              disabled={monto===""||Number(monto)<0||guardando}
+              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#f0dde2":"#a0435f",color:(monto===""||Number(monto)<0)?"#c0909a":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
               {guardando?"Guardando...":"✓ Confirmar"}
             </button>
           </div>
