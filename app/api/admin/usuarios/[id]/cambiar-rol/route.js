@@ -12,10 +12,10 @@ export async function PUT(req, { params }) {
     const { nuevoRol, codigoReferido } = await req.json();
 
     // Validar que sea un rol válido
-    const rolesValidos = ["admin", "usuaria", "asociada"];
+    const rolesValidos = ["admin", "usuaria", "asociada", "agencia"];
     if (!rolesValidos.includes(nuevoRol)) {
       return NextResponse.json(
-        { error: "Rol inválido. Debe ser: admin, usuaria o asociada" },
+        { error: "Rol inválido. Debe ser: admin, usuaria, asociada o agencia" },
         { status: 400 }
       );
     }

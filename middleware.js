@@ -39,6 +39,7 @@ const DAP_PROTECTED_PREFIXES = [
   "/dashboard",
   "/admin",
   "/asociada",
+  "/agencia",
 ];
 
 const DAP_PUBLIC_PATHS = [
@@ -111,6 +112,9 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     if (pathname.startsWith("/asociada") && payload.rol !== "asociada") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    if (pathname.startsWith("/agencia") && payload.rol !== "agencia") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

@@ -153,6 +153,7 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
   const rolesDisponibles = [
     { valor: "usuaria", label: "Usuaria (Estudiante)", color: "bg-blue-100 text-blue-700", icon: "👩‍🎓" },
     { valor: "asociada", label: "Asociada (Asesora)", color: "bg-purple-100 text-purple-700", icon: "👩‍🏫" },
+    { valor: "agencia", label: "Agencia", color: "bg-amber-100 text-amber-700", icon: "🏢" },
     { valor: "admin", label: "Admin (Administrador)", color: "bg-red-100 text-red-700", icon: "👨‍💼" },
   ];
 
@@ -507,7 +508,8 @@ export default function AdminUsuariosPage() {
         const roleNames = {
           "asociada": "Asociada",
           "admin": "Admin",
-          "usuaria": "Usuaria"
+          "usuaria": "Usuaria",
+          "agencia": "Agencia"
         };
         let message = `Rol cambiado a ${roleNames[nuevoRol]} ✓`;
         if (data.codigoReferido) {
@@ -732,8 +734,8 @@ export default function AdminUsuariosPage() {
                         </div>
                       </div>
                       <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#fee2e2":u.rol==="asociada"?"#ede9f8":"#dbeafe",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#5b21b6":"#1e40af" }}>
-                          {u.rol==="admin"?"👨‍💼 Admin":u.rol==="asociada"?"👩‍🏫 Asociada":"👩‍🎓 Usuaria"}
+                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#fee2e2":u.rol==="asociada"?"#ede9f8":u.rol === "agencia" ? "#fdf3e3" :"#dbeafe",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#5b21b6": u.rol === "agencia" ? "#a16207" :"#1e40af" }}>
+                          {u.rol==="admin"?"👨‍💼 Admin":u.rol==="asociada"?"👩‍🏫 Asociada":  u.rol === "agencia" ? "🏢 Agencia" : "👩‍🎓 Usuaria"}
                         </span>
                       </div>
                       <div>
