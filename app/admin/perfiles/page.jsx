@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   SearchIcon, DownloadIcon, EyeIcon, PencilIcon,
-  ChevronLeftIcon, ChevronRightIcon,
+  ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon, CircleIcon,
 } from "lucide-react";
 
 function EstadoBadge({ estado }) {
@@ -52,6 +52,7 @@ export default function AdminPerfilesPage() {
   const [filtroCiudad, setFiltroCiudad] = useState("");
   const [toast,        setToast]        = useState(null);
   const [pagina,       setPagina]       = useState(1);
+  const [aprobando,    setAprobando]    = useState(null);
   const POR_PAG = 10;
 
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2500); };
@@ -79,10 +80,35 @@ export default function AdminPerfilesPage() {
     a.click(); showToast("Lista exportada ✓");
   };
 
-  // Tab 1 → evaluacion page, Tab 2 → agencia page
   const irAPerfil = (id) => {
     if (tab === 1) router.push(`/admin/perfiles/${id}`);
     else           router.push(`/admin/perfiles/${id}/agencia`);
+  };
+
+  const toggleAprobar = async (p) => {
+    if (!p.perfil_completo) {
+      showToast("La usuaria aún no ha completado su formulario de evaluación");
+      return;
+    }
+    setAprobando(p.id);
+    const nuevoEstado = !p.evaluacion_aprobada;
+    try {
+      const res = await fetch("/api/admin/aprobar-evaluacion", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario_id: p.id, aprobada: nuevoEstado }),
+      });
+      const d = await res.json();
+      if (res.ok) {
+        setPerfiles(prev => prev.map(x => x.id===p.id ? { ...x, evaluacion_aprobada: nuevoEstado } : x));
+        showToast(nuevoEstado ? "✓ Evaluación aprobada" : "Aprobación removida");
+      } else {
+        showToast(d.error || "Error al aprobar");
+      }
+    } catch {
+      showToast("Error al aprobar");
+    }
+    setAprobando(null);
   };
 
   const lista     = tab===1 ? perfiles : perfiles.filter(p => p.tiene_acceso);
@@ -99,7 +125,6 @@ export default function AdminPerfilesPage() {
 
       <div style={{ padding:"28px 32px" }}>
 
-        {/* Header */}
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:24, gap:16 }}>
           <div>
             <h1 style={{ fontFamily:"Georgia,serif", fontSize:26, fontWeight:700, color:"#1e1033", margin:0 }}>Perfiles</h1>
@@ -111,7 +136,6 @@ export default function AdminPerfilesPage() {
           </button>
         </div>
 
-        {/* Tabs */}
         <div style={{ display:"flex", marginBottom:24, background:"#fff", borderRadius:14, border:"1px solid #f0dde2", overflow:"hidden", width:"fit-content" }}>
           {[{id:1,label:"1. Evaluación de Perfil",emoji:"🗂️"},{id:2,label:"2. Perfil con la agencia",emoji:"🏢"}].map(t=>(
             <button key={t.id} onClick={()=>{setTab(t.id);setPagina(1);setFiltroEstado("");}}
@@ -124,7 +148,6 @@ export default function AdminPerfilesPage() {
           ))}
         </div>
 
-        {/* Stats */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:14, marginBottom:24 }}>
           {(tab===1 ? [
             {label:"Perfiles totales",     val:se.total,        icon:"👥", color:"#1e1033", bg:"#f5f0ff"},
@@ -152,7 +175,6 @@ export default function AdminPerfilesPage() {
           ))}
         </div>
 
-        {/* Filtros */}
         <div style={{ background:"#fff", borderRadius:16, border:"1px solid #f0dde2", padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"center", flexWrap:"wrap" }}>
           <div style={{ flex:1, minWidth:200, position:"relative" }}>
             <SearchIcon size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#c0909a" }}/>
@@ -179,11 +201,9 @@ export default function AdminPerfilesPage() {
           )}
         </div>
 
-        {/* Tabla */}
         <div style={{ background:"#fff", borderRadius:20, border:"1px solid #f0dde2", overflow:"hidden" }}>
-          {/* Headers */}
           {tab===1 ? (
-            <div style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 100px", gap:12, padding:"12px 20px", borderBottom:"1px solid #fce8ed", background:"#fff8f9" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"12px 20px", borderBottom:"1px solid #fce8ed", background:"#fff8f9" }}>
               {["Usuario","Ubicación","Estado","Progreso","Última actividad","Acciones"].map(h=>(
                 <p key={h} style={{ fontSize:10, fontWeight:700, color:"#9a7080", textTransform:"uppercase", letterSpacing:".7px", margin:0 }}>{h}</p>
               ))}
@@ -212,8 +232,27 @@ export default function AdminPerfilesPage() {
                       : <span style={{ color:"#a0435f", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
                   </div>
                 );
+
+                const botonAprobar = tab===1 && (
+                  <button
+                    onClick={() => toggleAprobar(p)}
+                    disabled={aprobando===p.id}
+                    title={!p.perfil_completo ? "Aún no completa su evaluación" : p.evaluacion_aprobada ? "Quitar aprobación" : "Aprobar evaluación"}
+                    style={{
+                      width:32, height:32, borderRadius:9, border:"none", cursor: p.perfil_completo ? "pointer" : "not-allowed",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      background: p.evaluacion_aprobada ? "#d1fae5" : p.perfil_completo ? "#fef3c7" : "#f3f4f6",
+                      opacity: aprobando===p.id ? .5 : 1,
+                    }}>
+                    {p.evaluacion_aprobada
+                      ? <CheckCircleIcon size={15} style={{ color:"#059669" }}/>
+                      : <CircleIcon size={15} style={{ color: p.perfil_completo ? "#d97706" : "#c0c0c0" }}/>}
+                  </button>
+                );
+
                 const acciones = (
                   <div style={{ display:"flex", gap:6 }}>
+                    {botonAprobar}
                     <button onClick={() => irAPerfil(p.id)} title="Ver perfil"
                       style={{ width:32, height:32, borderRadius:9, background:"#fce8ed", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       <EyeIcon size={14} style={{ color:"#a0435f" }}/>
@@ -227,7 +266,7 @@ export default function AdminPerfilesPage() {
 
                 return tab===1 ? (
                   <div key={p.id} className="row-h"
-                    style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 100px", gap:12, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
+                    style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
                       {avatar}
                       <div style={{ minWidth:0 }}>
@@ -276,7 +315,6 @@ export default function AdminPerfilesPage() {
             </div>
           )}
 
-          {/* Paginación */}
           <div style={{ padding:"14px 20px", borderTop:"1px solid #fce8ed", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <p style={{ fontSize:12, color:"#9a7080", margin:0 }}>
               Mostrando {lista.length===0?0:Math.min((pagina-1)*POR_PAG+1,lista.length)} a {Math.min(pagina*POR_PAG,lista.length)} de {lista.length} perfiles

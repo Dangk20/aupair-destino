@@ -9,6 +9,7 @@ import {
   User, Wrench, Briefcase, Heart, Baby, FileCheck, Check,
 } from "lucide-react";
 import FotoUpload from "@/components/dashboard/FotoUpload";
+import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
 import { useMobile } from "@/context/MobileContext";
 
 const SECCIONES = [
@@ -44,6 +45,7 @@ function Radio({ name, options, value, onChange }) {
 
 const FORM_INIT = {
   foto_url:"",cedula:"",telefono:"",fecha_nacimiento:"",ciudad:"",pais:"",bio:"",pais_destino:"",
+  cedula_frontal_url:"",cedula_posterior_url:"",
   conoce_requisitos_26:"",conoce_requisitos_18_20:"",curso_primeros_auxilios:"",nivel_ingles:"",licencia_conduccion:"",habilidad_conduccion:"",
   situacion_actual:"",detalle_otra_actividad:"",detalle_estudios:"",carrera_graduada:"",detalle_trabajo:"",detalle_sin_ocupacion:"",
   enfermedad_medicamentos:"",detalle_enfermedad_med:"",enfermedad_grave:"",detalle_enfermedad_grave:"",
@@ -91,6 +93,16 @@ export default function PerfilEvaluacionPage() {
 
   const set = (name, value) => setForm(prev=>({...prev,[name]:value}));
   const hi  = e => set(e.target.name, e.target.value);
+
+  // Sube un documento (cédula frontal/posterior) de inmediato, igual que la foto
+  const subirDocumento = async (campo, base64) => {
+    set(campo, base64);
+    await fetch("/api/dashboard/documento", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ campo, valor: base64 }),
+    }).catch(()=>{});
+  };
 
   const guardar = async (goNext=false) => {
     setErrorVal("");
@@ -236,10 +248,32 @@ export default function PerfilEvaluacionPage() {
             {/* ── Sección 0: Personal ── */}
             {paso===0 && (<>
               <FotoUpload value={form.foto_url} onChange={async(base64)=>{ set("foto_url",base64); await fetch("/api/dashboard/foto",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({foto_url:base64})}); }}/>
+
               <div style={G2}>
                 <div><label style={LC}>Cédula *</label><input name="cedula" type="text" placeholder="1234567890" value={form.cedula} onChange={hi} style={IC}/></div>
                 <div><label style={LC}>Teléfono *</label><input name="telefono" type="text" placeholder="+57 300 000 0000" value={form.telefono} onChange={hi} style={IC}/></div>
               </div>
+
+              {/* Documento de identidad — frontal y posterior */}
+              <div>
+                <p style={{ fontSize:13, fontWeight:600, color:"#2d1a22", margin:"0 0 4px" }}>Foto de tu cédula</p>
+                <p style={{ fontSize:11, color:"#9a7080", margin:"0 0 12px", lineHeight:1.5 }}>
+                  Sube una foto clara de ambos lados de tu documento de identidad.
+                </p>
+                <div style={G2}>
+                  <DocumentoUpload
+                    value={form.cedula_frontal_url}
+                    onChange={(base64)=>subirDocumento("cedula_frontal_url", base64)}
+                    label="Cédula — Lado frontal"
+                  />
+                  <DocumentoUpload
+                    value={form.cedula_posterior_url}
+                    onChange={(base64)=>subirDocumento("cedula_posterior_url", base64)}
+                    label="Cédula — Lado posterior"
+                  />
+                </div>
+              </div>
+
               <div><label style={LC}>Fecha de nacimiento *</label><input name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={hi} style={IC}/></div>
               <div style={G2}>
                 <div><label style={LC}>Ciudad *</label><input name="ciudad" type="text" placeholder="Bogotá" value={form.ciudad} onChange={hi} style={IC}/></div>

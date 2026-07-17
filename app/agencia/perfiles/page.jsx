@@ -7,17 +7,16 @@ import {
   SearchIcon, DownloadIcon, SlidersIcon,
   CheckCircleIcon, XCircleIcon, MinusCircleIcon,
   FileTextIcon, ChevronRightIcon, ChevronLeftIcon,
-  ChevronDownIcon, XIcon, CheckIcon,
+  ChevronDownIcon, XIcon, CheckIcon, SaveIcon, EditIcon,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
-/* ── helpers ── */
 const PAISES_EMOJI = { "Colombia":"🇨🇴","Mexico":"🇲🇽","México":"🇲🇽","Brasil":"🇧🇷","Brazil":"🇧🇷","Argentina":"🇦🇷","Peru":"🇵🇪","Perú":"🇵🇪","Chile":"🇨🇱","Ecuador":"🇪🇨","Venezuela":"🇻🇪" };
 
 const CALIFICACION_MAP = {
-  califica:          { label:"Califica",          bg:"#e8f0e0", color:"#5a8a3a" },
-  requiere_revision: { label:"Requiere revisión", bg:"#fdf3e3", color:"#c9973a" },
-  no_califica:       { label:"No califica",       bg:"#fee2e2", color:"#dc2626" },
+  califica:          { label:"Califica",          bg:"#e8f0e0", color:"#5a8a3a", emoji:"✅" },
+  requiere_revision: { label:"Requiere revisión", bg:"#fdf3e3", color:"#c9973a", emoji:"⚠️" },
+  no_califica:       { label:"No califica",       bg:"#fee2e2", color:"#dc2626", emoji:"❌" },
 };
 
 const ESTADO_MAP = {
@@ -42,17 +41,457 @@ function BarraProgreso({ pct, color="#7c5cc4" }) {
   );
 }
 
-/* ── Dona resumen ── */
+const IC = { width:"100%",border:"1.5px solid #e9e3f8",borderRadius:8,padding:"7px 10px",fontSize:12,color:"#1e1033",background:"#fff",outline:"none",fontFamily:"inherit",boxSizing:"border-box" };
+const LC = { fontSize:10,fontWeight:700,color:"#6b7280",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:3 };
+
+/* ══ PANEL LATERAL DESLIZANTE ══ */
+function PanelDetalle({ candidata, onClose, onAccion, tabActivo }) {
+  const [tabPanel,   setTabPanel]   = useState("eval");
+  const [saving,     setSaving]     = useState(false);
+  const [nota,       setNota]       = useState(candidata?.nota_agencia||"");
+  const [editando,   setEditando]   = useState(false);
+  const [formAgencia,setFormAgencia]= useState({
+    bio:               candidata?.bio||"",
+    hobbies:           candidata?.hobbies||"",
+    por_que_au_pair:   candidata?.por_que_au_pair||"",
+    estatura:          candidata?.estatura||"",
+    peso:              candidata?.peso||"",
+    nacionalidad:      candidata?.nacionalidad||"",
+    tiene_pasaporte:   candidata?.tiene_pasaporte||false,
+    tipo_licencia:     candidata?.tipo_licencia||"",
+    dieta_especial:    candidata?.dieta_especial||"",
+  });
+
+  useEffect(()=>{
+    if (tabActivo==="agencia") setTabPanel("agencia");
+    else setTabPanel("eval");
+    setNota(candidata?.nota_agencia||"");
+    setFormAgencia({
+      bio:candidata?.bio||"",
+      hobbies:candidata?.hobbies||"",
+      por_que_au_pair:candidata?.por_que_au_pair||"",
+      estatura:candidata?.estatura||"",
+      peso:candidata?.peso||"",
+      nacionalidad:candidata?.nacionalidad||"",
+      tiene_pasaporte:candidata?.tiene_pasaporte||false,
+      tipo_licencia:candidata?.tipo_licencia||"",
+      dieta_especial:candidata?.dieta_especial||"",
+    });
+  },[candidata, tabActivo]);
+
+  if (!candidata) return null;
+  const calDap = CALIFICACION_MAP[candidata.calificacion_dap];
+  const calAg  = CALIFICACION_MAP[candidata.eval_agencia];
+  const estMap = ESTADO_MAP[candidata.estado_agencia]||{ bg:"#f3f4f6",color:"#6b7280" };
+  const totalCuotas = candidata.plan==="2_cuotas"?2:candidata.plan==="4_cuotas"?4:0;
+
+  const guardarNota = async()=>{
+    setSaving(true);
+    await onAccion(candidata.id,{accion:"nota",nota});
+    setSaving(false);
+  };
+
+  const guardarPerfil = async()=>{
+    setSaving(true);
+    await onAccion(candidata.id,{accion:"actualizar_perfil",...formAgencia});
+    setSaving(false);
+    setEditando(false);
+  };
+
+  return (
+    <>
+      {/* Overlay */}
+      <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.4)",zIndex:50,backdropFilter:"blur(2px)" }}/>
+
+      {/* Panel */}
+      <div style={{ position:"fixed",top:0,right:0,height:"100vh",width:"min(560px,100vw)",background:"#fff",zIndex:51,display:"flex",flexDirection:"column",boxShadow:"-8px 0 40px rgba(0,0,0,.15)",animation:"slideIn .25s ease" }}>
+        <style>{`@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
+
+        {/* Header panel */}
+        <div style={{ background:"linear-gradient(135deg,#1e1033,#7c5cc4)",padding:"16px 20px",flexShrink:0 }}>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+              <div style={{ width:44,height:44,borderRadius:"50%",background:"rgba(255,255,255,.15)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(255,255,255,.3)" }}>
+                {candidata.foto_url?<img src={candidata.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:16,fontWeight:700,color:"#fff" }}>{candidata.nombre?.[0]}</span>}
+              </div>
+              <div>
+                <p style={{ fontSize:15,fontWeight:700,color:"#fff",margin:0 }}>{candidata.nombre} {candidata.apellido}</p>
+                <p style={{ fontSize:11,color:"rgba(255,255,255,.7)",margin:0 }}>ID: DA-{String(candidata.id).padStart(4,"0")} · {PAISES_EMOJI[candidata.pais]||""} {candidata.pais} · {candidata.edad||"—"} años</p>
+              </div>
+            </div>
+            <button onClick={onClose} style={{ width:32,height:32,borderRadius:8,background:"rgba(255,255,255,.15)",border:"none",cursor:"pointer",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <XIcon size={16}/>
+            </button>
+          </div>
+
+          {/* Tabs del panel */}
+          <div style={{ display:"flex",gap:4 }}>
+            {[
+              { id:"eval",    label:"Evaluación de perfil" },
+              { id:"agencia", label:"Perfil con la agencia" },
+              { id:"proceso", label:"Plan y proceso" },
+            ].map(t=>(
+              <button key={t.id} onClick={()=>setTabPanel(t.id)}
+                style={{ padding:"6px 12px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"inherit",background:tabPanel===t.id?"rgba(255,255,255,.9)":"rgba(255,255,255,.15)",color:tabPanel===t.id?"#1e1033":"rgba(255,255,255,.8)",transition:"all .15s" }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Contenido scrollable */}
+        <div style={{ flex:1,overflowY:"auto",padding:20 }}>
+
+          {/* ══ TAB EVALUACIÓN ══ */}
+          {tabPanel==="eval" && (
+            <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+
+              {/* Score DAP */}
+              {calDap && (
+                <div style={{ background:calDap.bg,borderRadius:12,padding:"12px 16px",border:`1px solid ${calDap.color}30`,display:"flex",alignItems:"center",gap:10 }}>
+                  <span style={{ fontSize:22 }}>{calDap.emoji}</span>
+                  <div>
+                    <p style={{ fontSize:13,fontWeight:700,color:calDap.color,margin:0 }}>{calDap.label}{candidata.score_dap?` — Score: ${candidata.score_dap}/10`:""}</p>
+                    {candidata.nota_dap&&<p style={{ fontSize:11,color:"#6b7280",margin:"2px 0 0" }}>{candidata.nota_dap}</p>}
+                  </div>
+                </div>
+              )}
+
+              {/* Progreso */}
+              <div style={{ background:"#f9f7ff",borderRadius:12,padding:"12px 16px",border:"1px solid #e9e3f8" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+                  <span style={{ fontSize:12,fontWeight:600,color:"#1e1033" }}>Progreso de evaluación</span>
+                  <span style={{ fontSize:12,fontWeight:700,color:"#7c5cc4" }}>{candidata.progreso_eval||0}%</span>
+                </div>
+                <BarraProgreso pct={candidata.progreso_eval} color="#7c5cc4"/>
+              </div>
+
+              {/* Datos personales */}
+              <div>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px",padding:"6px 0",borderBottom:"1px solid #e9e3f8" }}>Datos personales</p>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+                  {[
+                    { label:"Cédula",            val:candidata.cedula||"—" },
+                    { label:"Teléfono",          val:candidata.telefono||"—" },
+                    { label:"Fecha nacimiento",  val:candidata.fecha_nacimiento?new Date(candidata.fecha_nacimiento).toLocaleDateString("es-CO"):"—" },
+                    { label:"Ciudad",            val:candidata.ciudad||"—" },
+                    { label:"Nivel de inglés",   val:candidata.nivel_ingles||"—" },
+                    { label:"Situación actual",  val:candidata.situacion_actual||"—" },
+                    { label:"Carrera",           val:candidata.carrera_graduada||"—" },
+                    { label:"Horas childcare",   val:candidata.horas_childcare?`${candidata.horas_childcare} hrs`:"—" },
+                  ].map((f,i)=>(
+                    <div key={i} style={{ background:"#f9f7ff",borderRadius:8,padding:"8px 10px",border:"1px solid #e9e3f8" }}>
+                      <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700 }}>{f.label}</p>
+                      <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{f.val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Requisitos */}
+              <div>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px",padding:"6px 0",borderBottom:"1px solid #e9e3f8" }}>Requisitos del programa</p>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+                  {[
+                    { label:"Licencia conducción",  val:SI_NO(candidata.licencia_conduccion) },
+                    { label:"Primeros auxilios",    val:SI_NO(candidata.curso_primeros_auxilios) },
+                    { label:"Exp. con niños",       val:SI_NO(candidata.exp_ninos_externos) },
+                    { label:"Visa negada",          val:SI_NO(candidata.visa_negada) },
+                    { label:"Familiar en USA",      val:SI_NO(candidata.familiar_residencia_usa) },
+                    { label:"Entiende intercambio", val:SI_NO(candidata.entiende_intercambio_cultural) },
+                    { label:"Enfermedades",         val:SI_NO(candidata.enfermedad_medicamentos) },
+                    { label:"Depresión/pánico",     val:SI_NO(candidata.depresion_panico) },
+                  ].map((f,i)=>(
+                    <div key={i} style={{ background:"#f9f7ff",borderRadius:8,padding:"8px 10px",border:"1px solid #e9e3f8" }}>
+                      <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700 }}>{f.label}</p>
+                      <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{f.val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Calificación agencia */}
+              <div style={{ background:"#f9f7ff",borderRadius:12,padding:"14px 16px",border:"1px solid #e9e3f8" }}>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 10px" }}>Tu calificación como agencia</p>
+                {calAg && (
+                  <div style={{ marginBottom:10 }}>
+                    <Badge label={calAg.label} bg={calAg.bg} color={calAg.color}/>
+                    {candidata.eval_agencia==="califica"&&<span style={{ fontSize:11,fontWeight:600,color:"#5a8a3a",marginLeft:8 }}>¡Perfil aprobado!</span>}
+                  </div>
+                )}
+                <div style={{ display:"flex",gap:8,marginBottom:12 }}>
+                  {[
+                    { val:"califica",          label:"✅ Califica",          bg:"#e8f0e0",color:"#5a8a3a",activeBg:"#5a8a3a" },
+                    { val:"requiere_revision",  label:"⚠️ Revisar",           bg:"#fdf3e3",color:"#c9973a",activeBg:"#c9973a" },
+                    { val:"no_califica",        label:"❌ No califica",       bg:"#fee2e2",color:"#dc2626",activeBg:"#dc2626" },
+                  ].map(btn=>(
+                    <button key={btn.val} onClick={()=>onAccion(candidata.id,{accion:"evaluar",evaluacion:btn.val})}
+                      style={{ flex:1,padding:"8px 6px",borderRadius:8,border:`2px solid ${candidata.eval_agencia===btn.val?btn.activeBg:btn.bg}`,background:candidata.eval_agencia===btn.val?btn.activeBg:btn.bg,color:candidata.eval_agencia===btn.val?"#fff":btn.color,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .15s" }}>
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+                <label style={LC}>Nota interna sobre esta candidata</label>
+                <textarea value={nota} onChange={e=>setNota(e.target.value)} rows={3} placeholder="Escribe tus observaciones..."
+                  style={{ ...IC,resize:"vertical",marginBottom:8 }}/>
+                <button onClick={guardarNota} disabled={saving} style={{ width:"100%",padding:"9px",borderRadius:8,border:"none",background:"#7c5cc4",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:saving?.6:1 }}>
+                  {saving?"Guardando...":"💾 Guardar nota"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ══ TAB AGENCIA ══ */}
+          {tabPanel==="agencia" && (
+            <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+
+              {/* Progreso */}
+              <div style={{ background:"#f9f7ff",borderRadius:12,padding:"12px 16px",border:"1px solid #e9e3f8" }}>
+                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
+                  <span style={{ fontSize:12,fontWeight:600,color:"#1e1033" }}>Perfil con la agencia</span>
+                  <span style={{ fontSize:12,fontWeight:700,color:candidata.progreso_agencia>=80?"#5a8a3a":"#7c5cc4" }}>{candidata.progreso_agencia||0}%</span>
+                </div>
+                <BarraProgreso pct={candidata.progreso_agencia} color={candidata.progreso_agencia>=80?"#5a8a3a":"#7c5cc4"}/>
+                {candidata.progreso_agencia>=80&&<p style={{ fontSize:11,color:"#5a8a3a",fontWeight:600,margin:"4px 0 0" }}>✓ Listo para agencia</p>}
+              </div>
+
+              {/* Botón editar */}
+              <div style={{ display:"flex",justifyContent:"flex-end" }}>
+                <button onClick={()=>setEditando(e=>!e)} style={{ display:"flex",alignItems:"center",gap:6,background:editando?"#fee2e2":"#f5f0ff",border:`1px solid ${editando?"#fecaca":"#e9e3f8"}`,color:editando?"#dc2626":"#7c5cc4",fontSize:12,fontWeight:600,padding:"7px 14px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
+                  {editando?<><XIcon size={12}/> Cancelar</> : <><EditIcon size={12}/> Editar perfil</>}
+                </button>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label style={LC}>Sobre mí (Bio)</label>
+                {editando
+                  ? <textarea value={formAgencia.bio} onChange={e=>setFormAgencia(f=>({...f,bio:e.target.value}))} rows={4} style={{ ...IC,resize:"vertical" }} placeholder="Cuéntanos sobre ti..."/>
+                  : <div style={{ background:"#f9f7ff",borderRadius:8,padding:"10px 12px",border:"1px solid #e9e3f8",fontSize:12,color:"#374151",lineHeight:1.5,minHeight:60 }}>
+                      {candidata.bio||<span style={{ color:"#9a7080",fontStyle:"italic" }}>Sin bio</span>}
+                    </div>}
+              </div>
+
+              {/* Hobbies */}
+              <div>
+                <label style={LC}>Hobbies e intereses</label>
+                {editando
+                  ? <input value={formAgencia.hobbies} onChange={e=>setFormAgencia(f=>({...f,hobbies:e.target.value}))} style={IC} placeholder="Ej: Fotografía, música, natación"/>
+                  : <div style={{ background:"#f9f7ff",borderRadius:8,padding:"10px 12px",border:"1px solid #e9e3f8",fontSize:12,color:"#374151" }}>
+                      {candidata.hobbies||<span style={{ color:"#9a7080",fontStyle:"italic" }}>Sin hobbies</span>}
+                    </div>}
+              </div>
+
+              {/* Por qué au pair */}
+              <div>
+                <label style={LC}>¿Por qué quiere ser Au Pair?</label>
+                {editando
+                  ? <textarea value={formAgencia.por_que_au_pair} onChange={e=>setFormAgencia(f=>({...f,por_que_au_pair:e.target.value}))} rows={3} style={{ ...IC,resize:"vertical" }} placeholder="Motivación para ser Au Pair..."/>
+                  : <div style={{ background:"#fce8ed",borderRadius:8,padding:"10px 12px",border:"1px solid #f0b8c4",fontSize:12,color:"#2d1a22",lineHeight:1.5,minHeight:50 }}>
+                      {candidata.por_que_au_pair||<span style={{ color:"#9a7080",fontStyle:"italic" }}>Sin respuesta</span>}
+                    </div>}
+              </div>
+
+              {/* Datos adicionales */}
+              <div>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px",padding:"6px 0",borderBottom:"1px solid #e9e3f8" }}>Información adicional</p>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+                  {editando ? (
+                    <>
+                      {[
+                        { label:"Estatura (cm)", key:"estatura", type:"number" },
+                        { label:"Peso (kg)",     key:"peso",     type:"number" },
+                        { label:"Nacionalidad",  key:"nacionalidad", type:"text" },
+                        { label:"Tipo licencia", key:"tipo_licencia", type:"text" },
+                        { label:"Dieta especial",key:"dieta_especial", type:"text" },
+                      ].map(f=>(
+                        <div key={f.key}>
+                          <label style={LC}>{f.label}</label>
+                          <input type={f.type} value={formAgencia[f.key]} onChange={e=>setFormAgencia(p=>({...p,[f.key]:e.target.value}))} style={IC} placeholder={f.label}/>
+                        </div>
+                      ))}
+                      <div>
+                        <label style={LC}>Tiene pasaporte</label>
+                        <select value={formAgencia.tiene_pasaporte?"1":"0"} onChange={e=>setFormAgencia(f=>({...f,tiene_pasaporte:e.target.value==="1"}))} style={IC}>
+                          <option value="1">Sí</option>
+                          <option value="0">No</option>
+                        </select>
+                      </div>
+                    </>
+                  ) : (
+                    [
+                      { label:"Estatura",      val:candidata.estatura?`${candidata.estatura} cm`:"—" },
+                      { label:"Peso",          val:candidata.peso?`${candidata.peso} kg`:"—" },
+                      { label:"Nacionalidad",  val:candidata.nacionalidad||"—" },
+                      { label:"Pasaporte",     val:SI_NO(candidata.tiene_pasaporte) },
+                      { label:"Tipo licencia", val:candidata.tipo_licencia||"—" },
+                      { label:"Dieta especial",val:candidata.dieta_especial||"—" },
+                    ].map((f,i)=>(
+                      <div key={i} style={{ background:"#f9f7ff",borderRadius:8,padding:"8px 10px",border:"1px solid #e9e3f8" }}>
+                        <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700 }}>{f.label}</p>
+                        <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{f.val}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Referencias */}
+              <div>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px",padding:"6px 0",borderBottom:"1px solid #e9e3f8" }}>Referencias</p>
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+                  {[
+                    { label:"Referencia 1",       val:candidata.referencia_1_nombre||"—" },
+                    { label:"Email ref. 1",        val:candidata.referencia_1_email||"—" },
+                    { label:"Teléfono ref. 1",     val:candidata.referencia_1_telefono||"—" },
+                    { label:"Referencia 2",        val:candidata.referencia_2_nombre||"—" },
+                    { label:"Email ref. 2",        val:candidata.referencia_2_email||"—" },
+                  ].map((f,i)=>(
+                    <div key={i} style={{ background:"#f9f7ff",borderRadius:8,padding:"8px 10px",border:"1px solid #e9e3f8" }}>
+                      <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700 }}>{f.label}</p>
+                      <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{f.val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {editando && (
+                <button onClick={guardarPerfil} disabled={saving}
+                  style={{ width:"100%",padding:"11px",borderRadius:10,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:7,opacity:saving?.6:1 }}>
+                  <SaveIcon size={13}/>{saving?"Guardando...":"Guardar cambios"}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ══ TAB PROCESO ══ */}
+          {tabPanel==="proceso" && (
+            <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+
+              {/* Estado actual */}
+              <div style={{ background:"#f9f7ff",borderRadius:12,padding:"14px 16px",border:"1px solid #e9e3f8" }}>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px" }}>Estado del proceso</p>
+                <Badge label={candidata.estado_agencia||"En evaluación"} bg={estMap.bg} color={estMap.color}/>
+                <p style={{ fontSize:12,color:"#6b7280",margin:"8px 0 0",lineHeight:1.5 }}>
+                  {candidata.estado_agencia==="En evaluación"&&"Revisa la evaluación de perfil y decide si la candidata califica para tu agencia."}
+                  {candidata.estado_agencia==="Pago pendiente"&&"Confirma el pago para iniciar la activación del perfil con Destino Au Pair."}
+                  {candidata.estado_agencia==="En ajustes"&&"La candidata está realizando los ajustes recomendados por la agencia."}
+                  {candidata.estado_agencia==="Perfil en activación"&&"Ya puedes iniciar el proceso de activación del perfil junto a Destino Au Pair."}
+                  {candidata.estado_agencia==="No califica"&&"La candidata no cumple con los requisitos del programa."}
+                  {!candidata.estado_agencia&&"Revisa la evaluación de perfil para comenzar el proceso."}
+                </p>
+              </div>
+
+              {/* Plan de pago */}
+              <div style={{ background:"#fff",borderRadius:12,padding:"14px 16px",border:"1px solid #e9e3f8" }}>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 10px" }}>Plan de pago</p>
+                {candidata.eval_agencia==="califica" ? (
+                  !candidata.plan ? (
+                    <>
+                      <p style={{ fontSize:12,color:"#6b7280",margin:"0 0 10px" }}>Elige cuántas cuotas deseas pagar por esta candidata.</p>
+                      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+                        <button onClick={()=>onAccion(candidata.id,{accion:"plan",plan:"2_cuotas"})}
+                          style={{ padding:"14px",borderRadius:10,border:"2px solid #e9e3f8",background:"#fff",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+                          <p style={{ fontSize:18,fontWeight:700,color:"#7c5cc4",margin:"0 0 4px" }}>2 cuotas</p>
+                          <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Pago en 2 partes</p>
+                        </button>
+                        <button onClick={()=>onAccion(candidata.id,{accion:"plan",plan:"4_cuotas"})}
+                          style={{ padding:"14px",borderRadius:10,border:"2px solid #e9e3f8",background:"#fff",cursor:"pointer",fontFamily:"inherit",textAlign:"center" }}>
+                          <p style={{ fontSize:18,fontWeight:700,color:"#7c5cc4",margin:"0 0 4px" }}>4 cuotas</p>
+                          <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Pago en 4 partes</p>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ background:"#f5f0ff",borderRadius:10,padding:"12px 14px",marginBottom:12 }}>
+                        <p style={{ fontSize:12,fontWeight:700,color:"#7c5cc4",margin:"0 0 6px" }}>Plan elegido: {candidata.plan==="2_cuotas"?"2 cuotas":"4 cuotas"}</p>
+                        <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+                          {Array.from({length:totalCuotas},(_,i)=>(
+                            <div key={i} style={{ width:32,height:32,borderRadius:"50%",background:i<(candidata.cuotas_pagadas||0)?"#5a8a3a":"#e9e3f8",display:"flex",alignItems:"center",justifyContent:"center",border:`2px solid ${i<(candidata.cuotas_pagadas||0)?"#5a8a3a":"#d1d5db"}` }}>
+                              {i<(candidata.cuotas_pagadas||0)?<CheckIcon size={14} style={{ color:"#fff" }}/>:<span style={{ fontSize:11,fontWeight:700,color:"#9a7080" }}>{i+1}</span>}
+                            </div>
+                          ))}
+                          <span style={{ fontSize:12,color:"#6b7280",marginLeft:4 }}>{candidata.cuotas_pagadas||0} de {totalCuotas} pagadas</span>
+                        </div>
+                      </div>
+                      {(candidata.cuotas_pagadas||0)<totalCuotas ? (
+                        <button onClick={()=>onAccion(candidata.id,{accion:"confirmar_pago",cuotas_pagadas:1})}
+                          style={{ width:"100%",padding:"12px",borderRadius:10,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                          ✓ Confirmar pago recibido
+                        </button>
+                      ) : (
+                        <div style={{ background:"#e8f0e0",borderRadius:10,padding:"12px",textAlign:"center",border:"1px solid #bbf7d0" }}>
+                          <p style={{ fontSize:13,fontWeight:700,color:"#5a8a3a",margin:0 }}>✅ Pago completo</p>
+                          <p style={{ fontSize:11,color:"#059669",margin:"4px 0 0" }}>Todas las cuotas han sido confirmadas</p>
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : (
+                  <div style={{ background:"#fafafa",borderRadius:10,padding:"12px 14px",border:"1px solid #e9e3f8" }}>
+                    <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>
+                      {candidata.eval_agencia==="no_califica"?"Esta candidata no califica — no aplica plan de pago.":"Primero debes calificar a la candidata como apta para seleccionar el plan."}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Línea de tiempo proceso */}
+              <div>
+                <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 12px" }}>Pasos del proceso</p>
+                {[
+                  { n:1, label:"Evaluación de perfil",       done:!!candidata.eval_agencia, active:!candidata.eval_agencia },
+                  { n:2, label:"Plan y pago seleccionado",   done:!!candidata.plan,         active:candidata.eval_agencia==="califica"&&!candidata.plan },
+                  { n:3, label:"Pago confirmado",            done:(candidata.cuotas_pagadas||0)>0, active:!!candidata.plan&&(candidata.cuotas_pagadas||0)===0 },
+                  { n:4, label:"Perfil en activación",       done:candidata.estado_agencia==="Perfil en activación", active:false },
+                ].map((p,i)=>(
+                  <div key={i} style={{ display:"flex",gap:12,marginBottom:i<3?12:0,alignItems:"flex-start" }}>
+                    <div style={{ width:28,height:28,borderRadius:"50%",background:p.done?"#5a8a3a":p.active?"#7c5cc4":"#e9e3f8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:`2px solid ${p.done?"#5a8a3a":p.active?"#7c5cc4":"#d1d5db"}` }}>
+                      {p.done?<CheckIcon size={13} style={{ color:"#fff" }}/>:<span style={{ fontSize:11,fontWeight:700,color:p.active?"#fff":"#9a7080" }}>{p.n}</span>}
+                    </div>
+                    <div style={{ flex:1,paddingTop:4 }}>
+                      <p style={{ fontSize:12,fontWeight:p.active?700:600,color:p.done?"#5a8a3a":p.active?"#7c5cc4":"#6b7280",margin:0 }}>{p.label}</p>
+                      {p.active&&<p style={{ fontSize:10,color:"#9a7080",margin:"2px 0 0" }}>Paso actual</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding:"12px 20px",borderTop:"1px solid #e9e3f8",flexShrink:0,display:"flex",gap:10 }}>
+          <button onClick={onClose} style={{ flex:1,padding:"10px",borderRadius:10,border:"1.5px solid #e9e3f8",background:"#fff",color:"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+            Cerrar
+          </button>
+          {tabPanel==="eval" && (
+            <button onClick={guardarNota} disabled={saving}
+              style={{ flex:2,padding:"10px",borderRadius:10,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:saving?.6:1 }}>
+              {saving?"Guardando...":"💾 Guardar nota"}
+            </button>
+          )}
+          {tabPanel==="agencia" && editando && (
+            <button onClick={guardarPerfil} disabled={saving}
+              style={{ flex:2,padding:"10px",borderRadius:10,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:saving?.6:1 }}>
+              {saving?"Guardando...":"💾 Guardar cambios"}
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ════════════════════════════════════════
+   DONA RESUMEN
+════════════════════════════════════════ */
 function DonaResumen({ stats, tabActivo }) {
-  const total = stats.total || 1;
-  const data = tabActivo === "eval" ? [
-    { label:"Califican",          val:stats.califican||0,        color:"#5a8a3a" },
-    { label:"Requieren revisión", val:stats.requierenRevision||0, color:"#c9973a" },
-    { label:"No califican",       val:stats.noCalifican||0,       color:"#dc2626" },
-  ] : [
-    { label:"Perfil completo",    val:stats.perfilCompleto||0,                            color:"#5a8a3a" },
-    { label:"En progreso",        val:(stats.total||0)-(stats.perfilCompleto||0),          color:"#7c5cc4" },
-  ];
+  const total = stats.total||1;
+  const data = tabActivo==="eval"
+    ? [{ label:"Califican",val:stats.califican||0,color:"#5a8a3a" },{ label:"Req. revisión",val:stats.requierenRevision||0,color:"#c9973a" },{ label:"No califican",val:stats.noCalifican||0,color:"#dc2626" }]
+    : [{ label:"Completo",val:stats.perfilCompleto||0,color:"#5a8a3a" },{ label:"En progreso",val:(stats.total||0)-(stats.perfilCompleto||0),color:"#7c5cc4" }];
   const r=55,cx=75,cy=75,stroke=16,circ=2*Math.PI*r; let acc=0;
   return (
     <div style={{ display:"flex",alignItems:"center",gap:16 }}>
@@ -77,207 +516,6 @@ function DonaResumen({ stats, tabActivo }) {
   );
 }
 
-/* ── Modal evaluación de perfil ── */
-function ModalEvalPerfil({ c, onClose }) {
-  if (!c) return null;
-  const cal = CALIFICACION_MAP[c.calificacion_dap];
-  const campos = [
-    { label:"Cédula",                    val:c.cedula||"—" },
-    { label:"Teléfono",                  val:c.telefono||"—" },
-    { label:"Fecha de nacimiento",       val:c.fecha_nacimiento?new Date(c.fecha_nacimiento).toLocaleDateString("es-CO"):"—" },
-    { label:"Ciudad",                    val:c.ciudad||"—" },
-    { label:"País",                      val:c.pais||"—" },
-    { label:"Nivel de inglés",           val:c.nivel_ingles||"—" },
-    { label:"Licencia de conducción",    val:SI_NO(c.licencia_conduccion) },
-    { label:"Curso primeros auxilios",   val:SI_NO(c.curso_primeros_auxilios) },
-    { label:"Situación actual",          val:c.situacion_actual||"—" },
-    { label:"Experiencia con niños",     val:SI_NO(c.exp_ninos_externos) },
-    { label:"Horas de experiencia",      val:c.horas_exp_ninos?`${c.horas_exp_ninos} hrs`:"—" },
-    { label:"Visa negada",               val:SI_NO(c.visa_negada) },
-    { label:"Entiende intercambio",      val:SI_NO(c.entiende_intercambio_cultural) },
-    { label:"Consciente del riesgo",     val:SI_NO(c.consciente_riesgo_familiar) },
-    { label:"Enfermedades/medicamentos", val:SI_NO(c.enfermedad_medicamentos) },
-    { label:"Depresión/pánico",          val:SI_NO(c.depresion_panico) },
-  ];
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:640,maxHeight:"90vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}>
-        <div style={{ padding:"16px 20px",background:"linear-gradient(135deg,#1e1033,#7c5cc4)",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-            <div style={{ width:42,height:42,borderRadius:"50%",background:"rgba(255,255,255,.15)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-              {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:16,fontWeight:700,color:"#fff" }}>{c.nombre?.[0]}</span>}
-            </div>
-            <div>
-              <p style={{ fontSize:15,fontWeight:700,color:"#fff",margin:0 }}>{c.nombre} {c.apellido}</p>
-              <p style={{ fontSize:11,color:"rgba(255,255,255,.7)",margin:0 }}>Evaluación de perfil · ID: DA-{String(c.id).padStart(4,"0")}</p>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ width:30,height:30,borderRadius:8,background:"rgba(255,255,255,.15)",border:"none",cursor:"pointer",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <XIcon size={15}/>
-          </button>
-        </div>
-        <div style={{ flex:1,overflowY:"auto",padding:20 }}>
-          {cal && (
-            <div style={{ background:cal.bg,borderRadius:12,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,border:`1px solid ${cal.color}30` }}>
-              <span style={{ fontSize:18 }}>{c.calificacion_dap==="califica"?"✅":c.calificacion_dap==="requiere_revision"?"⚠️":"❌"}</span>
-              <div>
-                <p style={{ fontSize:13,fontWeight:700,color:cal.color,margin:0 }}>{cal.label}{c.score_dap?` — Score: ${c.score_dap}/10`:""}</p>
-                {c.nota_dap && <p style={{ fontSize:12,color:"#6b7280",margin:"2px 0 0" }}>{c.nota_dap}</p>}
-              </div>
-            </div>
-          )}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-            {campos.map((f,i)=>(
-              <div key={i} style={{ background:"#f9f7ff",borderRadius:10,padding:"10px 12px",border:"1px solid #e9e3f8" }}>
-                <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700,letterSpacing:".4px" }}>{f.label}</p>
-                <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{f.val}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop:12 }}>
-            <p style={{ fontSize:11,color:"#9a7080",margin:"0 0 4px",fontWeight:700 }}>Progreso evaluación</p>
-            <BarraProgreso pct={c.progreso_eval} color="#7c5cc4"/>
-            <p style={{ fontSize:11,color:"#7c5cc4",margin:"4px 0 0",fontWeight:600 }}>{c.progreso_eval||0}% completado</p>
-          </div>
-        </div>
-        <div style={{ padding:"12px 20px",borderTop:"1px solid #e9e3f8" }}>
-          <button onClick={onClose} style={{ width:"100%",padding:"10px",borderRadius:12,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Cerrar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Modal perfil con la agencia ── */
-function ModalPerfilAgencia({ c, onClose }) {
-  if (!c) return null;
-  const secciones = [
-    { titulo:"Información personal", campos:[
-      { label:"Estatura",      val:c.estatura?`${c.estatura} cm`:"—" },
-      { label:"Peso",          val:c.peso?`${c.peso} kg`:"—" },
-      { label:"Nacionalidad",  val:c.nacionalidad||"—" },
-      { label:"Tiene pasaporte", val:SI_NO(c.tiene_pasaporte) },
-    ]},
-    { titulo:"Experiencia con niños", campos:[
-      { label:"Experiencia externa",   val:SI_NO(c.exp_ninos_externos) },
-      { label:"Horas de experiencia",  val:c.horas_exp_ninos?`${c.horas_exp_ninos} hrs`:"—" },
-      { label:"Horas de childcare",    val:c.horas_childcare?`${c.horas_childcare} hrs`:"—" },
-    ]},
-    { titulo:"Educación", campos:[
-      { label:"Situación actual",  val:c.situacion_actual||"—" },
-      { label:"Carrera graduada",  val:c.carrera_graduada||"—" },
-    ]},
-    { titulo:"Conducción", campos:[
-      { label:"Licencia",      val:SI_NO(c.licencia_conduccion) },
-      { label:"Tipo licencia", val:c.tipo_licencia||"—" },
-    ]},
-    { titulo:"Referencias", campos:[
-      { label:"Referencia 1",        val:c.referencia_1_nombre||"—" },
-      { label:"Email referencia 1",  val:c.referencia_1_email||"—" },
-      { label:"Teléfono ref. 1",     val:c.referencia_1_telefono||"—" },
-      { label:"Referencia 2",        val:c.referencia_2_nombre||"—" },
-      { label:"Email referencia 2",  val:c.referencia_2_email||"—" },
-    ]},
-  ];
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:680,maxHeight:"90vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}>
-        <div style={{ padding:"16px 20px",background:"linear-gradient(135deg,#1e1033,#a0435f)",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-            <div style={{ width:42,height:42,borderRadius:"50%",background:"rgba(255,255,255,.15)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-              {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:16,fontWeight:700,color:"#fff" }}>{c.nombre?.[0]}</span>}
-            </div>
-            <div>
-              <p style={{ fontSize:15,fontWeight:700,color:"#fff",margin:0 }}>{c.nombre} {c.apellido}</p>
-              <p style={{ fontSize:11,color:"rgba(255,255,255,.7)",margin:0 }}>Perfil con la agencia · {c.progreso_agencia||0}% completo</p>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ width:30,height:30,borderRadius:8,background:"rgba(255,255,255,.15)",border:"none",cursor:"pointer",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <XIcon size={15}/>
-          </button>
-        </div>
-        <div style={{ flex:1,overflowY:"auto",padding:20 }}>
-          {/* Progreso */}
-          <div style={{ background:"#f9f7ff",borderRadius:12,padding:"12px 16px",marginBottom:16,border:"1px solid #e9e3f8" }}>
-            <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6 }}>
-              <span style={{ fontSize:12,fontWeight:700,color:"#1e1033" }}>Perfil con la agencia</span>
-              <span style={{ fontSize:12,fontWeight:700,color:"#7c5cc4" }}>{c.progreso_agencia||0}%</span>
-            </div>
-            <BarraProgreso pct={c.progreso_agencia} color="#a0435f"/>
-          </div>
-
-          {/* Bio y hobbies */}
-          {(c.bio || c.hobbies) && (
-            <div style={{ background:"#f9f7ff",borderRadius:12,padding:"14px 16px",marginBottom:12,border:"1px solid #e9e3f8" }}>
-              {c.bio && <>
-                <p style={{ fontSize:10,color:"#9a7080",margin:"0 0 4px",textTransform:"uppercase",fontWeight:700 }}>Sobre mí</p>
-                <p style={{ fontSize:12,color:"#374151",margin:"0 0 10px",lineHeight:1.5 }}>{c.bio}</p>
-              </>}
-              {c.hobbies && <>
-                <p style={{ fontSize:10,color:"#9a7080",margin:"0 0 4px",textTransform:"uppercase",fontWeight:700 }}>Hobbies e intereses</p>
-                <p style={{ fontSize:12,color:"#374151",margin:0,lineHeight:1.5 }}>{c.hobbies}</p>
-              </>}
-            </div>
-          )}
-
-          {/* Por qué au pair */}
-          {c.por_que_au_pair && (
-            <div style={{ background:"#fce8ed",borderRadius:12,padding:"14px 16px",marginBottom:12,border:"1px solid #f0b8c4" }}>
-              <p style={{ fontSize:10,color:"#a0435f",margin:"0 0 4px",textTransform:"uppercase",fontWeight:700 }}>¿Por qué quiere ser Au Pair?</p>
-              <p style={{ fontSize:12,color:"#2d1a22",margin:0,lineHeight:1.5 }}>{c.por_que_au_pair}</p>
-            </div>
-          )}
-
-          {/* Secciones */}
-          {secciones.map((s,si)=>(
-            <div key={si} style={{ marginBottom:12 }}>
-              <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 8px",padding:"6px 0",borderBottom:"1px solid #e9e3f8" }}>{s.titulo}</p>
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
-                {s.campos.map((f,fi)=>(
-                  <div key={fi} style={{ background:"#f9f7ff",borderRadius:8,padding:"8px 12px",border:"1px solid #e9e3f8" }}>
-                    <p style={{ fontSize:9,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:700 }}>{f.label}</p>
-                    <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{f.val}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ padding:"12px 20px",borderTop:"1px solid #e9e3f8" }}>
-          <button onClick={onClose} style={{ width:"100%",padding:"10px",borderRadius:12,border:"none",background:"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Cerrar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Modal nota ── */
-function ModalNota({ candidata, notaInicial, onClose, onGuardar }) {
-  const [nota, setNota] = useState(notaInicial||"");
-  const [guardando, setGuardando] = useState(false);
-  const submit = async() => { setGuardando(true); await onGuardar(nota); setGuardando(false); onClose(); };
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:440,overflow:"hidden",boxShadow:"0 24px 64px rgba(0,0,0,.2)" }}>
-        <div style={{ padding:"16px 20px",borderBottom:"1px solid #e9e3f8",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <p style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:0 }}>Nota — {candidata?.nombre} {candidata?.apellido}</p>
-          <button onClick={onClose} style={{ background:"none",border:"none",cursor:"pointer",color:"#9a7080" }}><XIcon size={16}/></button>
-        </div>
-        <div style={{ padding:20 }}>
-          <textarea value={nota} onChange={e=>setNota(e.target.value)} rows={4} placeholder="Escribe tu nota sobre esta candidata..."
-            style={{ width:"100%",border:"1.5px solid #e9e3f8",borderRadius:10,padding:"10px 12px",fontSize:13,color:"#1e1033",outline:"none",fontFamily:"inherit",resize:"vertical",boxSizing:"border-box" }}/>
-          <div style={{ display:"flex",gap:10,marginTop:12 }}>
-            <button onClick={onClose} style={{ flex:1,padding:"10px",borderRadius:10,border:"1.5px solid #e9e3f8",background:"#fff",color:"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Cancelar</button>
-            <button onClick={submit} disabled={guardando} style={{ flex:2,padding:"10px",borderRadius:10,border:"none",background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-              {guardando?"Guardando...":"💾 Guardar nota"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ════════════════════════════════════════
    MAIN PAGE
 ════════════════════════════════════════ */
@@ -285,28 +523,25 @@ export default function AgenciaPerfilesPage() {
   const router = useRouter();
   const { isMobile } = useMobile();
 
-  const [user,       setUser]       = useState(null);
-  const [candidatas, setCandidatas] = useState([]);
-  const [stats,      setStats]      = useState({ total:0,califican:0,requierenRevision:0,noCalifican:0,perfilCompleto:0 });
-  const [loading,    setLoading]    = useState(true);
-  const [toast,      setToast]      = useState(null);
-  const [tabActivo,  setTabActivo]  = useState("eval"); // "eval" | "agencia"
+  const [user,        setUser]        = useState(null);
+  const [candidatas,  setCandidatas]  = useState([]);
+  const [stats,       setStats]       = useState({ total:0,califican:0,requierenRevision:0,noCalifican:0,perfilCompleto:0 });
+  const [loading,     setLoading]     = useState(true);
+  const [toast,       setToast]       = useState(null);
+  const [tabActivo,   setTabActivo]   = useState("eval");
+  const [panelCand,   setPanelCand]   = useState(null);
 
-  const [busqueda,   setBusqueda]   = useState("");
-  const [filtroPais, setFiltroPais] = useState("");
-  const [filtroEval, setFiltroEval] = useState("");
-  const [orden,      setOrden]      = useState("recientes");
-  const [pagina,     setPagina]     = useState(1);
-  const [porPagina,  setPorPagina]  = useState(5);
-
-  const [modalEval,    setModalEval]    = useState(null);
-  const [modalAgencia, setModalAgencia] = useState(null);
-  const [modalNota,    setModalNota]    = useState(null);
+  const [busqueda,    setBusqueda]    = useState("");
+  const [filtroPais,  setFiltroPais]  = useState("");
+  const [filtroEval,  setFiltroEval]  = useState("");
+  const [orden,       setOrden]       = useState("recientes");
+  const [pagina,      setPagina]      = useState(1);
+  const [porPagina,   setPorPagina]   = useState(5);
 
   const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
 
   const cargar = useCallback(async()=>{
-    const [me, data] = await Promise.all([
+    const [me,data] = await Promise.all([
       fetch("/api/auth/me").then(r=>r.ok?r.json():null).catch(()=>null),
       fetch("/api/agencia/perfiles").then(r=>r.ok?r.json():null).catch(()=>null),
     ]);
@@ -319,35 +554,41 @@ export default function AgenciaPerfilesPage() {
   useEffect(()=>{ cargar(); },[cargar]);
 
   const accion = async(id, body) => {
-    const res = await fetch(`/api/agencia/perfiles/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+    const res = await fetch(`/api/agencia/perfiles/${id}`,{ method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body) });
     const data = await res.json();
-    if (data.ok) { showToast(data.msg||"Guardado ✓"); await cargar(); }
-    else showToast(data.error||"Error","error");
+    if (data.ok) {
+      showToast(data.msg||"Guardado ✓");
+      await cargar();
+      // Actualizar el panel con datos frescos
+      if (panelCand?.id===id) {
+        const fresh = await fetch("/api/agencia/perfiles").then(r=>r.ok?r.json():null).catch(()=>null);
+        if (fresh?.ok) {
+          const updated = fresh.candidatas.find(c=>c.id===id);
+          if (updated) setPanelCand(updated);
+        }
+      }
+    } else showToast(data.error||"Error","error");
   };
 
   const exportar = () => {
-    const csv = ["Nombre,Edad,País,Score DAP,Calificación DAP,Evaluación Agencia,Plan,Cuotas,Estado,Progreso Agencia",
-      ...candidatas.map(c=>`${c.nombre} ${c.apellido},${c.edad||""},${c.pais||""},${c.score_dap||""},${c.calificacion_dap||""},${c.eval_agencia||""},${c.plan||""},${c.cuotas_pagadas||0},${c.estado_agencia||""},${c.progreso_agencia||0}%`)
-    ].join("\n");
-    const a = Object.assign(document.createElement("a"),{href:`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`,download:"perfiles.csv"});
-    a.click(); showToast("Lista exportada ✓");
+    const csv=["Nombre,País,Score DAP,Calificación,Plan,Cuotas,Estado\n",...candidatas.map(c=>`${c.nombre} ${c.apellido},${c.pais||""},${c.score_dap||""},${c.calificacion_dap||""},${c.plan||""},${c.cuotas_pagadas||0},${c.estado_agencia||""}`)].join("\n");
+    const a=Object.assign(document.createElement("a"),{href:`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`,download:"perfiles.csv"});
+    a.click(); showToast("Exportado ✓");
   };
 
   const paises = [...new Set(candidatas.map(c=>c.pais).filter(Boolean))];
   let filtradas = candidatas.filter(c=>{
-    const q = busqueda.toLowerCase();
-    return (!q||`${c.nombre} ${c.apellido} ${c.id}`.toLowerCase().includes(q))
-      && (!filtroPais||c.pais===filtroPais)
-      && (!filtroEval||c.eval_agencia===filtroEval);
+    const q=busqueda.toLowerCase();
+    return (!q||`${c.nombre} ${c.apellido} ${c.id}`.toLowerCase().includes(q))&&(!filtroPais||c.pais===filtroPais)&&(!filtroEval||c.eval_agencia===filtroEval);
   });
   if (orden==="recientes") filtradas=[...filtradas].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   else if (orden==="score") filtradas=[...filtradas].sort((a,b)=>(b.score_dap||0)-(a.score_dap||0));
   else if (orden==="nombre") filtradas=[...filtradas].sort((a,b)=>a.nombre.localeCompare(b.nombre));
   else if (orden==="progreso") filtradas=[...filtradas].sort((a,b)=>(b.progreso_agencia||0)-(a.progreso_agencia||0));
 
-  const totalPags = Math.ceil(filtradas.length/porPagina);
-  const paginadas = filtradas.slice((pagina-1)*porPagina, pagina*porPagina);
-  const SEL = { height:34,border:"1.5px solid #e9e3f8",borderRadius:8,padding:"0 10px",fontSize:12,color:"#374151",background:"#fff",outline:"none",fontFamily:"inherit",cursor:"pointer" };
+  const totalPags=Math.ceil(filtradas.length/porPagina);
+  const paginadas=filtradas.slice((pagina-1)*porPagina,pagina*porPagina);
+  const SEL={ height:34,border:"1.5px solid #e9e3f8",borderRadius:8,padding:"0 10px",fontSize:12,color:"#374151",background:"#fff",outline:"none",fontFamily:"inherit",cursor:"pointer" };
 
   if (loading) return (
     <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f5f3ff" }}>
@@ -360,9 +601,12 @@ export default function AgenciaPerfilesPage() {
     <div style={{ minHeight:"100vh",background:"#f5f3ff",fontFamily:"system-ui,-apple-system,sans-serif" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
-      {toast && <div style={{ position:"fixed",top:20,right:20,zIndex:300,background:toast.tipo==="error"?"#dc2626":"#1e1033",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)",display:"flex",alignItems:"center",gap:8 }}>
+      {toast&&<div style={{ position:"fixed",top:20,right:20,zIndex:400,background:toast.tipo==="error"?"#dc2626":"#1e1033",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)",display:"flex",alignItems:"center",gap:8 }}>
         {toast.tipo==="error"?"❌":"✓"} {toast.msg}
       </div>}
+
+      {/* PANEL LATERAL */}
+      {panelCand && <PanelDetalle candidata={panelCand} onClose={()=>setPanelCand(null)} onAccion={accion} tabActivo={tabActivo}/>}
 
       {/* HEADER */}
       <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
@@ -371,13 +615,10 @@ export default function AgenciaPerfilesPage() {
             <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#1e1033",margin:0 }}>¡Hola, {user?.nombre}! 👋</h1>
             <p style={{ fontSize:13,color:"#9a7080",margin:"4px 0 0" }}>Gestiona y revisa los perfiles de las candidatas aprobadas por Destino Au Pair.</p>
           </div>
-          {!isMobile && (
+          {!isMobile&&(
             <div style={{ display:"flex",gap:10 }}>
               <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:7,background:"#fff",border:"1.5px solid #e9e3f8",color:"#7c5cc4",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>
                 <DownloadIcon size={14}/> Exportar lista
-              </button>
-              <button style={{ display:"flex",alignItems:"center",gap:7,background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
-                <SlidersIcon size={14}/> Filtros <ChevronDownIcon size={13}/>
               </button>
             </div>
           )}
@@ -386,24 +627,20 @@ export default function AgenciaPerfilesPage() {
 
       <div style={{ padding:isMobile?"14px 16px 40px":"20px 28px 40px",maxWidth:1400,margin:"0 auto" }}>
         <div style={{ display:"flex",gap:20,flexDirection:isMobile?"column":"row" }}>
-
-          {/* COLUMNA PRINCIPAL */}
           <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
 
-            {/* Card con tabs */}
+            {/* Tabs */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ padding:"14px 20px",borderBottom:"1px solid #e9e3f8" }}>
                 <h2 style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:700,color:"#1e1033",margin:0 }}>Perfiles de candidatas</h2>
               </div>
-
-              {/* TABS */}
               <div style={{ display:"flex",borderBottom:"1px solid #e9e3f8" }}>
                 {[
                   { id:"eval",    n:1, label:"Evaluación de perfil",  desc:"Revisa y evalúa a las candidatas" },
                   { id:"agencia", n:2, label:"Perfil con la agencia", desc:"Perfil completo junto a Destino Au Pair" },
                 ].map(t=>(
                   <button key={t.id} onClick={()=>{ setTabActivo(t.id); setPagina(1); }}
-                    style={{ flex:1,padding:"14px 20px",display:"flex",alignItems:"center",gap:12,background:tabActivo===t.id?"#f5f0ff":"#fff",borderBottom:`2px solid ${tabActivo===t.id?"#7c5cc4":"transparent"}`,cursor:"pointer",border:"none",fontFamily:"inherit",textAlign:"left",borderBottom:`2px solid ${tabActivo===t.id?"#7c5cc4":"transparent"}` }}>
+                    style={{ flex:1,padding:"14px 20px",display:"flex",alignItems:"center",gap:12,background:tabActivo===t.id?"#f5f0ff":"#fff",borderBottom:`2px solid ${tabActivo===t.id?"#7c5cc4":"transparent"}`,cursor:"pointer",border:"none",fontFamily:"inherit",textAlign:"left" }}>
                     <div style={{ width:28,height:28,borderRadius:"50%",background:tabActivo===t.id?"#7c5cc4":"#e9e3f8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:tabActivo===t.id?"#fff":"#9a7080",flexShrink:0 }}>{t.n}</div>
                     <div>
                       <p style={{ fontSize:13,fontWeight:700,color:tabActivo===t.id?"#7c5cc4":"#6b7280",margin:0 }}>{t.label}</p>
@@ -412,19 +649,15 @@ export default function AgenciaPerfilesPage() {
                   </button>
                 ))}
               </div>
-
-              {/* Banner info */}
-              <div style={{ padding:"10px 20px",background:"#f0edff",borderBottom:"1px solid #e9e3f8",display:"flex",alignItems:"center",gap:10 }}>
+              <div style={{ padding:"10px 20px",background:"#f0edff",display:"flex",alignItems:"center",gap:10 }}>
                 <span style={{ fontSize:16,flexShrink:0 }}>ℹ️</span>
                 <p style={{ fontSize:12,color:"#5b3fa0",margin:0 }}>
-                  {tabActivo==="eval"
-                    ? "Primero revisa la evaluación de perfil de cada candidata. Si califica, selecciona su plan de pago y confirma cuando recibas el pago."
-                    : "Aquí puedes ver el perfil completo que la candidata completó junto a Destino Au Pair, con su bio, experiencia, referencias y más."}
+                  {tabActivo==="eval"?"Haz clic en el nombre de una candidata para ver su evaluación completa, calificarla y agregar notas.":"Haz clic en el nombre de una candidata para ver y editar su perfil con la agencia."}
                 </p>
               </div>
             </div>
 
-            {/* FILTROS */}
+            {/* Filtros */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"12px 16px",display:"flex",gap:10,flexWrap:"wrap",alignItems:"center",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ position:"relative",flex:1,minWidth:160 }}>
                 <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#9a7080" }}/>
@@ -436,7 +669,7 @@ export default function AgenciaPerfilesPage() {
                 {paises.map(p=><option key={p} value={p}>{PAISES_EMOJI[p]||""} {p}</option>)}
               </select>
               <select value={filtroEval} onChange={e=>{setFiltroEval(e.target.value);setPagina(1);}} style={SEL}>
-                <option value="">Estado de evaluación</option>
+                <option value="">Evaluación agencia</option>
                 <option value="califica">Califica</option>
                 <option value="requiere_revision">Requiere revisión</option>
                 <option value="no_califica">No califica</option>
@@ -445,223 +678,136 @@ export default function AgenciaPerfilesPage() {
                 <option value="recientes">Más recientes</option>
                 <option value="score">Mayor score</option>
                 <option value="nombre">Nombre A-Z</option>
-                {tabActivo==="agencia" && <option value="progreso">Mayor progreso</option>}
+                {tabActivo==="agencia"&&<option value="progreso">Mayor progreso</option>}
               </select>
             </div>
 
-            {/* TABLA / CARDS */}
+            {/* Tabla */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-
-              {/* Cabecera desktop */}
-              {!isMobile && (
-                <div style={{ display:"grid",gridTemplateColumns:tabActivo==="eval"?"1.6fr 1.2fr 1.2fr 1.3fr 1.3fr":"1.6fr 1fr 1.2fr 1.2fr 1fr",gap:12,padding:"10px 20px",background:"#faf8ff",borderBottom:"1px solid #e9e3f8" }}>
+              {!isMobile&&(
+                <div style={{ display:"grid",gridTemplateColumns:tabActivo==="eval"?"1.8fr 1fr 1fr 1fr 1fr":"1.8fr 1fr 1.2fr 1.2fr 1fr",gap:12,padding:"10px 20px",background:"#faf8ff",borderBottom:"1px solid #e9e3f8" }}>
                   {(tabActivo==="eval"
-  ? ["Candidata","Evaluación DAP","Tu evaluación (Agencia)","Plan y pago","Estado del proceso"]
-  : ["Candidata","Progreso perfil","Bio / Sobre mí","Experiencia","Acciones"]
-).map((h,i)=>(
-  <p key={i} style={{ fontSize:10,fontWeight:700,color:"#9a7080",margin:0,textTransform:"uppercase",letterSpacing:".5px" }}>{h}</p>
-))}
+                    ?["Candidata","Score DAP","Tu evaluación","Plan y cuotas","Estado"]
+                    :["Candidata","Progreso perfil","Bio","Experiencia","Acciones"]
+                  ).map((h,i)=>(
+                    <p key={i} style={{ fontSize:10,fontWeight:700,color:"#9a7080",margin:0,textTransform:"uppercase",letterSpacing:".5px" }}>{h}</p>
+                  ))}
                 </div>
               )}
 
-              {paginadas.length===0 ? (
+              {paginadas.length===0?(
                 <div style={{ padding:"48px 20px",textAlign:"center" }}>
                   <p style={{ fontSize:32,margin:"0 0 8px" }}>🔍</p>
                   <p style={{ fontSize:14,fontWeight:600,color:"#1e1033",margin:"0 0 4px" }}>No hay candidatas</p>
-                  <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>Ajusta los filtros o espera a que haya perfiles completados.</p>
+                  <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>Ajusta los filtros.</p>
                 </div>
-              ) : paginadas.map((c,i)=>{
-                const calDap  = CALIFICACION_MAP[c.calificacion_dap];
-                const calAg   = CALIFICACION_MAP[c.eval_agencia];
-                const estMap  = ESTADO_MAP[c.estado_agencia] || { bg:"#f3f4f6",color:"#6b7280" };
-                const totalCuotas = c.plan==="2_cuotas"?2:c.plan==="4_cuotas"?4:0;
-                const borderBottom = i<paginadas.length-1?"1px solid #f0edff":"none";
+              ):paginadas.map((c,i)=>{
+                const calDap=CALIFICACION_MAP[c.calificacion_dap];
+                const calAg=CALIFICACION_MAP[c.eval_agencia];
+                const estMap=ESTADO_MAP[c.estado_agencia]||{ bg:"#f3f4f6",color:"#6b7280" };
+                const totalC=c.plan==="2_cuotas"?2:c.plan==="4_cuotas"?4:0;
+                const border=i<paginadas.length-1?"1px solid #f0edff":"none";
 
                 if (isMobile) return (
-                  <div key={c.id} style={{ padding:"14px 16px",borderBottom }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
+                  <div key={c.id} style={{ padding:"14px 16px",borderBottom:border }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                       <div style={{ width:38,height:38,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                         {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:14,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
                       </div>
-                      <div style={{ flex:1,minWidth:0 }}>
-                        <button onClick={()=>tabActivo==="eval"?setModalEval(c):setModalAgencia(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left" }}>
+                      <div style={{ flex:1 }}>
+                        <button onClick={()=>setPanelCand(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left" }}>
                           {c.nombre} {c.apellido}
                         </button>
                         <p style={{ fontSize:10,color:"#9a7080",margin:0 }}>{PAISES_EMOJI[c.pais]||""} {c.pais} · {c.edad||"—"} años</p>
                       </div>
-                      {tabActivo==="eval" && calDap && <Badge label={calDap.label} bg={calDap.bg} color={calDap.color}/>}
-                      {tabActivo==="agencia" && <span style={{ fontSize:12,fontWeight:700,color:"#7c5cc4" }}>{c.progreso_agencia||0}%</span>}
+                      {calDap&&<Badge label={calDap.label} bg={calDap.bg} color={calDap.color}/>}
                     </div>
-                    {tabActivo==="agencia" && <BarraProgreso pct={c.progreso_agencia} color="#a0435f"/>}
+                    {tabActivo==="agencia"&&<div style={{ marginTop:8 }}><BarraProgreso pct={c.progreso_agencia} color="#7c5cc4"/></div>}
                   </div>
                 );
 
-                /* ── DESKTOP ── */
                 if (tabActivo==="eval") return (
-                  <div key={c.id} style={{ display:"grid",gridTemplateColumns:"1.6fr 1.2fr 1.2fr 1.3fr 1.3fr",gap:12,padding:"16px 20px",borderBottom,alignItems:"start" }}>
-                    {/* Candidata */}
-                    <div style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
-                      <div style={{ width:40,height:40,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                        {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:15,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
+                  <div key={c.id} style={{ display:"grid",gridTemplateColumns:"1.8fr 1fr 1fr 1fr 1fr",gap:12,padding:"14px 20px",borderBottom:border,alignItems:"center" }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
+                      <div style={{ width:38,height:38,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                        {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:14,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
                       </div>
-                      <div>
-                        <button onClick={()=>setModalEval(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left",textDecoration:"underline",textDecorationColor:"#d8d0f0" }}>
+                      <div style={{ minWidth:0 }}>
+                        <button onClick={()=>setPanelCand(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"100%",display:"block" }}>
                           {c.nombre} {c.apellido}
                         </button>
-                        <p style={{ fontSize:10,color:"#9a7080",margin:"2px 0" }}>ID: DA-{String(c.id).padStart(4,"0")}</p>
-                        <p style={{ fontSize:11,color:"#6b7280",margin:0 }}>{PAISES_EMOJI[c.pais]||""} {c.pais||"—"}</p>
+                        <p style={{ fontSize:10,color:"#9a7080",margin:0 }}>ID: DA-{String(c.id).padStart(4,"0")} · {PAISES_EMOJI[c.pais]||""} {c.pais}</p>
                       </div>
                     </div>
-                    {/* Eval DAP */}
                     <div>
-                      {calDap?(<>
-                        <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:4 }}>
-                          <Badge label={calDap.label} bg={calDap.bg} color={calDap.color}/>
-                          {c.score_dap&&<span style={{ fontSize:13,fontWeight:700,color:"#1e1033" }}>{c.score_dap}/10</span>}
-                        </div>
-                        {c.nota_dap&&<p style={{ fontSize:11,color:"#6b7280",margin:"0 0 6px" }}>• {c.nota_dap}</p>}
-                        <button onClick={()=>setModalEval(c)} style={{ display:"flex",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:0,fontFamily:"inherit" }}>
-                          Ver evaluación completa <ChevronRightIcon size={12}/>
-                        </button>
-                      </>):<p style={{ fontSize:12,color:"#9a7080",margin:0 }}>Sin evaluación</p>}
+                      {calDap?<><Badge label={calDap.label} bg={calDap.bg} color={calDap.color}/>{c.score_dap&&<p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"4px 0 0" }}>{c.score_dap}/10</p>}</>:<p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Sin score</p>}
                     </div>
-                    {/* Eval agencia */}
                     <div>
-                      {c.eval_agencia?(<>
-                        {calAg&&<Badge label={calAg.label} bg={calAg.bg} color={calAg.color}/>}
-                        {c.eval_agencia==="califica"&&<p style={{ fontSize:11,fontWeight:600,color:"#5a8a3a",margin:"4px 0 2px" }}>¡Perfil aprobado!</p>}
-                        {c.eval_updated&&<p style={{ fontSize:10,color:"#9a7080",margin:"0 0 4px" }}>{new Date(c.eval_updated).toLocaleDateString("es-CO")}</p>}
-                        {c.nota_agencia&&<p style={{ fontSize:11,color:"#6b7280",margin:"0 0 4px",fontStyle:"italic" }}>"{c.nota_agencia.slice(0,40)}{c.nota_agencia.length>40?"…":""}"</p>}
-                      </>):(
-                        c.calificacion_dap==="califica"?(<>
-                          <p style={{ fontSize:11,color:"#9a7080",margin:"0 0 6px" }}>Aún no evaluada</p>
-                          <div style={{ display:"flex",gap:6 }}>
-                            <button onClick={()=>accion(c.id,{accion:"evaluar",evaluacion:"califica"})} title="Califica" style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}><CheckCircleIcon size={14} style={{ color:"#5a8a3a" }}/></button>
-                            <button onClick={()=>accion(c.id,{accion:"evaluar",evaluacion:"requiere_revision"})} title="Requiere revisión" style={{ width:28,height:28,borderRadius:8,background:"#fdf3e3",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}><MinusCircleIcon size={14} style={{ color:"#c9973a" }}/></button>
-                            <button onClick={()=>accion(c.id,{accion:"evaluar",evaluacion:"no_califica"})} title="No califica" style={{ width:28,height:28,borderRadius:8,background:"#fee2e2",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}><XCircleIcon size={14} style={{ color:"#dc2626" }}/></button>
-                          </div>
-                        </>):<p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Debe calificar primero</p>
-                      )}
-                      <button onClick={()=>setModalNota({candidata:c,nota:c.nota_agencia})} style={{ display:"flex",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:"4px 0 0",fontFamily:"inherit" }}>
-                        <FileTextIcon size={11}/> {c.nota_agencia?"Editar nota":"Agregar nota"}
-                      </button>
+                      {calAg?<><Badge label={calAg.label} bg={calAg.bg} color={calAg.color}/></>:<p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Sin evaluar</p>}
                     </div>
-                    {/* Plan y pago */}
                     <div>
-                      {c.eval_agencia==="califica"?(
-                        !c.plan?(<>
-                          <p style={{ fontSize:11,fontWeight:600,color:"#1e1033",margin:"0 0 6px" }}>Seleccionar plan</p>
-                          <div style={{ display:"flex",gap:6 }}>
-                            <button onClick={()=>accion(c.id,{accion:"plan",plan:"2_cuotas"})} style={{ flex:1,padding:"6px",borderRadius:8,border:"1.5px solid #e9e3f8",background:"#fff",color:"#7c5cc4",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>2 cuotas</button>
-                            <button onClick={()=>accion(c.id,{accion:"plan",plan:"4_cuotas"})} style={{ flex:1,padding:"6px",borderRadius:8,border:"1.5px solid #e9e3f8",background:"#fff",color:"#7c5cc4",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>4 cuotas</button>
-                          </div>
-                        </>):(<>
-                          <p style={{ fontSize:11,fontWeight:600,color:"#1e1033",margin:"0 0 4px" }}>Plan: {c.plan==="2_cuotas"?"2 cuotas":"4 cuotas"}</p>
-                          <div style={{ display:"flex",gap:4,marginBottom:6 }}>
-                            {Array.from({length:totalCuotas},(_,i)=>(
-                              <div key={i} style={{ width:18,height:18,borderRadius:"50%",background:i<(c.cuotas_pagadas||0)?"#5a8a3a":"#e9e3f8",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                                {i<(c.cuotas_pagadas||0)&&<CheckIcon size={9} style={{ color:"#fff" }}/>}
-                              </div>
-                            ))}
-                          </div>
-                          <p style={{ fontSize:10,color:"#9a7080",margin:"0 0 6px" }}>{c.cuotas_pagadas||0}/{totalCuotas} cuotas</p>
-                          {(c.cuotas_pagadas||0)<totalCuotas?(
-                            <button onClick={()=>accion(c.id,{accion:"confirmar_pago",cuotas_pagadas:1})} style={{ width:"100%",padding:"6px",borderRadius:8,border:"none",background:"#7c5cc4",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-                              Confirmar pago recibido
-                            </button>
-                          ):(
-                            <div style={{ display:"flex",alignItems:"center",gap:5 }}>
-                              <CheckCircleIcon size={12} style={{ color:"#5a8a3a" }}/>
-                              <span style={{ fontSize:11,fontWeight:600,color:"#5a8a3a" }}>Pago completo</span>
+                      {c.plan?(
+                        <div style={{ display:"flex",gap:4 }}>
+                          {Array.from({length:totalC},(_,i)=>(
+                            <div key={i} style={{ width:16,height:16,borderRadius:"50%",background:i<(c.cuotas_pagadas||0)?"#5a8a3a":"#e9e3f8",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                              {i<(c.cuotas_pagadas||0)&&<CheckIcon size={9} style={{ color:"#fff" }}/>}
                             </div>
-                          )}
-                        </>)
-                      ):<p style={{ fontSize:11,color:"#9a7080",margin:0 }}>{c.eval_agencia==="no_califica"?"No aplica":"Debe calificar primero."}</p>}
+                          ))}
+                          <span style={{ fontSize:10,color:"#9a7080",marginLeft:4 }}>{c.cuotas_pagadas||0}/{totalC}</span>
+                        </div>
+                      ):<p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Sin plan</p>}
                     </div>
-                    {/* Estado proceso */}
-                    <div>
+                    <div style={{ display:"flex",alignItems:"center",gap:8 }}>
                       <Badge label={c.estado_agencia||"En evaluación"} bg={estMap.bg} color={estMap.color}/>
-                      <p style={{ fontSize:11,color:"#6b7280",margin:"6px 0 8px",lineHeight:1.4 }}>
-                        {c.estado_agencia==="En evaluación"&&"Revisa la evaluación y decide si califica."}
-                        {c.estado_agencia==="Pago pendiente"&&"Confirma el pago para iniciar la activación."}
-                        {c.estado_agencia==="En ajustes"&&"La candidata está realizando ajustes."}
-                        {c.estado_agencia==="Perfil en activación"&&"Ya puedes iniciar la activación del perfil."}
-                        {c.estado_agencia==="No califica"&&"No cumple los requisitos del programa."}
-                        {!c.estado_agencia&&"Revisa la evaluación de perfil."}
-                      </p>
-                      <button onClick={()=>setModalEval(c)} style={{ display:"flex",alignItems:"center",gap:5,background:"#fff",border:"1.5px solid #e9e3f8",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                        👁 Ver detalles
+                      <button onClick={()=>setPanelCand(c)} style={{ width:26,height:26,borderRadius:7,background:"#f5f0ff",border:"1px solid #e9e3f8",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }} title="Abrir panel">
+                        <ChevronRightIcon size={13} style={{ color:"#7c5cc4" }}/>
                       </button>
                     </div>
                   </div>
                 );
 
-                /* ── TAB AGENCIA ── */
                 return (
-                  <div key={c.id} style={{ display:"grid",gridTemplateColumns:"1.6fr 1fr 1.2fr 1.2fr 1fr",gap:12,padding:"16px 20px",borderBottom,alignItems:"start" }}>
-                    {/* Candidata */}
-                    <div style={{ display:"flex",alignItems:"flex-start",gap:10 }}>
-                      <div style={{ width:40,height:40,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                        {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:15,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
+                  <div key={c.id} style={{ display:"grid",gridTemplateColumns:"1.8fr 1fr 1.2fr 1.2fr 1fr",gap:12,padding:"14px 20px",borderBottom:border,alignItems:"center" }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
+                      <div style={{ width:38,height:38,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                        {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:14,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
                       </div>
-                      <div>
-                        <button onClick={()=>setModalAgencia(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left",textDecoration:"underline",textDecorationColor:"#d8d0f0" }}>
+                      <div style={{ minWidth:0 }}>
+                        <button onClick={()=>setPanelCand(c)} style={{ background:"none",border:"none",cursor:"pointer",padding:0,fontSize:13,fontWeight:700,color:"#7c5cc4",fontFamily:"inherit",textAlign:"left" }}>
                           {c.nombre} {c.apellido}
                         </button>
-                        <p style={{ fontSize:10,color:"#9a7080",margin:"2px 0" }}>ID: DA-{String(c.id).padStart(4,"0")}</p>
-                        <p style={{ fontSize:11,color:"#6b7280",margin:0 }}>{PAISES_EMOJI[c.pais]||""} {c.pais||"—"} · {c.edad||"—"} años</p>
+                        <p style={{ fontSize:10,color:"#9a7080",margin:0 }}>{PAISES_EMOJI[c.pais]||""} {c.pais}</p>
                       </div>
                     </div>
-                    {/* Progreso agencia */}
                     <div>
                       <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
-                        <span style={{ fontSize:11,color:"#6b7280" }}>Perfil completo</span>
-                        <span style={{ fontSize:12,fontWeight:700,color:"#7c5cc4" }}>{c.progreso_agencia||0}%</span>
+                        <span style={{ fontSize:10,color:"#6b7280" }}>Completo</span>
+                        <span style={{ fontSize:11,fontWeight:700,color:"#7c5cc4" }}>{c.progreso_agencia||0}%</span>
                       </div>
                       <BarraProgreso pct={c.progreso_agencia} color={c.progreso_agencia>=80?"#5a8a3a":"#7c5cc4"}/>
-                      {c.progreso_agencia>=80&&<p style={{ fontSize:10,color:"#5a8a3a",fontWeight:600,margin:"4px 0 0" }}>✓ Listo para agencia</p>}
                     </div>
-                    {/* Bio */}
+                    <p style={{ fontSize:12,color:"#374151",margin:0 }}>{c.bio?`"${c.bio.slice(0,50)}…"`:<span style={{ color:"#9a7080",fontStyle:"italic" }}>Sin bio</span>}</p>
                     <div>
-                      {c.bio?<p style={{ fontSize:12,color:"#374151",margin:0,lineHeight:1.4 }}>"{c.bio.slice(0,80)}{c.bio.length>80?"…":""}"</p>
-                        :<p style={{ fontSize:11,color:"#9a7080",margin:0,fontStyle:"italic" }}>Sin bio</p>}
-                      {c.hobbies&&<p style={{ fontSize:11,color:"#9a7080",margin:"4px 0 0" }}>🎯 {c.hobbies.slice(0,50)}</p>}
+                      <p style={{ fontSize:11,color:"#374151",margin:"0 0 2px" }}>Childcare: <strong>{c.horas_childcare?`${c.horas_childcare}h`:"—"}</strong></p>
+                      <p style={{ fontSize:11,color:"#374151",margin:0 }}>Inglés: <strong>{c.nivel_ingles||"—"}</strong></p>
                     </div>
-                    {/* Experiencia */}
-                    <div>
-                      <p style={{ fontSize:12,color:"#374151",margin:"0 0 4px" }}>Childcare: <strong>{c.horas_childcare?`${c.horas_childcare} hrs`:"—"}</strong></p>
-                      <p style={{ fontSize:12,color:"#374151",margin:"0 0 4px" }}>Exp. niños: <strong>{c.exp_ninos_externos?"Sí":"No"}</strong></p>
-                      <p style={{ fontSize:12,color:"#374151",margin:0 }}>Inglés: <strong>{c.nivel_ingles||"—"}</strong></p>
-                    </div>
-                    {/* Acciones */}
-                    <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-                      <button onClick={()=>setModalAgencia(c)} style={{ display:"flex",alignItems:"center",gap:5,background:"#fff",border:"1.5px solid #e9e3f8",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:"6px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                        👁 Ver perfil completo
-                      </button>
-                      <button onClick={()=>setModalNota({candidata:c,nota:c.nota_agencia})} style={{ display:"flex",alignItems:"center",gap:5,background:"#f5f0ff",border:"1px solid #e9e3f8",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:"6px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                        <FileTextIcon size={11} /> {c.nota_agencia?"Editar nota":"Agregar nota"}
-                      </button>
-                    </div>
+                    <button onClick={()=>setPanelCand(c)} style={{ display:"flex",alignItems:"center",gap:5,background:"#f5f0ff",border:"1px solid #e9e3f8",color:"#7c5cc4",fontSize:11,fontWeight:600,padding:"7px 10px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
+                      Ver perfil <ChevronRightIcon size={12}/>
+                    </button>
                   </div>
                 );
               })}
 
-              {/* PAGINACIÓN */}
+              {/* Paginación */}
               <div style={{ padding:"12px 20px",borderTop:"1px solid #e9e3f8",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
-                <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>
-                  Mostrando {filtradas.length===0?0:(pagina-1)*porPagina+1} a {Math.min(pagina*porPagina,filtradas.length)} de {filtradas.length} candidatas
-                </p>
+                <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>Mostrando {filtradas.length===0?0:(pagina-1)*porPagina+1}–{Math.min(pagina*porPagina,filtradas.length)} de {filtradas.length}</p>
                 <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-                  <button onClick={()=>setPagina(p=>Math.max(1,p-1))} disabled={pagina<=1} style={{ width:28,height:28,borderRadius:8,border:"1px solid #e9e3f8",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:pagina<=1?.4:1 }}>
-                    <ChevronLeftIcon size={13} style={{ color:"#7c5cc4" }}/>
-                  </button>
+                  <button onClick={()=>setPagina(p=>Math.max(1,p-1))} disabled={pagina<=1} style={{ width:28,height:28,borderRadius:8,border:"1px solid #e9e3f8",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:pagina<=1?.4:1 }}><ChevronLeftIcon size={13} style={{ color:"#7c5cc4" }}/></button>
                   {Array.from({length:Math.min(totalPags,6)},(_,i)=>i+1).map(p=>(
                     <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"1px solid #e9e3f8",cursor:"pointer",fontSize:12,fontWeight:600,background:p===pagina?"#7c5cc4":"#fff",color:p===pagina?"#fff":"#9a7080" }}>{p}</button>
                   ))}
                   {totalPags>6&&<span style={{ fontSize:12,color:"#9a7080" }}>...</span>}
-                  <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} disabled={pagina>=totalPags} style={{ width:28,height:28,borderRadius:8,border:"1px solid #e9e3f8",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:pagina>=totalPags?.4:1 }}>
-                    <ChevronRightIcon size={13} style={{ color:"#7c5cc4" }}/>
-                  </button>
+                  <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} disabled={pagina>=totalPags} style={{ width:28,height:28,borderRadius:8,border:"1px solid #e9e3f8",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",opacity:pagina>=totalPags?.4:1 }}><ChevronRightIcon size={13} style={{ color:"#7c5cc4" }}/></button>
                   <select value={porPagina} onChange={e=>{setPorPagina(Number(e.target.value));setPagina(1);}} style={{ ...SEL,marginLeft:8 }}>
                     {[5,10,20].map(n=><option key={n} value={n}>{n} por página</option>)}
                   </select>
@@ -670,55 +816,39 @@ export default function AgenciaPerfilesPage() {
             </div>
           </div>
 
-          {/* SIDEBAR — solo desktop */}
-          {!isMobile && (
+          {/* SIDEBAR DERECHO */}
+          {!isMobile&&(
             <div style={{ width:280,flexShrink:0,display:"flex",flexDirection:"column",gap:16 }}>
               <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
                 <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 16px" }}>Resumen de evaluación</h3>
                 <DonaResumen stats={stats} tabActivo={tabActivo}/>
               </div>
-
               <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-                <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 16px" }}>Proceso explicado</h3>
+                <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 14px" }}>Proceso</h3>
                 {[
-                  { n:1,label:"Evaluación de perfil",  desc:"Revisa la evaluación hecha por Destino Au Pair." },
-                  { n:2,label:"Plan y pago",            desc:"Selecciona el plan y confirma cuando recibas el pago." },
-                  { n:3,label:"Activación del perfil",  desc:"Inicia la activación del perfil junto a Destino Au Pair." },
-                  { n:4,label:"Entrevistas y siguientes pasos", desc:"Continúa con entrevistas, match y proceso de visa." },
+                  { n:1,label:"Evaluación",   desc:"Revisa y califica a la candidata." },
+                  { n:2,label:"Plan y pago",  desc:"Selecciona plan y confirma pago." },
+                  { n:3,label:"Activación",   desc:"Inicia activación con Destino Au Pair." },
+                  { n:4,label:"Entrevistas",  desc:"Match y proceso de visa." },
                 ].map((p,i)=>(
-                  <div key={i} style={{ display:"flex",gap:12,marginBottom:i<3?14:0 }}>
-                    <div style={{ width:26,height:26,borderRadius:"50%",background:"#ede9f8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#7c5cc4",flexShrink:0 }}>{p.n}</div>
+                  <div key={i} style={{ display:"flex",gap:10,marginBottom:i<3?12:0 }}>
+                    <div style={{ width:24,height:24,borderRadius:"50%",background:"#ede9f8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#7c5cc4",flexShrink:0 }}>{p.n}</div>
                     <div>
-                      <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 2px" }}>{p.label}</p>
-                      <p style={{ fontSize:11,color:"#9a7080",margin:0,lineHeight:1.4 }}>{p.desc}</p>
+                      <p style={{ fontSize:12,fontWeight:700,color:"#1e1033",margin:"0 0 1px" }}>{p.label}</p>
+                      <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>{p.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <div style={{ background:"#f5f0ff",borderRadius:20,border:"1px solid #e9e3f8",padding:20 }}>
-                <p style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 6px" }}>¿Dudas sobre el proceso?</p>
-                <p style={{ fontSize:12,color:"#6b7280",margin:"0 0 14px" }}>Consulta nuestras guías o escríbenos.</p>
-                <a href="mailto:hola@destino-aupair.com" style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6,background:"#fff",border:"1.5px solid #e9e3f8",color:"#7c5cc4",fontSize:12,fontWeight:600,padding:"10px",borderRadius:10,textDecoration:"none" }}>
-                  Ir a centro de ayuda ↗
-                </a>
+              <div style={{ background:"#f5f0ff",borderRadius:20,padding:20,border:"1px solid #e9e3f8" }}>
+                <p style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:"0 0 6px" }}>¿Dudas?</p>
+                <p style={{ fontSize:12,color:"#6b7280",margin:"0 0 12px" }}>Escríbenos para apoyo en el proceso.</p>
+                <a href="mailto:hola@destino-aupair.com" style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6,background:"#fff",border:"1.5px solid #e9e3f8",color:"#7c5cc4",fontSize:12,fontWeight:600,padding:"9px",borderRadius:10,textDecoration:"none" }}>Centro de ayuda ↗</a>
               </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* MODALES */}
-      {modalEval    && <ModalEvalPerfil   c={modalEval}    onClose={()=>setModalEval(null)}/>}
-      {modalAgencia && <ModalPerfilAgencia c={modalAgencia} onClose={()=>setModalAgencia(null)}/>}
-      {modalNota && (
-        <ModalNota
-          candidata={modalNota.candidata}
-          notaInicial={modalNota.nota}
-          onClose={()=>setModalNota(null)}
-          onGuardar={async(nota)=>{ await accion(modalNota.candidata.id,{accion:"nota",nota}); }}
-        />
-      )}
     </div>
   );
 }

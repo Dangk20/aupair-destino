@@ -1,332 +1,363 @@
 "use client";
+// app/admin/asociadas/page.jsx
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useCallback } from "react";
 import {
-  PlusIcon, SearchIcon, TrashIcon, EditIcon, EyeIcon, ChevronDownIcon,
-  UserPlusIcon, CheckCircleIcon, AlertCircleIcon,
+  UserPlusIcon, SearchIcon, TrashIcon, PencilIcon, EyeIcon,
+  CheckIcon, XIcon, CopyIcon, UsersIcon, AlertCircleIcon, DollarSignIcon,
 } from "lucide-react";
 
-export default function AdminAsociadasPage() {
-  const [asociadas, setAsociadas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+function CodigoBadge({ codigo, onCopy, copiado }) {
+  if (!codigo) return <span className="text-[11px] text-[#c0a0a8] italic">Sin código</span>;
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[12px] font-bold text-[#a0435f] bg-[#fce8ed] px-2.5 py-1 rounded-lg">{codigo}</span>
+      <button onClick={onCopy} className="text-[#c0a0a8] hover:text-[#a0435f] transition">
+        {copiado ? <CheckIcon size={12} className="text-[#5a8a3a]"/> : <CopyIcon size={12}/>}
+      </button>
+    </div>
+  );
+}
 
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-    email: "",
-    password: "",
-    telefono: "",
-    ciudad: "",
-    pais: "",
+function ModalAsesora({ inicial, onClose, onSave }) {
+  const [form, setForm] = useState({
+    nombre: inicial?.nombre || "", apellido: inicial?.apellido || "",
+    email: inicial?.email || "", password: "",
+    telefono: inicial?.telefono || "", ciudad: inicial?.ciudad || "", pais: inicial?.pais || "",
   });
-  const [nuevoCodigoReferido, setNuevoCodigoReferido] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const [err, setErr] = useState("");
 
-  // Cargar asociadas
-  useEffect(() => {
-    fetchAsociadas();
-  }, []);
+  const submit = async () => {
+    if (!form.nombre || !form.apellido || !form.email || (!inicial && !form.password)) {
+      setErr("Completa los campos obligatorios."); return;
+    }
+    setGuardando(true); setErr("");
+    await onSave({ ...form, id: inicial?.id });
+    setGuardando(false);
+  };
 
-  const fetchAsociadas = async () => {
+  const ic = "w-full border border-[#f0dde2] rounded-xl px-3.5 py-2.5 text-[13px] text-[#2d1a22] bg-white focus:outline-none focus:ring-2 focus:ring-[#e8849a]/40 focus:border-[#e8849a] transition";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#2d1a22]/40 backdrop-blur-sm" onClick={onClose}/>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="h-1 bg-gradient-to-r from-[#7c5cc4] via-[#a0435f] to-[#7c5cc4] sticky top-0"/>
+        <div className="px-6 py-5">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-serif text-[18px] font-bold text-[#2d1a22]">
+              {inicial ? "Editar asesora" : "Nueva asesora"}
+            </h2>
+            <button onClick={onClose} className="w-8 h-8 rounded-xl bg-[#fce8ed] flex items-center justify-center hover:bg-[#f0b8c4] transition">
+              <XIcon size={14} className="text-[#a0435f]"/>
+            </button>
+          </div>
+
+          {err && <div className="bg-red-50 border border-red-200 text-red-600 text-[12px] px-3 py-2 rounded-xl mb-4">{err}</div>}
+
+          <div className="space-y-3.5">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block">
+                <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">Nombre *</span>
+                <input value={form.nombre} onChange={e=>setForm({...form,nombre:e.target.value})} className={`mt-1 ${ic}`}/>
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">Apellido *</span>
+                <input value={form.apellido} onChange={e=>setForm({...form,apellido:e.target.value})} className={`mt-1 ${ic}`}/>
+              </label>
+            </div>
+            <label className="block">
+              <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">Email *</span>
+              <input type="email" value={form.email} disabled={!!inicial} onChange={e=>setForm({...form,email:e.target.value})} className={`mt-1 ${ic} disabled:bg-gray-50 disabled:text-gray-400`}/>
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">
+                Contraseña {inicial ? "(dejar en blanco para no cambiar)" : "*"}
+              </span>
+              <input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} className={`mt-1 ${ic}`}/>
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">Teléfono</span>
+              <input value={form.telefono} onChange={e=>setForm({...form,telefono:e.target.value})} className={`mt-1 ${ic}`}/>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block">
+                <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">Ciudad</span>
+                <input value={form.ciudad} onChange={e=>setForm({...form,ciudad:e.target.value})} className={`mt-1 ${ic}`}/>
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-[#2d1a22] uppercase tracking-wide">País</span>
+                <input value={form.pais} onChange={e=>setForm({...form,pais:e.target.value})} className={`mt-1 ${ic}`}/>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 mt-6">
+            <button onClick={onClose} className="flex-1 border border-[#f0dde2] text-[#9a6672] text-[13px] font-medium py-2.5 rounded-xl hover:bg-[#fff8f9] transition">
+              Cancelar
+            </button>
+            <button onClick={submit} disabled={guardando}
+              className="flex-1 bg-[#7c5cc4] hover:bg-[#6a4ab0] disabled:opacity-60 text-white text-[13px] font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+              {guardando
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>Guardando…</>
+                : (inicial ? "Guardar cambios" : "Crear asesora")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalVerAsesora({ asesora, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#2d1a22]/40 backdrop-blur-sm" onClick={onClose}/>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-[#7c5cc4] via-[#a0435f] to-[#7c5cc4]"/>
+        <div className="px-6 py-5">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-serif text-[18px] font-bold text-[#2d1a22]">Detalle de la asesora</h2>
+            <button onClick={onClose} className="w-8 h-8 rounded-xl bg-[#fce8ed] flex items-center justify-center hover:bg-[#f0b8c4] transition">
+              <XIcon size={14} className="text-[#a0435f]"/>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#fce8ed]">
+            <div className="w-14 h-14 rounded-2xl bg-[#fce8ed] flex items-center justify-center text-[#a0435f] text-[22px] font-bold font-serif border border-[#f0b8c4] overflow-hidden">
+              {asesora.foto_url
+                ? <img src={asesora.foto_url} alt="" className="w-full h-full object-cover"/>
+                : (asesora.nombre?.[0] || "A")}
+            </div>
+            <div>
+              <p className="text-[16px] font-bold text-[#2d1a22]">{asesora.nombre} {asesora.apellido}</p>
+              <p className="text-[12px] text-[#9a6672]">{asesora.email}</p>
+              {asesora.telefono && <p className="text-[12px] text-[#9a6672]">{asesora.telefono}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label:"Código de referida",   val: asesora.codigo_referido || "Sin código" },
+              { label:"Comisión asignada",    val: asesora.porcentaje ? `${asesora.porcentaje}%` : "—" },
+              { label:"Ciudad",               val: asesora.ciudad || "—" },
+              { label:"País",                 val: asesora.pais || "—" },
+              { label:"Referidas totales",    val: asesora.referidas_totales || 0 },
+              { label:"Referidas que pagaron",val: asesora.referidas_pagaron || 0 },
+              { label:"Registrada el",        val: asesora.created_at ? new Date(asesora.created_at).toLocaleDateString("es-CO") : "—" },
+            ].map((item,i)=>(
+              <div key={i} className="bg-[#fff8f9] rounded-xl px-3 py-2.5">
+                <p className="text-[10px] text-[#9a6672] font-semibold uppercase tracking-wide">{item.label}</p>
+                <p className="text-[13px] font-bold text-[#2d1a22] mt-0.5">{item.val}</p>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={onClose}
+            className="w-full mt-5 border border-[#f0dde2] text-[#9a6672] text-[13px] font-medium py-2.5 rounded-xl hover:bg-[#fff8f9] transition">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalEliminar({ asesora, onClose, onConfirm }) {
+  const [eli, setEli] = useState(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#2d1a22]/40 backdrop-blur-sm" onClick={onClose}/>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center px-6 py-7">
+        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <TrashIcon size={22} className="text-red-500"/>
+        </div>
+        <h3 className="font-serif text-[17px] font-bold text-[#2d1a22] mb-2">¿Eliminar asesora?</h3>
+        <p className="text-[13px] text-[#9a6672] mb-6">
+          Vas a eliminar a <strong>{asesora.nombre} {asesora.apellido}</strong>. Esta acción no se puede deshacer.
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 border border-[#f0dde2] text-[#9a6672] text-[13px] py-2.5 rounded-xl hover:bg-[#fff8f9] transition">
+            Cancelar
+          </button>
+          <button onClick={async()=>{setEli(true);await onConfirm();setEli(false);onClose();}} disabled={eli}
+            className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white text-[13px] font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+            {eli ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : <TrashIcon size={13}/>}
+            {eli ? "Eliminando…" : "Sí, eliminar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminAsociadasPage() {
+  const [asociadas, setAsociadas]   = useState([]);
+  const [loading,   setLoading]     = useState(true);
+  const [busqueda,  setBusqueda]    = useState("");
+  const [modalNueva,setModalNueva]  = useState(false);
+  const [modalEditar,setModalEditar]= useState(null);
+  const [modalVer,  setModalVer]    = useState(null);
+  const [modalEliminar,setModalEliminar] = useState(null);
+  const [toast,     setToast]       = useState(null);
+  const [copiado,   setCopiado]     = useState(null);
+
+  const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
+
+  const cargar = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/asociadas");
-      if (res.ok) {
-        const data = await res.json();
-        setAsociadas(data.asociadas);
-      }
-    } catch (err) {
-      console.error("Error fetching asociadas:", err);
-      setErrorMessage("Error al cargar las asesoras");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenModal = (asociada = null) => {
-    if (asociada) {
-      setEditingId(asociada.id);
-      setFormData({
-        nombre: asociada.nombre,
-        apellido: asociada.apellido,
-        email: asociada.email,
-        password: "",
-        telefono: asociada.telefono || "",
-        ciudad: asociada.ciudad || "",
-        pais: asociada.pais || "",
-      });
-      setNuevoCodigoReferido(null);
-    } else {
-      setEditingId(null);
-      setFormData({
-        nombre: "",
-        apellido: "",
-        email: "",
-        password: "",
-        telefono: "",
-        ciudad: "",
-        pais: "",
-      });
-      setNuevoCodigoReferido(null);
-    }
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingId(null);
-    setErrorMessage("");
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    try {
-      const url = editingId ? `/api/admin/asociadas/${editingId}` : "/api/admin/asociadas";
-      const method = editingId ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
       const data = await res.json();
+      setAsociadas(data.asociadas || []);
+    } catch { showToast("Error al cargar asesoras","error"); }
+    setLoading(false);
+  }, []);
 
-      if (res.ok) {
-        setSuccessMessage(data.mensaje || "Operación exitosa");
-        if (data.codigo_referido && !editingId) {
-          setNuevoCodigoReferido(data.codigo_referido);
-        }
-        setShowModal(false);
-        fetchAsociadas();
-        setTimeout(() => setSuccessMessage(""), 3000);
-      } else {
-        setErrorMessage(data.error || "Error al guardar");
-      }
-    } catch (err) {
-      console.error("Error submitting form:", err);
-      setErrorMessage("Error al guardar los datos");
-    }
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const handleSave = async (form) => {
+    const url    = form.id ? `/api/admin/asociadas/${form.id}` : "/api/admin/asociadas";
+    const method = form.id ? "PUT" : "POST";
+    const res = await fetch(url, { method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(form) });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(data.codigo_referido ? `✓ Asesora creada — Código: ${data.codigo_referido}` : (data.mensaje||"Guardado ✓"));
+      setModalNueva(false); setModalEditar(null);
+      cargar();
+    } else showToast(data.error || "Error al guardar","error");
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta asesora?")) return;
-
-    try {
-      const res = await fetch(`/api/admin/asociadas/${id}`, { method: "DELETE" });
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccessMessage("Asesora eliminada correctamente");
-        fetchAsociadas();
-        setTimeout(() => setSuccessMessage(""), 3000);
-      } else {
-        setErrorMessage(data.error || "Error al eliminar");
-      }
-    } catch (err) {
-      console.error("Error deleting:", err);
-      setErrorMessage("Error al eliminar");
-    }
+  const handleEliminar = async () => {
+    const res = await fetch(`/api/admin/asociadas/${modalEliminar.id}`, { method:"DELETE" });
+    if (res.ok) { showToast("Asesora eliminada"); cargar(); }
+    else showToast("Error al eliminar","error");
   };
 
-  const asociadasFiltradas = asociadas.filter((a) =>
-    a.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const copiarCodigo = (codigo, id) => {
+    navigator.clipboard.writeText(codigo).then(()=>{ setCopiado(id); setTimeout(()=>setCopiado(null),2000); });
+  };
+
+  const filtradas = asociadas.filter(a => {
+    const q = busqueda.toLowerCase();
+    return !q || `${a.nombre} ${a.apellido} ${a.email} ${a.codigo_referido||""}`.toLowerCase().includes(q);
+  });
+
+  const totalReferidas  = asociadas.reduce((acc,a)=>acc+(a.referidas_totales||0),0);
+  const totalPagaron    = asociadas.reduce((acc,a)=>acc+(a.referidas_pagaron||0),0);
+  const conCodigo       = asociadas.filter(a=>a.codigo_referido).length;
 
   return (
-    <div className="space-y-6">
-      {/* Mensajes */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircleIcon size={20} className="text-green-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-green-900">{successMessage}</p>
-            {nuevoCodigoReferido && (
-              <p className="text-sm text-green-700 mt-2">
-                <strong>Código de referido:</strong> <code className="bg-green-100 px-2 py-1 rounded font-mono">{nuevoCodigoReferido}</code>
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-          <AlertCircleIcon size={20} className="text-red-600" />
-          <p className="text-sm font-medium text-red-900">{errorMessage}</p>
+    <div className="p-5 xl:p-7 bg-[#fff8f9] min-h-full space-y-5">
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {toast && (
+        <div className={`fixed top-5 right-5 z-[100] flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl text-[13px] font-medium text-white ${toast.tipo==="error"?"bg-red-500":"bg-[#7c5cc4]"}`}>
+          <CheckIcon size={15}/>{toast.msg}
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Asesoras / Asociadas</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Gestiona las asesoras del programa Au Pair
-          </p>
+          <h1 className="font-serif font-bold text-[#2d1a22] text-[24px] xl:text-[26px]">Asesoras / Asociadas</h1>
+          <p className="text-[12px] text-[#9a6672]">Gestiona las asesoras del programa y sus códigos de referida.</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-[#7c5cc4] hover:bg-[#6a4ab0] text-white rounded-lg font-medium transition"
-        >
-          <PlusIcon size={18} />
-          Nueva Asesora
+        <button onClick={() => setModalNueva(true)}
+          className="flex items-center gap-1.5 bg-[#7c5cc4] hover:bg-[#6a4ab0] text-white text-[12px] font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-[#7c5cc4]/20">
+          <UserPlusIcon size={13}/> + Nueva asesora
         </button>
       </div>
 
-      {/* Mensajes */}
-      {successMessage && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <CheckCircleIcon size={20} className="text-green-600" />
-          <p className="text-sm text-green-700">{successMessage}</p>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircleIcon size={20} className="text-red-600" />
-          <p className="text-sm text-red-700">{errorMessage}</p>
-        </div>
-      )}
-
-      {/* Búsqueda */}
-      <div className="relative">
-        <SearchIcon size={18} className="absolute left-3 top-3 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar por nombre, apellido o email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-        />
+      {/* STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { icon:UsersIcon,    color:"bg-[#ede9f8] text-[#7c5cc4]", label:"Total asesoras",     val:asociadas.length },
+          { icon:CheckIcon,    color:"bg-[#e8f0e0] text-[#5a8a3a]", label:"Con código activo",  val:conCodigo },
+          { icon:UserPlusIcon, color:"bg-[#fce8ed] text-[#a0435f]", label:"Referidas totales",  val:totalReferidas },
+          { icon:DollarSignIcon,color:"bg-[#fdf3e3] text-[#c9973a]",label:"Referidas que pagaron",val:totalPagaron },
+        ].map((s,i)=>{
+          const Icon=s.icon;
+          return (
+            <div key={i} className="bg-white border border-[#f0dde2] rounded-2xl px-4 py-4 shadow-sm">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
+                <Icon size={16} strokeWidth={1.6}/>
+              </div>
+              <p className="text-[10px] text-[#9a6672] leading-snug mb-1">{s.label}</p>
+              <p className="font-serif font-bold text-[22px] text-[#2d1a22] leading-none">{s.val}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Tabla */}
-      {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse" />
-          ))}
+      {/* TABLA */}
+      <div className="bg-white border border-[#f0dde2] rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#fce8ed] flex items-center gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <SearchIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c0909a]"/>
+            <input value={busqueda} onChange={e=>setBusqueda(e.target.value)} placeholder="Buscar por nombre, email o código..."
+              className="w-full pl-9 pr-4 py-2 border border-[#f0dde2] rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-[#e8849a]/30 focus:border-[#e8849a] bg-[#fff8f9]"/>
+          </div>
         </div>
-      ) : asociadasFiltradas.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-8 h-8 border-2 border-[#a0435f] border-t-transparent rounded-full" style={{animation:"spin 1s linear infinite"}}/>
+          </div>
+        ) : filtradas.length === 0 ? (
+          <div className="text-center py-14">
+            <UsersIcon size={32} className="mx-auto text-[#f0dde2] mb-2"/>
+            <p className="text-[#9a6672] text-[13px]">{busqueda ? "No se encontraron asesoras" : "No hay asesoras registradas aún"}</p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Nombre
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Códigos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Ubicación
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Usuarias
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wide">
-                    Acciones
-                  </th>
+                <tr className="border-b border-[#fce8ed]">
+                  {["Asesora","Código","Ubicación","Referidas","Pagaron","Acciones"].map((h,i)=>(
+                    <th key={i} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-[#9a6672] whitespace-nowrap bg-[#fff8f9]">{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody>
-                {asociadasFiltradas.map((asociada, i) => (
-                  <tr key={i} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {asociada.nombre} {asociada.apellido}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          ID: {asociada.id}
-                        </p>
+              <tbody className="divide-y divide-[#fff0f3]">
+                {filtradas.map(a => (
+                  <tr key={a.id} className="hover:bg-[#fff8f9] transition">
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center shrink-0 overflow-hidden">
+                          {a.foto_url
+                            ? <img src={a.foto_url} alt="" className="w-full h-full object-cover"/>
+                            : <span className="text-[#a0435f] text-[13px] font-bold">{a.nombre?.[0]}</span>}
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-[#2d1a22]">{a.nombre} {a.apellido}</p>
+                          <p className="text-[11px] text-[#9a6672]">{a.email}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {asociada.email}
+                    <td className="px-4 py-3.5">
+                      <CodigoBadge codigo={a.codigo_referido} onCopy={()=>copiarCodigo(a.codigo_referido,a.id)} copiado={copiado===a.id}/>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1.5">
-                        {/* Código de usuario (asesora) */}
-                        {asociada.codigo_referido && (
-                          <div className="flex items-center gap-2">
-                            <code className="bg-purple-100 text-purple-700 px-2 py-1 rounded font-mono text-xs font-bold">
-                              {asociada.codigo_referido}
-                            </code>
-                            <span className="text-[9px] text-gray-500 font-medium">Usuario</span>
-                          </div>
-                        )}
-                        
-                        {/* Códigos de promoción vinculados */}
-                        {asociada.codigos_referidos_promo && (
-                          <div className="space-y-1">
-                            {asociada.codigos_referidos_promo.split(', ').map((codigo, idx) => (
-                              <div key={idx} className="flex items-center gap-2">
-                                <code className="bg-green-100 text-green-700 px-2 py-1 rounded font-mono text-xs font-bold">
-                                  {codigo}
-                                </code>
-                                <span className="text-[9px] text-gray-500 font-medium">Promo</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {!asociada.codigo_referido && !asociada.codigos_referidos_promo && (
-                          <span className="text-gray-400 text-xs">Sin códigos</span>
-                        )}
-                      </div>
+                    <td className="px-4 py-3.5 text-[12px] text-[#2d1a22]">
+                      {a.ciudad && a.pais ? `${a.ciudad}, ${a.pais}` : a.ciudad || a.pais || "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {asociada.ciudad && asociada.pais
-                        ? `${asociada.ciudad}, ${asociada.pais}`
-                        : asociada.ciudad || asociada.pais || "N/A"}
+                    <td className="px-4 py-3.5">
+                      <span className="text-[13px] font-bold text-[#2d1a22]">{a.referidas_totales || 0}</span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        <UserPlusIcon size={14} />
-                        {asociada.usuarias_asignadas || 0}
-                      </span>
+                    <td className="px-4 py-3.5">
+                      <span className="text-[13px] font-bold text-[#5a8a3a]">{a.referidas_pagaron || 0}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <Link
-                          href={`/admin/asociadas/${asociada.id}`}
-                          className="p-1.5 hover:bg-green-100 rounded-lg transition text-green-600"
-                          title="Ver detalles"
-                        >
-                          <EyeIcon size={16} />
-                        </Link>
-                        <button
-                          onClick={() => handleOpenModal(asociada)}
-                          className="p-1.5 hover:bg-blue-100 rounded-lg transition text-blue-600"
-                          title="Editar"
-                        >
-                          <EditIcon size={16} />
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-1">
+                        <button onClick={()=>setModalVer(a)} className="w-7 h-7 rounded-lg bg-[#fce8ed] hover:bg-[#f0b8c4] flex items-center justify-center transition" title="Ver detalles">
+                          <EyeIcon size={13} className="text-[#a0435f]"/>
                         </button>
-                        <button
-                          onClick={() => handleDelete(asociada.id)}
-                          className="p-1.5 hover:bg-red-100 rounded-lg transition text-red-600"
-                          title="Eliminar"
-                        >
-                          <TrashIcon size={16} />
+                        <button onClick={()=>setModalEditar(a)} className="w-7 h-7 rounded-lg bg-[#ede9f8] hover:bg-[#d8d0f0] flex items-center justify-center transition" title="Editar">
+                          <PencilIcon size={13} className="text-[#7c5cc4]"/>
+                        </button>
+                        <button onClick={()=>setModalEliminar(a)} className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition" title="Eliminar">
+                          <TrashIcon size={13} className="text-red-500"/>
                         </button>
                       </div>
                     </td>
@@ -335,150 +366,27 @@ export default function AdminAsociadasPage() {
               </tbody>
             </table>
           </div>
+        )}
+
+        <div className="px-5 py-3 border-t border-[#fce8ed]">
+          <p className="text-[11px] text-[#9a6672]">Mostrando {filtradas.length} de {asociadas.length} asesoras</p>
         </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <UserPlusIcon size={32} className="mx-auto text-gray-300 mb-2" />
-          <p className="text-gray-500">
-            {searchTerm ? "No se encontraron asesoras" : "No hay asesoras registradas aún"}
-          </p>
-        </div>
+      </div>
+
+      {/* AVISO */}
+      <div className="bg-[#ede9f8] border border-[#d8d0f0] rounded-2xl px-5 py-3.5 flex items-start gap-3">
+        <AlertCircleIcon size={16} className="text-[#7c5cc4] shrink-0 mt-0.5"/>
+        <p className="text-[12px] text-[#5b3fa0]">
+          Cada asesora obtiene su código de referida automáticamente al crearse o al cambiarle el rol a "Asociada" desde la gestión de usuarios. Ese mismo código aparece en la página de <strong>Referidos</strong>.
+        </p>
+      </div>
+
+      {/* MODALES */}
+      {(modalNueva || modalEditar) && (
+        <ModalAsesora inicial={modalEditar} onClose={()=>{setModalNueva(false);setModalEditar(null);}} onSave={handleSave}/>
       )}
-
-      {/* Modal Crear/Editar */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">
-                {editingId ? "Editar Asesora" : "Nueva Asesora"}
-              </h2>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Nombre *
-                  </label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Apellido *
-                  </label>
-                  <input
-                    type="text"
-                    name="apellido"
-                    value={formData.apellido}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  disabled={editingId}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4] disabled:bg-gray-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Contraseña {editingId ? "(dejar en blanco para no cambiar)" : "*"}
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required={!editingId}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    Ciudad
-                  </label>
-                  <input
-                    type="text"
-                    name="ciudad"
-                    value={formData.ciudad}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    País
-                  </label>
-                  <input
-                    type="text"
-                    name="pais"
-                    value={formData.pais}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-[#7c5cc4] hover:bg-[#6a4ab0] text-white rounded-lg font-medium transition"
-                >
-                  {editingId ? "Guardar Cambios" : "Crear Asesora"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {modalVer && <ModalVerAsesora asesora={modalVer} onClose={()=>setModalVer(null)}/>}
+      {modalEliminar && <ModalEliminar asesora={modalEliminar} onClose={()=>setModalEliminar(null)} onConfirm={handleEliminar}/>}
     </div>
   );
 }

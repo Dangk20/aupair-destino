@@ -22,7 +22,6 @@ async function upsertEval(agencia_id, candidata_id, campos) {
   }
 }
 
-// GET — perfil completo de una candidata
 export async function GET(req, { params }) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "agencia") return unauthorized();
@@ -39,9 +38,16 @@ export async function GET(req, { params }) {
         u.visa_negada, u.familiar_residencia_usa,
         u.entiende_intercambio_cultural, u.consciente_riesgo_familiar,
         u.participo_programa_ap, u.finalizo_programa_ap,
+        u.licencia_conduccion, u.curso_primeros_auxilios,
+        u.cedula, u.telefono, u.enfermedad_medicamentos, u.depresion_panico,
+        u.estatura, u.peso, u.nacionalidad, u.tiene_pasaporte,
+        u.tipo_licencia, u.bio, u.hobbies, u.por_que_au_pair, u.dieta_especial,
+        u.referencia_1_nombre, u.referencia_1_email, u.referencia_1_telefono,
+        u.referencia_2_nombre, u.referencia_2_email,
         TIMESTAMPDIFF(YEAR, u.fecha_nacimiento, CURDATE()) as edad,
         ae.evaluacion as eval_agencia, ae.nota as nota_agencia,
-        ae.plan, ae.cuotas_pagadas, ae.pago_confirmado, ae.updated_at as eval_updated
+        ae.plan, ae.cuotas_pagadas, ae.pago_confirmado,
+        ae.updated_at as eval_updated
       FROM usuarios u
       LEFT JOIN agencia_evaluaciones ae ON ae.candidata_id=u.id AND ae.agencia_id=?
       WHERE u.id=? AND u.perfil_completo=1 AND u.rol NOT IN ('admin','asociada','agencia')
@@ -54,7 +60,6 @@ export async function GET(req, { params }) {
   }
 }
 
-// PUT — evaluar, elegir plan, confirmar pago
 export async function PUT(req, { params }) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "agencia") return unauthorized();
@@ -64,22 +69,21 @@ export async function PUT(req, { params }) {
     const body = await req.json();
     const { accion } = body;
 
-    // Verificar que la candidata existe y está aprobada
+    // Verificar candidata
     const [[cand]] = await dbAupair.query(
       "SELECT id FROM usuarios WHERE id=? AND perfil_completo=1 AND rol NOT IN ('admin','asociada','agencia')",
       [id]
     );
     if (!cand) return NextResponse.json({ error:"Candidata no encontrada" }, { status:404 });
 
+    // ── Evaluar ──────────────────────────────────────────────
     if (accion === "evaluar") {
       const { evaluacion, nota } = body;
       await upsertEval(session.id, id, { evaluacion, nota: nota||null });
-
-      // Actualizar estado_agencia en usuarios
       const estadoMap = {
-        califica: "En evaluación",
+        califica:          "En evaluación",
         requiere_revision: "En ajustes",
-        no_califica: "No califica",
+        no_califica:       "No califica",
       };
       if (estadoMap[evaluacion]) {
         await dbAupair.query("UPDATE usuarios SET estado_agencia=? WHERE id=?", [estadoMap[evaluacion], id]);
@@ -87,6 +91,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ ok:true, msg:"Evaluación guardada" });
     }
 
+    // ── Seleccionar plan ─────────────────────────────────────
     if (accion === "plan") {
       const { plan } = body;
       await upsertEval(session.id, id, { plan });
@@ -94,31 +99,62 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ ok:true, msg:"Plan seleccionado" });
     }
 
+    // ── Confirmar pago ───────────────────────────────────────
     if (accion === "confirmar_pago") {
-      const { cuotas_pagadas } = body;
       const [[ae]] = await dbAupair.query(
         "SELECT plan, cuotas_pagadas FROM agencia_evaluaciones WHERE agencia_id=? AND candidata_id=?",
         [session.id, id]
       );
-      const totalCuotas = ae?.plan === "2_cuotas" ? 2 : 4;
-      const nuevasCuotas = Math.min((ae?.cuotas_pagadas||0) + (cuotas_pagadas||1), totalCuotas);
+      const totalCuotas  = ae?.plan === "2_cuotas" ? 2 : 4;
+      const nuevasCuotas = Math.min((ae?.cuotas_pagadas||0) + 1, totalCuotas);
       const pagoCompleto = nuevasCuotas >= totalCuotas ? 1 : 0;
-
       await upsertEval(session.id, id, { cuotas_pagadas: nuevasCuotas, pago_confirmado: pagoCompleto });
-
       if (pagoCompleto) {
         await dbAupair.query("UPDATE usuarios SET estado_agencia='Perfil en activación' WHERE id=?", [id]);
       }
       return NextResponse.json({ ok:true, msg:"Pago confirmado", pago_completo: pagoCompleto });
     }
 
+    // ── Guardar nota ─────────────────────────────────────────
     if (accion === "nota") {
       const { nota } = body;
       await upsertEval(session.id, id, { nota: nota||null });
       return NextResponse.json({ ok:true, msg:"Nota guardada" });
     }
 
+    // ── Actualizar perfil agencia ─────────────────────────────
+    if (accion === "actualizar_perfil") {
+      const {
+        bio, hobbies, por_que_au_pair,
+        estatura, peso, nacionalidad, tiene_pasaporte,
+        tipo_licencia, dieta_especial,
+      } = body;
+
+      await dbAupair.query(`
+        UPDATE usuarios SET
+          bio              = COALESCE(?, bio),
+          hobbies          = COALESCE(?, hobbies),
+          por_que_au_pair  = COALESCE(?, por_que_au_pair),
+          estatura         = COALESCE(?, estatura),
+          peso             = COALESCE(?, peso),
+          nacionalidad     = COALESCE(?, nacionalidad),
+          tiene_pasaporte  = ?,
+          tipo_licencia    = COALESCE(?, tipo_licencia),
+          dieta_especial   = COALESCE(?, dieta_especial)
+        WHERE id = ?
+      `, [
+        bio||null, hobbies||null, por_que_au_pair||null,
+        estatura||null, peso||null, nacionalidad||null,
+        tiene_pasaporte ? 1 : 0,
+        tipo_licencia||null, dieta_especial||null,
+        id,
+      ]);
+
+      return NextResponse.json({ ok:true, msg:"Perfil actualizado" });
+    }
+
     return NextResponse.json({ error:"Acción no reconocida" }, { status:400 });
+
   } catch(err) {
     console.error("[PUT /api/agencia/perfiles/[id]]", err);
     return NextResponse.json({ error:err.message }, { status:500 });
