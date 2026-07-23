@@ -24,18 +24,27 @@ const IC = { width:"100%", border:"1.5px solid #e0d4f5", borderRadius:10, paddin
 const LC = { fontSize:11, fontWeight:700, color:"#374151", textTransform:"uppercase", letterSpacing:".6px", display:"block", marginBottom:5 };
 
 /* ── Modal crear/editar código ── */
-function ModalCodigo({ editando, onClose, onGuardar, loading }) {
+function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
   const [form, setForm] = useState(editando ? {
     codigo: editando.codigo,
     precio_final: editando.precio_final,
     usos_max: editando.usos_max || "",
     fecha_expiracion: editando.fecha_expiracion?.split("T")[0] || "",
     descripcion: editando.descripcion || "",
+    asociada_id: editando.asociada_id || "",
+    comision_porcentaje: Number(editando.comision_porcentaje) || 0,
   } : {
     codigo: "", precio_final: 29, usos_max: "", fecha_expiracion: "", descripcion: "",
+    asociada_id: "", comision_porcentaje: 0,
   });
 
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  // Al elegir asociada, proponer 20% de comisión si estaba en 0.
+  const setAsociada = (v) => setForm(f=>({
+    ...f, asociada_id: v,
+    comision_porcentaje: v && !Number(f.comision_porcentaje) ? 20 : (v ? f.comision_porcentaje : 0),
+  }));
 
   const generarCodigo = () => {
     const palabras = ["DESTINO","AUPAIR","USA","PROMO","LANZAMIENTO","ESPECIAL","VIP","TATI","JENI"];
@@ -123,6 +132,33 @@ function ModalCodigo({ editando, onClose, onGuardar, loading }) {
               style={IC} placeholder="Ej: Campaña Instagram mayo 2026"/>
           </div>
 
+          {/* Asociada dueña + comisión */}
+          <div>
+            <label style={LC}>Asociada dueña (comisión por venta)</label>
+            <div style={{ display:"flex",gap:8 }}>
+              <select value={form.asociada_id} onChange={e=>setAsociada(e.target.value)}
+                style={{ ...IC,flex:1,cursor:"pointer" }}>
+                <option value="">Sin asociada (código general)</option>
+                {(asociadas||[]).map(a=>(
+                  <option key={a.id} value={a.id}>{a.nombre} {a.apellido}</option>
+                ))}
+              </select>
+              {form.asociada_id && (
+                <div style={{ display:"flex",alignItems:"center",gap:5 }}>
+                  <input type="number" min="0" max="100" step="0.5" value={form.comision_porcentaje}
+                    onChange={e=>set("comision_porcentaje",e.target.value)}
+                    style={{ ...IC,width:70,textAlign:"center",fontWeight:700 }}/>
+                  <span style={{ fontSize:13,fontWeight:700,color:"#7c5cc4" }}>%</span>
+                </div>
+              )}
+            </div>
+            <p style={{ fontSize:11,color:"#9a80c0",margin:"5px 0 0" }}>
+              {form.asociada_id
+                ? `Cada venta confirmada con este código genera ${form.comision_porcentaje||0}% de comisión para la asociada.`
+                : "Sin asociada, el código sólo aplica descuento (no genera comisión)."}
+            </p>
+          </div>
+
           {/* Preview */}
           {form.codigo && (
             <div style={{ background:"linear-gradient(135deg,#f5f0ff,#fce8ed)",borderRadius:14,padding:"14px 16px",border:"1px solid #e0d4f5" }}>
@@ -163,7 +199,8 @@ function ModalCodigo({ editando, onClose, onGuardar, loading }) {
 ══════════════════════════════════════════ */
 export default function AdminCodigosPromoPage() {
   const { isMobile } = useMobile();
-  const [codigos,  setCodigos]  = useState([]);
+  const [codigos,   setCodigos]   = useState([]);
+  const [asociadas, setAsociadas] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [toast,    setToast]    = useState(null);
   const [modal,    setModal]    = useState(false);
@@ -181,7 +218,10 @@ export default function AdminCodigosPromoPage() {
     setCodigos(data.codigos||[]);
     setLoading(false);
   };
-  useEffect(()=>{ cargar(); },[]);
+  useEffect(()=>{
+    cargar();
+    fetch("/api/admin/asociadas").then(r=>r.json()).then(d=>setAsociadas(d.asociadas||[])).catch(()=>{});
+  },[]);
 
   const guardar = async(form) => {
     setLoadingGuardar(true);
@@ -228,7 +268,7 @@ export default function AdminCodigosPromoPage() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {toast && <div style={{ position:"fixed",top:20,right:20,zIndex:200,background:toast.tipo==="error"?"#dc2626":"#1a0a3d",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>{toast.msg}</div>}
-      {(modal||editando) && <ModalCodigo editando={editando} onClose={()=>{setModal(false);setEditando(null);}} onGuardar={guardar} loading={loadingGuardar}/>}
+      {(modal||editando) && <ModalCodigo editando={editando} asociadas={asociadas} onClose={()=>{setModal(false);setEditando(null);}} onGuardar={guardar} loading={loadingGuardar}/>}
 
       {/* HEADER */}
       <div style={{ background:"#1a0a3d",padding:isMobile?"14px 16px":"16px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
@@ -314,6 +354,14 @@ export default function AdminCodigosPromoPage() {
                         )}
                       </div>
                       {c.descripcion && <p style={{ fontSize:12,color:"#9a80c0",margin:0 }}>{c.descripcion}</p>}
+                      {c.asociada_nombre && (
+                        <div style={{ display:"inline-flex",alignItems:"center",gap:5,background:"#fce8ed",border:"1px solid #f3c6d3",borderRadius:99,padding:"3px 10px",marginTop:6 }}>
+                          <Users size={11} style={{ color:"#a0435f" }}/>
+                          <span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>
+                            {c.asociada_nombre} {c.asociada_apellido} · {Number(c.comision_porcentaje)||0}% comisión
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Precio — solo desktop */}

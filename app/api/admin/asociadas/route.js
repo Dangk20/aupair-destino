@@ -3,7 +3,12 @@ import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
 
-/* ── Genera un código de referida único (4 letras del nombre + 4 dígitos) ── */
+// Comisión y precio por defecto del código que nace con cada asociada.
+// El admin puede ajustarlos después desde /admin/codigos-promo.
+const COMISION_DEFAULT = 20;
+const PRECIO_CODIGO_DEFAULT = 29;
+
+/* ── Genera un código único en codigos_promo (4 letras del nombre + 4 dígitos) ── */
 async function generarCodigoUnico(nombre) {
   const base = (nombre || "REF")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -13,23 +18,32 @@ async function generarCodigoUnico(nombre) {
   while (intento < 10) {
     const sufijo = Math.floor(1000 + Math.random() * 9000);
     const codigo = `${base}${sufijo}`;
-    const [existing] = await dbAupair.query("SELECT id FROM referidos WHERE codigo = ?", [codigo]);
+    const [existing] = await dbAupair.query("SELECT id FROM codigos_promo WHERE codigo = ?", [codigo]);
     if (existing.length === 0) return codigo;
     intento++;
   }
   return `${base}${Date.now().toString().slice(-5)}`;
 }
 
-/* ── Crea el registro en `referidos` si no existe ya para ese email ── */
-async function asegurarReferido({ nombre, apellido, email }) {
-  const [existing] = await dbAupair.query("SELECT id, codigo FROM referidos WHERE email = ?", [email]);
+/* ── Asegura el código promo de la asociada (descuento + comisión anclada) ──
+   Si ya tiene un código en codigos_promo lo devuelve; si no, lo crea y lo
+   guarda también en usuarios.codigo_referido para la atribución del registro. */
+async function asegurarCodigoPromo({ asociadaId, nombre, apellido }) {
+  const [existing] = await dbAupair.query(
+    "SELECT codigo FROM codigos_promo WHERE asociada_id = ? ORDER BY id LIMIT 1",
+    [asociadaId]
+  );
   if (existing.length > 0) return existing[0].codigo;
 
   const codigo = await generarCodigoUnico(nombre);
   await dbAupair.query(
-    `INSERT INTO referidos (nombre, email, codigo, porcentaje, estado, created_at)
-     VALUES (?, ?, ?, 20, 'Pendiente', NOW())`,
-    [`${nombre} ${apellido}`.trim(), email, codigo]
+    `INSERT INTO codigos_promo (codigo, precio_final, asociada_id, comision_porcentaje, descripcion, activo)
+     VALUES (?, ?, ?, ?, ?, 1)`,
+    [codigo, PRECIO_CODIGO_DEFAULT, asociadaId, COMISION_DEFAULT, `Código de ${`${nombre} ${apellido}`.trim()}`]
+  );
+  await dbAupair.query(
+    "UPDATE usuarios SET codigo_referido = ? WHERE id = ?",
+    [codigo, asociadaId]
   );
   return codigo;
 }
@@ -40,7 +54,7 @@ export async function GET(req) {
 
   try {
     const [asociadas] = await dbAupair.query(`
-      SELECT 
+      SELECT
         u.id,
         u.nombre,
         u.apellido,
@@ -51,7 +65,11 @@ export async function GET(req) {
         u.foto_url,
         u.created_at,
         r.id as referido_id,
-        r.codigo as codigo_referido,
+        COALESCE(
+          (SELECT cp.codigo FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1),
+          r.codigo
+        ) as codigo_referido,
+        (SELECT cp.comision_porcentaje FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1) as comision_porcentaje,
         r.porcentaje,
         r.estado as estado_referido,
         COUNT(DISTINCT rr.id) as referidas_totales,
@@ -60,7 +78,7 @@ export async function GET(req) {
       LEFT JOIN referidos r ON r.email = u.email
       LEFT JOIN referido_registros rr ON rr.referido_id = r.id
       WHERE u.rol = 'asociada'
-      GROUP BY u.id
+      GROUP BY u.id, r.id
       ORDER BY u.created_at DESC
     `);
 
@@ -95,13 +113,15 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await dbAupair.query(
-      `INSERT INTO usuarios 
-       (nombre, apellido, email, password, rol, telefono, ciudad, pais, tiene_acceso, perfil_habilitado, created_at) 
+      `INSERT INTO usuarios
+       (nombre, apellido, email, password, rol, telefono, ciudad, pais, tiene_acceso, perfil_habilitado, created_at)
        VALUES (?, ?, ?, ?, 'asociada', ?, ?, ?, 1, 1, NOW())`,
       [nombre, apellido, email, hashedPassword, telefono || null, ciudad || null, pais || null]
     );
 
-    const codigo_referido = await asegurarReferido({ nombre, apellido, email });
+    const codigo_referido = await asegurarCodigoPromo({
+      asociadaId: result.insertId, nombre, apellido,
+    });
 
     return NextResponse.json({
       ok: true,
