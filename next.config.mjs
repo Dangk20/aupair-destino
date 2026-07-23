@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Salida mínima para el contenedor de producción (VPS).
+    output: 'standalone',
     images: {
         remotePatterns: [
             {

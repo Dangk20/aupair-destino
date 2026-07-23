@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.env.local
+.env*.local
+npm-debug.log*
+Dockerfile
+docker-compose.yml
+dump-railway.sql
+*.md
+saasly-nextjs-1.0.0
+public/uploads/documentos
+check-asesoras.js
+test-api-asociadas.js
+test-insert-asesora.sql
+generate.js
