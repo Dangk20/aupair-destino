@@ -1,190 +1,160 @@
 "use client";
-// app/dashboard/layout.jsx
+// app/dashboard/layout.jsx — Rediseño Panel Candidata (sistema "pasaporte/viaje")
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Map, BookOpen, User, FileText,
-  GraduationCap, Calendar, Users, FolderOpen,
-  MessageCircle, Settings, LogOut, Lock, Menu, X,
+  Home, Map, BookOpen, FileText, MessageCircle,
+  User, Calendar, Users, FolderOpen, Settings, LogOut, Lock,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
-
-const FRASES = [
-  "Hoy es un gran día para acercarte a tu sueño. ¡Sigue así!",
-  "Cada paso te acerca más a tu aventura. 💫",
-  "El mundo es tuyo, solo tienes que ir por él. 🌍",
-  "Preparada, segura y lista para despegar. 🛫",
-];
+import { T, POPPINS_HREF } from "@/lib/tema-candidata";
 
 function DashboardLayoutInner({ children }) {
   const pathname = usePathname();
   const router   = useRouter();
 
   const [user,          setUser]          = useState(null);
-  const [mobileOpen,    setMobileOpen]    = useState(false);
   const [mensajesCount, setMensajesCount] = useState(0);
-  const [frase,         setFrase]         = useState(FRASES[0]);
   const [accesos,       setAccesos]       = useState({
-    sesiones:   false,
-    perfil:     false,
-    documentos: false,
-    recursos:   false,
-    reuniones:  false,
-    mensajes:   false,
-    comunidad:  false,
+    perfil:false, documentos:false, recursos:false,
+    reuniones:false, mensajes:false, comunidad:false,
   });
 
   useEffect(() => {
-    setFrase(FRASES[Math.floor(Math.random() * FRASES.length)]);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/auth/me").then(r=>r.json()).then(d=>setUser(d.user));
+    fetch("/api/auth/me").then(r=>r.json()).then(d=>setUser(d.user)).catch(()=>{});
     fetch("/api/dashboard/mensajes?limit=1&solo_conteo=true")
-      .then(r=>r.json()).then(d=>setMensajesCount(d.no_leidos||0))
-      .catch(()=>{});
-    fetch("/api/dashboard/acceso")
-      .then(r=>r.json())
+      .then(r=>r.json()).then(d=>setMensajesCount(d.no_leidos||0)).catch(()=>{});
+    fetch("/api/dashboard/acceso").then(r=>r.json())
       .then(d => setAccesos({
-        sesiones:   !!d.sesiones,
-        perfil:     !!d.perfil,
-        documentos: !!d.documentos,
-        recursos:   !!d.recursos,
-        reuniones:  !!d.reuniones,
-        mensajes:   !!d.mensajes,
-        comunidad:  !!d.comunidad,
-      }))
-      .catch(()=>{});
+        perfil:!!d.perfil, documentos:!!d.documentos, recursos:!!d.recursos,
+        reuniones:!!d.reuniones, mensajes:!!d.mensajes, comunidad:!!d.comunidad,
+      })).catch(()=>{});
   }, []);
 
-  const logout = async () => {
-    await fetch("/api/auth/logout", { method:"POST" });
-    router.push("/");
-  };
+  const logout = async () => { await fetch("/api/auth/logout",{method:"POST"}); router.push("/"); };
 
-  const nav = [
-    { label:"Dashboard",         href:"/dashboard",              icon:LayoutDashboard, locked:false },
-    { label:"Mi Destino Au Pair", href:"/dashboard/proceso",     icon:Map,             locked:false },
-    { label:"Curso",             href:"/dashboard/curso",        icon:BookOpen,        locked:false },
-    { label:"Perfil",            href:"/dashboard/perfil",       icon:User,            locked:!accesos.perfil },
-    { label:"Calendario",        href:"/dashboard/reuniones",    icon:Calendar,        locked:!accesos.reuniones },
-    { label:"Documentos",        href:"/dashboard/documentos",   icon:FileText,        locked:!accesos.documentos },
-    { label:"Comunidad",         href:"/dashboard/comunidad",    icon:Users,           locked:!accesos.comunidad },
-    { label:"Recursos",          href:"/dashboard/recursos",     icon:FolderOpen,      locked:!accesos.recursos },
-    { label:"Mensajes",          href:"/dashboard/mensajes",     icon:MessageCircle,   locked:!accesos.mensajes, badge:mensajesCount },
-    { label:"Configuración",     href:"/dashboard/configuracion",icon:Settings,        locked:false },
+  // Navegación primaria (la del diseño) + secundaria (rutas que se conservan)
+  const navPrim = [
+    { label:"Inicio",     href:"/dashboard",            icon:Home,          locked:false },
+    { label:"Mi Destino", href:"/dashboard/proceso",    icon:Map,           locked:false },
+    { label:"Curso",      href:"/dashboard/curso",      icon:BookOpen,      locked:false },
+    { label:"Documentos", href:"/dashboard/documentos", icon:FileText,      locked:!accesos.documentos },
+    { label:"Mensajes",   href:"/dashboard/mensajes",   icon:MessageCircle, locked:!accesos.mensajes, badge:mensajesCount },
+  ];
+  const navSec = [
+    { label:"Perfil",        href:"/dashboard/perfil",        icon:User,       locked:!accesos.perfil },
+    { label:"Calendario",    href:"/dashboard/reuniones",     icon:Calendar,   locked:!accesos.reuniones },
+    { label:"Comunidad",     href:"/dashboard/comunidad",     icon:Users,      locked:!accesos.comunidad },
+    { label:"Recursos",      href:"/dashboard/recursos",      icon:FolderOpen, locked:!accesos.recursos },
+    { label:"Configuración", href:"/dashboard/configuracion", icon:Settings,   locked:false },
   ];
 
+  const isActive = (href) => href==="/dashboard"
+    ? pathname==="/dashboard"
+    : pathname===href || pathname.startsWith(href+"/");
+
+  const NavItem = ({ item }) => {
+    const Icon = item.icon;
+    const active = isActive(item.href);
+    return (
+      <Link href={item.href}
+        style={{
+          display:"flex", alignItems:"center", gap:13, padding:"12px 13px",
+          borderRadius:14, fontFamily:T.font, fontSize:14, fontWeight:active?700:500,
+          textDecoration:"none", cursor:"pointer",
+          background: active ? T.gradIcon : "transparent",
+          color: active ? "#fff" : (item.locked ? T.softText : T.textSoft),
+          boxShadow: active ? "0 8px 20px rgba(160,67,95,.28)" : "none",
+        }}>
+        {item.locked ? <Lock size={18}/> : <Icon size={20}/>}
+        <span style={{ flex:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{item.label}</span>
+        {!item.locked && item.badge>0 && (
+          <span style={{ background:T.primary3, color:"#fff", fontSize:9, fontWeight:700, padding:"2px 7px", borderRadius:99 }}>{item.badge}</span>
+        )}
+      </Link>
+    );
+  };
+
   const Sidebar = () => (
-    <aside className="w-[200px] bg-white border-r border-[#f0e8ea] flex flex-col h-full overflow-y-auto">
-      <div className="flex justify-center items-center p-4 border-b border-[#f5eced]">
-        <Link href="/" onClick={()=>setMobileOpen(false)}>
-          <Image src="/assets/destino-aupair-logo2.svg" alt="Destino Au Pair" width={80} height={80}/>
-        </Link>
-      </div>
-      <nav className="flex-1 py-3 px-2 space-y-0.5">
-        {nav.map((item) => {
-          const Icon   = item.icon;
-          const active = item.href==="/dashboard"
-            ? pathname==="/dashboard"
-            : pathname===item.href || pathname.startsWith(item.href+"/");
-          return (
-            <Link key={item.href} href={item.href}
-              onClick={()=>setMobileOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12.5px] font-medium transition-all group
-                ${active
-                  ? "bg-[#fce8ed] text-[#a0435f]"
-                  : item.locked
-                  ? "text-[#d0b0b8]"
-                  : "text-[#6b4a54] hover:bg-[#fff0f3] hover:text-[#a0435f]"
-                }`}>
-              {item.locked
-                ? <Lock size={13} className="shrink-0 text-[#d0b0b8]"/>
-                : <Icon size={14} className={`shrink-0 ${active?"text-[#a0435f]":"text-[#9a7080] group-hover:text-[#a0435f]"}`}/>}
-              <span className="truncate flex-1">{item.label}</span>
-              {!item.locked && item.badge>0 && (
-                <span className="ml-auto bg-[#a0435f] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
-                  {item.badge}
-                </span>
-              )}
-              {item.locked && (
-                <span className="ml-auto text-[9px] bg-[#f5edf0] text-[#c0909a] font-semibold px-1.5 py-0.5 rounded-full">🔒</span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="p-4 border-t border-[#f5eced]">
-        <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-9 h-9 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center shrink-0 overflow-hidden">
+    <aside style={{ width:240, flexShrink:0, background:"#fff", padding:"26px 16px", display:"flex", flexDirection:"column", gap:4, height:"100%", overflowY:"auto" }}>
+      <Link href="/dashboard" style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"0 8px 20px", textDecoration:"none" }}>
+        <img src="/assets/destino-aupair-logo2.svg" alt="Destino Au Pair" style={{ height:96, width:"auto", maxWidth:"100%", objectFit:"contain" }}/>
+      </Link>
+      {navPrim.map(it => <NavItem key={it.href} item={it}/>)}
+      <div style={{ height:1, background:T.border, margin:"12px 8px" }}/>
+      {navSec.map(it => <NavItem key={it.href} item={it}/>)}
+
+      <div style={{ marginTop:"auto", paddingTop:18 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:11, background:T.lilac, borderRadius:14, padding:12 }}>
+          <div style={{ width:40, height:40, borderRadius:12, overflow:"hidden", flexShrink:0, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {user?.foto_url
-              ? <img src={user.foto_url} alt="" className="w-full h-full object-cover"/>
-              : <span className="text-[#a0435f] text-[13px] font-serif font-bold">{user?.nombre?.[0]||"?"}</span>}
+              ? <img src={user.foto_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              : <span style={{ color:T.primary, fontWeight:700 }}>{user?.nombre?.[0]||"?"}</span>}
           </div>
-          <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-[#2d1a22] truncate leading-tight">{user?.nombre} {user?.apellido}</p>
-            <p className="text-[10px] text-[#9a7080] truncate">{user?.pais||user?.email}</p>
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontWeight:700, fontSize:13, color:T.text, fontFamily:T.font, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{user?.nombre} {user?.apellido}</div>
+            <div style={{ fontSize:11, color:T.textSoft, fontFamily:T.font }}>✨ Futura Au Pair</div>
           </div>
         </div>
-        <div className="bg-[#fce8ed] rounded-lg px-2.5 py-1.5 mb-3">
-          <p className="text-[10px] font-semibold text-[#a0435f] text-center tracking-wide">✨ Futura Au Pair</p>
-        </div>
-        <div className="relative">
-          <span className="text-[#e8849a] text-[20px] font-serif leading-none absolute -top-1 -left-0.5">"</span>
-          <p className="text-[10.5px] text-[#9a7080] leading-relaxed pl-3 italic">{frase}</p>
-          <div className="mt-2 flex justify-end"><span className="text-[#e8849a] text-lg">💕</span></div>
-        </div>
-        <button onClick={logout}
-          className="flex items-center gap-1.5 text-[#c0909a] hover:text-[#a0435f] text-[11px] mt-2 transition w-full pt-2 border-t border-[#f5eced]">
-          <LogOut size={11}/> Cerrar sesión
+        <button onClick={logout} style={{ display:"flex", alignItems:"center", gap:7, marginTop:12, padding:"4px 8px", background:"none", border:"none", color:T.textSoft, fontFamily:T.font, fontSize:12, cursor:"pointer" }}>
+          <LogOut size={13}/> Cerrar sesión
         </button>
       </div>
     </aside>
   );
 
-  return (
-    <div className="flex h-screen bg-[#faf5f6] overflow-hidden">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex shrink-0 shadow-sm"><Sidebar/></div>
-
-      {/* Mobile sidebar overlay */}
-      {mobileOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={()=>setMobileOpen(false)}/>
-          <div className="fixed inset-y-0 left-0 z-50 md:hidden shadow-xl"><Sidebar/></div>
-        </>
-      )}
-
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Mobile header */}
-        <header className="md:hidden bg-white border-b border-[#f0e8ea] px-4 py-3 flex items-center justify-between shrink-0">
-          <button onClick={()=>setMobileOpen(!mobileOpen)} className="text-[#a0435f] p-1">
-            {mobileOpen ? <X size={20}/> : <Menu size={20}/>}
-          </button>
-          <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair" width={34} height={34}/>
-          <div className="w-8 h-8 rounded-full bg-[#fce8ed] border border-[#f0b8c4] flex items-center justify-center overflow-hidden">
-            {user?.foto_url
-              ? <img src={user.foto_url} alt="" className="w-full h-full object-cover"/>
-              : <span className="text-[#a0435f] text-[12px] font-serif font-bold">{user?.nombre?.[0]||"?"}</span>}
-          </div>
-        </header>
-
-        {/* ← data-main="true" para CSS responsive */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden" data-main="true">
-          <div className="inner-page">{children}</div>
-        </main>
-      </div>
+  const BottomNav = () => (
+    <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:30, background:"rgba(255,255,255,.94)", backdropFilter:"blur(10px)", borderTop:`1px solid ${T.border}`, padding:"9px 6px 11px", display:"flex", justifyContent:"space-around" }}>
+      {navPrim.map(it => {
+        const Icon = it.locked ? Lock : it.icon;
+        const active = isActive(it.href);
+        return (
+          <Link key={it.href} href={it.href} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, textDecoration:"none", color: active?T.primary:T.softText, fontFamily:T.font, padding:"4px 8px" }}>
+            <Icon size={21}/>
+            <span style={{ fontSize:10, fontWeight:600 }}>{it.label}</span>
+          </Link>
+        );
+      })}
     </div>
+  );
+
+  return (
+    <MobileProvider>
+      {/* Poppins */}
+      <link rel="preconnect" href="https://fonts.googleapis.com"/>
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
+      <link rel="stylesheet" href={POPPINS_HREF}/>
+
+      <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:T.bg, fontFamily:T.font }}>
+        {/* Sidebar desktop */}
+        <div className="hidden md:flex" style={{ flexShrink:0 }}><Sidebar/></div>
+
+        <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
+          {/* Mobile header — solo en móvil. Sin `display` inline para que
+              `md:hidden` (display:none en desktop) no quede pisado. */}
+          <header className="md:hidden flex items-center justify-between" style={{ background:"#fff", borderBottom:`1px solid ${T.border}`, padding:"10px 16px", flexShrink:0 }}>
+            <Link href="/dashboard" style={{ display:"flex", alignItems:"center", textDecoration:"none" }}>
+              <img src="/assets/destino-aupair-logo2.svg" alt="Destino Au Pair" style={{ height:48, width:"auto", objectFit:"contain" }}/>
+            </Link>
+            <div style={{ width:34, height:34, borderRadius:11, overflow:"hidden", background:T.lilac, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              {user?.foto_url ? <img src={user.foto_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/> : <span style={{ color:T.primary, fontWeight:700, fontSize:13 }}>{user?.nombre?.[0]||"?"}</span>}
+            </div>
+          </header>
+
+          <main className="dap-main" data-main="true" style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
+            <div className="inner-page">{children}</div>
+          </main>
+
+          {/* Bottom nav mobile */}
+          <div className="md:hidden"><BottomNav/></div>
+        </div>
+      </div>
+    </MobileProvider>
   );
 }
 
 export default function DashboardLayout({ children }) {
-  return (
-    <MobileProvider>
-      <DashboardLayoutInner>{children}</DashboardLayoutInner>
-    </MobileProvider>
-  );
+  return <DashboardLayoutInner>{children}</DashboardLayoutInner>;
 }

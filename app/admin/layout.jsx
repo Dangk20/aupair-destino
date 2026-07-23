@@ -13,21 +13,26 @@ import {
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 
+// ── Sprint 0.0: menú reducido a lo del flujo activo (candidata + pagos).
+// Los módulos ocultos se comentan (no se borran) — restaurar = descomentar.
+// Ver tech/deuda-tecnica-sprint-0-0.md.
 const navItems = [
   { label:"Resumen",                href:"/admin",                icon:LayoutDashboardIcon },
-  { label:"Referidos y comisiones", href:"/admin/referidos",      icon:UserPlusIcon        },
+  { label:"Ventas",                 href:"/admin/ventas",         icon:CreditCardIcon      },
   { label:"Códigos promo",          href:"/admin/codigos-promo",  icon: TagIcon            },
-  { label:"Pagos y comisiones",     href:"/admin/pagos",          icon:CreditCardIcon      },
   { label:"Usuarios",               href:"/admin/usuarias",       icon:UsersIcon           },
-  //{ label:"Cambiar Roles",          href:"/admin/cambiar-roles",  icon:ShieldIcon          },
-  { label:"Asesoras/Asociadas",     href:"/admin/asociadas",      icon:UsersIcon           },
   { label:"Perfiles",               href:"/admin/perfiles",       icon:UsersIcon           },
   { label:"Sesiones",               href:"/admin/sesiones",       icon:VideoIcon           },
-  { label:"Calendario",             href:"/admin/reuniones",     icon:CalendarIcon        },
-  //{ label:"Verificar BD",           href:"/admin/bd-verificar",   icon:DatabaseIcon        },
-  { label:"Reportes",               href:"/admin/reportes",       icon:BarChart2Icon       },
-  { label:"Configuración",          href:"/admin/configuracion",  icon:SettingsIcon        },
-  { label:"Notificaciones",         href:"/admin/notificaciones", icon:BellIcon            },
+  // ── Ocultos en Sprint 0.0 (ruido visual / módulos sin terminar o duplicados) ──
+  // { label:"Referidos y comisiones", href:"/admin/referidos",      icon:UserPlusIcon        }, // sistema viejo de comisiones
+  // { label:"Pagos y comisiones",     href:"/admin/pagos",          icon:CreditCardIcon      }, // reemplazado por /admin/ventas
+  // { label:"Cambiar Roles",          href:"/admin/cambiar-roles",  icon:ShieldIcon          },
+  // { label:"Asesoras/Asociadas",     href:"/admin/asociadas",      icon:UsersIcon           }, // rol post-MVP
+  // { label:"Calendario",             href:"/admin/reuniones",      icon:CalendarIcon        },
+  // { label:"Verificar BD",           href:"/admin/bd-verificar",   icon:DatabaseIcon        },
+  // { label:"Reportes",               href:"/admin/reportes",       icon:BarChart2Icon       }, // sin requerimientos
+  // { label:"Configuración",          href:"/admin/configuracion",  icon:SettingsIcon        },
+  // { label:"Notificaciones",         href:"/admin/notificaciones", icon:BellIcon            }, // sin requerimientos
 ];
 
 function AdminLayoutInner({ children }) {

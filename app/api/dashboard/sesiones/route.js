@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 
+// Sprint 0.0: los videos son GRATIS (imán de captación). El curso ya no se
+// paga; el pago desbloquea documentación/acompañamiento, no las sesiones.
+// El desbloqueo secuencial (una sesión abre la siguiente) se mantiene.
+const CURSO_LIBRE = true;
+
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session) return unauthorized();
@@ -31,8 +36,8 @@ export async function GET(req) {
     let primeraDisponible = null;
     for (const s of rows) {
       if (!s.completada) {
-        // Solo puede acceder si es gratis O si tiene_acceso
-        if (s.es_gratis || session.tiene_acceso) {
+        // Sprint 0.0: curso libre. Acceso si es gratis, si pagó, o si el curso es libre.
+        if (s.es_gratis || session.tiene_acceso || CURSO_LIBRE) {
           primeraDisponible = s.id;
         }
         break;
@@ -46,7 +51,7 @@ export async function GET(req) {
 
       if (s.completada) {
         estado = "completed";
-      } else if (!encontroDisponible && (s.es_gratis || session.tiene_acceso)) {
+      } else if (!encontroDisponible && (s.es_gratis || session.tiene_acceso || CURSO_LIBRE)) {
         estado = "available";
         encontroDisponible = true;
       }

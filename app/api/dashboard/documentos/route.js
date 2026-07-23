@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { getSessionFromRequest, unauthorized, forbidden } from "@/lib/session-aupair";
 
 /* ── Documentos requeridos del programa ──────────────────────────────────── */
 export const DOCS_REQUERIDOS = [
@@ -43,6 +43,15 @@ export async function GET(req) {
 export async function POST(req) {
   const session = getSessionFromRequest(req);
   if (!session) return unauthorized();
+
+  // Sprint 0.0: cargar documentación es lo que se paga. Se valida el permiso
+  // LEYÉNDOLO DE LA BD (no del JWT), para que la confirmación del pago surta
+  // efecto de inmediato sin necesidad de que la candidata cierre sesión.
+  const [[perm]] = await dbAupair.query(
+    "SELECT acceso_documentos FROM usuarios WHERE id = ?",
+    [session.id]
+  );
+  if (!perm || perm.acceso_documentos !== 1) return forbidden();
 
   try {
     const formData = await req.formData();

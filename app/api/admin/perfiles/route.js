@@ -101,8 +101,17 @@ export async function GET(req) {
       };
     });
 
-    // Filtros
+    // La TABLA solo muestra perfiles ya diligenciados (con algo lleno en
+    // evaluación o en agencia). Las candidatas que nunca empezaron no aparecen
+    // — no hay nada que analizar. Las stats de arriba sí cuentan a todas.
+    // Si el admin filtra explícitamente por un estado "vacío", se respeta.
     let filtrados = perfiles;
+    const estadosVacios = ["Pendiente", "Sin inicio", "Incompleto"];
+    if (!estado || !estadosVacios.includes(estado)) {
+      // "Diligenciado" = la candidata ya empezó a llenar su perfil (evaluación).
+      filtrados = filtrados.filter(p => p.progreso > 0);
+    }
+
     if (q) filtrados = filtrados.filter(p =>
       `${p.nombre||""} ${p.apellido||""} ${p.email||""} ${p.ciudad||""}`.toLowerCase().includes(q.toLowerCase())
     );

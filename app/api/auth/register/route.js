@@ -33,8 +33,8 @@ export async function POST(req) {
     // ── Crear usuario ───────────────────────────────────────────────────────
     const [result] = await dbAupair.query(
       `INSERT INTO usuarios
-        (nombre, apellido, email, password, tiene_acceso, codigo_referido)
-       VALUES (?, ?, ?, ?, FALSE, ?)`,
+        (nombre, apellido, email, password, rol, tiene_acceso, codigo_referido)
+       VALUES (?, ?, ?, ?, 'usuaria', FALSE, ?)`,
       [nombre, apellido, email, hashedPassword, codigo_referido?.toUpperCase() || null]
     );
 

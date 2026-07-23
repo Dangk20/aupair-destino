@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { HelpCard } from "@/components/dashboard/DashboardWidgets";
 import { useMobile } from "@/context/MobileContext";
+import { ComingSoon } from "@/components/dashboard/AccessGate";
 
 const CATEGORIAS = [
   { id:"todos",      label:"Todos",      emoji:"📦" },
@@ -56,11 +57,6 @@ export default function RecursosPage() {
   const [categoria, setCategoria] = useState("todos");
   const [busqueda,  setBusqueda]  = useState("");
   const [ordenar,   setOrdenar]   = useState("recientes");
-  const [acceso,    setAcceso]    = useState(null);
-
-  useEffect(() => {
-    fetch("/api/dashboard/acceso").then(r=>r.json()).then(d=>setAcceso(d.recursos)).catch(()=>setAcceso(false));
-  }, []);
 
   useEffect(() => {
     const safe=(p,fb=null)=>p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -83,21 +79,7 @@ export default function RecursosPage() {
   const fasesCompletadas = proceso?.pasos?.filter(p=>["evaluacion_perfil","perfil_agencia","match","visa","viaje"].includes(p.id)&&p.status==="completado")?.length||0;
   const pctProceso = Math.round((fasesCompletadas/5)*100);
 
-  if (loading||acceso===null) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:36,height:36,border:"3px solid #e8849a",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
-  if (acceso===false) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:32,textAlign:"center" }}>
-      <div style={{ width:64,height:64,borderRadius:"50%",background:"#fce8ed",display:"flex",alignItems:"center",justifyContent:"center" }}><Lock size={28} style={{ color:"#a0435f" }}/></div>
-      <h2 style={{ fontFamily:"Georgia,serif",fontWeight:700,color:"#2d1a22",fontSize:20,margin:0 }}>Esta sección no está disponible aún</h2>
-      <p style={{ color:"#9a6672",fontSize:14,maxWidth:300,margin:0,lineHeight:1.6 }}>Jenni está preparando tu acceso.</p>
-      <Link href="/dashboard" style={{ background:"#a0435f",color:"#fff",fontSize:13,fontWeight:600,padding:"12px 28px",borderRadius:14,textDecoration:"none" }}>Volver al inicio</Link>
-    </div>
-  );
+  return <ComingSoon titulo="El centro de recursos" detalle="Estamos preparando guías, plantillas y materiales para tu proceso. Muy pronto disponibles aquí."/>;
 
   return (
     <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"system-ui,-apple-system,sans-serif" }}>

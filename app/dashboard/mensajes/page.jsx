@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Send, Bell, Calendar, ArrowRight, CheckCheck, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { HelpCard } from "@/components/dashboard/DashboardWidgets";
 import { useMobile } from "@/context/MobileContext";
+import { ComingSoon } from "@/components/dashboard/AccessGate";
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -75,12 +76,7 @@ export default function MensajesPage() {
   const handleKey = e => { if (e.key==="Enter"&&!e.shiftKey) { e.preventDefault(); enviar(); } };
   const usarTema  = t => { setTexto(t); setShowTemas(false); inputRef.current?.focus(); };
 
-  if (loading) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:36,height:36,border:"3px solid #e8849a",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
+  return <ComingSoon titulo="La mensajería interna" detalle="Por ahora te acompañamos por WhatsApp. Muy pronto tendrás tu chat directo aquí dentro."/>;
 
   return (
     <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"system-ui,-apple-system,sans-serif",display:"flex",flexDirection:"column" }}>

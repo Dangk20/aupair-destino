@@ -20,10 +20,8 @@ export async function POST(req) {
       return NextResponse.json({ error: "Sesión no encontrada." }, { status: 404 });
     }
 
-    // Verificar acceso — solo puede completar si es gratis o tiene_acceso
-    if (!sesion[0].es_gratis && !session.tiene_acceso) {
-      return NextResponse.json({ error: "Acceso restringido." }, { status: 403 });
-    }
+    // Sprint 0.0: curso libre — cualquier candidata puede ver y completar las
+    // sesiones. El pago ya no bloquea los videos (bloquea documentación).
 
     // Insertar o actualizar progreso
     await dbAupair.query(

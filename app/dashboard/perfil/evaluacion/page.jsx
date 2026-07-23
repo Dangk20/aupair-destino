@@ -274,7 +274,7 @@ export default function PerfilEvaluacionPage() {
                 </div>
               </div>
 
-              <div><label style={LC}>Fecha de nacimiento *</label><input name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={hi} style={IC}/></div>
+              <div><label style={LC}>Fecha de nacimiento *</label><input name="fecha_nacimiento" type="date" value={(form.fecha_nacimiento||"").slice(0,10)} onChange={hi} style={IC}/></div>
               <div style={G2}>
                 <div><label style={LC}>Ciudad *</label><input name="ciudad" type="text" placeholder="Bogotá" value={form.ciudad} onChange={hi} style={IC}/></div>
                 <div><label style={LC}>País *</label><input name="pais" type="text" placeholder="Colombia" value={form.pais} onChange={hi} style={IC}/></div>

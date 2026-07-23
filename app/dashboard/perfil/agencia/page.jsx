@@ -107,7 +107,7 @@ export default function PerfilAgenciaPage() {
       <div style={{ width:72,height:72,borderRadius:"50%",background:"#fce8ed",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <LockIcon size={32} style={{ color:"#a0435f" }}/>
       </div>
-      <h2 style={{ fontFamily:"Georgia,serif",fontSize:22,fontWeight:700,color:"#2d1a22",margin:0 }}>Perfil con la agencia bloqueado</h2>
+      <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:22,fontWeight:700,color:"#2d1a22",margin:0 }}>Perfil con la agencia bloqueado</h2>
       <p style={{ color:"#9a6672",fontSize:14,maxWidth:360,margin:0,lineHeight:1.7 }}>
         Necesitas completar primero la <strong>Evaluación de Perfil</strong> al 100%. 💕
       </p>
@@ -124,7 +124,7 @@ export default function PerfilAgenciaPage() {
   const G3  = { display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr", gap:14 };
 
   return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
+    <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"'Poppins',system-ui,-apple-system,sans-serif" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#a0435f!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);outline:none;}`}</style>
 
       {toast && (
@@ -142,7 +142,7 @@ export default function PerfilAgenciaPage() {
             </Link>
             {!isMobile && (
               <div>
-                <h1 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#1e1033",margin:0 }}>Perfil con la agencia</h1>
+                <h1 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:17,fontWeight:700,color:"#1e1033",margin:0 }}>Perfil con la agencia</h1>
                 <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>{SECCIONES.filter(s=>seccionCompleta(s,form)).length} de {SECCIONES.length} secciones completadas</p>
               </div>
             )}
@@ -213,7 +213,7 @@ export default function PerfilAgenciaPage() {
             </div>
             <div>
               <p style={{ fontSize:10,fontWeight:700,color:"#a0435f",textTransform:"uppercase",letterSpacing:".7px",margin:"0 0 2px" }}>Sección {seccion+1} de {SECCIONES.length}</p>
-              <h2 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?16:18,fontWeight:700,color:"#1e1033",margin:0 }}>{sec.titulo}</h2>
+              <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:isMobile?16:18,fontWeight:700,color:"#1e1033",margin:0 }}>{sec.titulo}</h2>
             </div>
           </div>
 
@@ -231,7 +231,7 @@ export default function PerfilAgenciaPage() {
               <div style={G3}>
                 <div><label style={LC}>¿Tienes pasaporte? *</label><Select name="tiene_pasaporte" value={form.tiene_pasaporte} onChange={hi} placeholder="Seleccionar" options={["Sí","No","En trámite"]}/></div>
                 <div><label style={LC}>Número de pasaporte</label><input name="numero_pasaporte" value={form.numero_pasaporte||""} onChange={hi} style={IC} placeholder="AR2456789"/></div>
-                <div><label style={LC}>Fecha de vencimiento</label><input name="fecha_vencimiento_pasaporte" type="date" value={form.fecha_vencimiento_pasaporte||""} onChange={hi} style={IC}/></div>
+                <div><label style={LC}>Fecha de vencimiento</label><input name="fecha_vencimiento_pasaporte" type="date" value={(form.fecha_vencimiento_pasaporte||"").slice(0,10)} onChange={hi} style={IC}/></div>
               </div>
               <div style={G3}>
                 <div><label style={LC}>¿Tienes visa J-1?</label><Select name="tiene_visa_j1" value={form.tiene_visa_j1} onChange={hi} placeholder="Seleccionar" options={["Sí","No, aún no","Sí, anterior","En trámite"]}/></div>
