@@ -1,24 +1,27 @@
-//══════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
 // app/api/admin/confirmar-pago/route.js
-
-import dbAupair from "@/lib/db-aupair";
+// Confirma el pago de una candidata. Envoltorio delgado sobre
+// lib/ventas-aupair.js: resuelve o crea su venta y la confirma, con lo cual
+// se encienden los permisos, se consume el cupo del código y se genera la
+// comisión de la asociada.
+// ════════════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
+import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { confirmarAccesoUsuario } from "@/lib/ventas-aupair";
 
-// ══════════════════════════════════════════
 export async function POST(req) {
+  const session = getSessionFromRequest(req);
+  if (!session || session.rol !== "admin") return unauthorized();
+
   try {
-    const { usuarioId, monto = 35 } = await req.json();
+    const { usuarioId, monto } = await req.json();
+    if (!usuarioId) return NextResponse.json({ error: "usuarioId requerido" }, { status: 400 });
 
-    await dbAupair.query("UPDATE usuarios SET tiene_acceso = 1 WHERE id = ?", [usuarioId]);
-
-    await dbAupair.query(`
-      UPDATE referido_registros
-      SET pago_realizado = 1, monto_pagado = ?
-      WHERE usuario_id = ?
-    `, [monto, usuarioId]);
-
-    return NextResponse.json({ ok: true });
+    const result = await confirmarAccesoUsuario(Number(usuarioId), { monto });
+    if (!result.ok) return NextResponse.json(result, { status: 404 });
+    return NextResponse.json(result);
   } catch (e) {
+    console.error("[admin/confirmar-pago]", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

@@ -50,6 +50,14 @@ export async function PUT(req, { params }) {
     for (const [campo, valor] of Object.entries(body)) {
       if (EXCLUIR.has(campo)) continue;
       if (!colNames.has(campo)) continue;
+      // foto_url sólo admite un data-URI de imagen o una URL. Sin esto se
+      // guardaba cualquier texto (llegó a quedar "data:img" en producción) y
+      // el <img> reventaba con ERR_INVALID_URL.
+      if (campo === "foto_url" && valor) {
+        const v = String(valor);
+        const valida = v.startsWith("data:image/") || /^https?:\/\//.test(v);
+        if (!valida) continue;
+      }
       sets.push(`${campo} = ?`);
       values.push(valor === "" ? null : valor);
     }

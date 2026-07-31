@@ -7,41 +7,61 @@ import FotoUpload from "@/components/dashboard/FotoUpload";
 import Link from "next/link";
 import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import {
+  PARTE2, parteCompleta, validarSeccion,
+  seccionCompleta as seccionCompletaDe, progresoParte,
+} from "@/lib/campos-perfil";
 
-const SECCIONES = [
-  { id:"personal",    n:1,  titulo:"Información personal",         campos:["estatura","peso","nacionalidad","religion","estado_civil","tiene_pasaporte"] },
-  { id:"experiencia", n:2,  titulo:"Experiencia con niños",        campos:["experiencia_cuidado","horas_childcare"] },
-  { id:"educacion",   n:3,  titulo:"Educación y cursos",           campos:["situacion_actual","carrera_graduada"] },
-  { id:"conduccion",  n:4,  titulo:"Conducción (Driving Profile)", campos:["licencia_conduccion","tipo_licencia"] },
-  { id:"personalidad",n:5,  titulo:"Personalidad e intereses",     campos:["bio","hobbies"] },
-  { id:"preguntas",   n:6,  titulo:"Preguntas para familias",      campos:["por_que_au_pair"] },
-  { id:"salud",       n:7,  titulo:"Salud y evaluación médica",    campos:["enfermedad_medicamentos","dieta_especial"] },
-  { id:"referencias", n:8,  titulo:"Referencias",                  campos:["referencia_1_nombre","referencia_1_email"] },
-  { id:"fotos",       n:9,  titulo:"Fotos y videos del perfil",    campos:["foto_url"] },
-  { id:"estado",      n:10, titulo:"Estado del perfil",            campos:["estado_agencia"] },
+// Los títulos y el orden viven acá; QUÉ es obligatorio viene de
+// lib/campos-perfil.js, la misma fuente que usan el servidor y el progreso.
+// "Estado del perfil" lo diligencia el equipo, no la candidata: sin obligatorios.
+const TITULOS = [
+  { id:"personal",    n:1,  titulo:"Información personal" },
+  { id:"experiencia", n:2,  titulo:"Experiencia con niños" },
+  { id:"educacion",   n:3,  titulo:"Educación y cursos" },
+  { id:"conduccion",  n:4,  titulo:"Conducción (Driving Profile)" },
+  { id:"personalidad",n:5,  titulo:"Personalidad e intereses" },
+  { id:"preguntas",   n:6,  titulo:"Preguntas para familias" },
+  { id:"salud",       n:7,  titulo:"Salud y evaluación médica" },
+  { id:"referencias", n:8,  titulo:"Referencias" },
+  { id:"fotos",       n:9,  titulo:"Fotos y videos del perfil" },
+  { id:"estado",      n:10, titulo:"Estado del perfil" },
 ];
+const SECCIONES = TITULOS.map(t => ({
+  ...t,
+  campos: PARTE2.find(s => s.id === t.id)?.campos || [],
+}));
 
-const CAMPOS_EVAL = ["cedula","telefono","fecha_nacimiento","ciudad","pais","nivel_ingles","licencia_conduccion","curso_primeros_auxilios","situacion_actual","exp_ninos_externos","horas_exp_ninos","visa_negada","entiende_intercambio_cultural","consciente_riesgo_familiar","enfermedad_medicamentos","depresion_panico"];
-
-function evalCompleta(u) {
-  return Math.round((CAMPOS_EVAL.filter(c => u[c] && String(u[c]).trim() !== "").length / CAMPOS_EVAL.length) * 100) >= 100;
-}
-function seccionCompleta(sec, form) {
-  return sec.campos.filter(c => form[c] && String(form[c]).trim() !== "").length >= Math.ceil(sec.campos.length / 2);
-}
-function calcProgreso(form) {
-  return Math.round((SECCIONES.filter(s => seccionCompleta(s, form)).length / SECCIONES.length) * 100);
-}
+// La Parte 2 se desbloquea sólo con la Parte 1 completa.
+const evalCompleta = (u) => parteCompleta(1, u);
+// Una sección está completa con TODOS sus obligatorios, no con la mitad: ese
+// criterio era el que dejaba perfiles "100%" con campos vacíos.
+const seccionCompleta = (sec, form) => seccionCompletaDe(sec, form);
+const calcProgreso = (form) => progresoParte(2, form);
 
 const IC = { width:"100%", border:"1.5px solid #f0dde2", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
+// El borde rojo se pierde al enfocar el campo (la regla :focus de la página
+// usa !important sobre border-color), así que el error se marca además con
+// un outline inline, que sí sobrevive al foco.
+const IC_ERR = { ...IC, border:"1.5px solid #dc2626", background:"#fef2f2", outline:"2px solid #dc2626", outlineOffset:"1px" };
 const LC = { fontSize:10, fontWeight:700, color:"#6b4a54", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
 
-function Select({ name, value, onChange, options, placeholder="" }) {
+function Select({ name, value, onChange, options, placeholder="", estilo }) {
   return (
-    <select name={name} value={value||""} onChange={onChange} style={IC}>
+    <select name={name} value={value||""} onChange={onChange} style={estilo||IC}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map(o => <option key={o}>{o}</option>)}
     </select>
+  );
+}
+
+/** Mensaje bajo un campo obligatorio sin diligenciar. */
+function Msg({ visible }) {
+  if (!visible) return null;
+  return (
+    <p style={{ fontSize:11.5, color:"#dc2626", fontWeight:600, margin:"5px 0 0" }}>
+      Este campo es obligatorio.
+    </p>
   );
 }
 
@@ -57,6 +77,8 @@ export default function PerfilAgenciaPage() {
   const [seccion,      setSeccion]      = useState(0);
   const [evaluOk,      setEvalOk]       = useState(false);
   const [menuMobile,   setMenuMobile]   = useState(false);
+  // Campos obligatorios marcados en rojo tras una validación fallida.
+  const [faltantes,    setFaltantes]    = useState([]);
 
   useEffect(() => {
     const safe = (p, fb) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -75,11 +97,41 @@ export default function PerfilAgenciaPage() {
     });
   }, []);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    // La marca de error desaparece en cuanto la candidata diligencia el campo.
+    if (String(v ?? "").trim() !== "") setFaltantes(f => f.filter(c => c.name !== k));
+  };
   const hi  = e => set(e.target.name, e.target.value);
   const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
 
+  // ── Validación (mismas reglas que la Parte 1) ────────────────────────────
+  const enError = (name) => faltantes.some(c => c.name === name);
+  const ic = (name) => (enError(name) ? IC_ERR : IC);
+
+  const señalarFaltantes = (lista) => {
+    setFaltantes(lista);
+    setTimeout(() => {
+      const el = document.querySelector(`[name="${lista[0].name}"]`);
+      if (el?.scrollIntoView) el.scrollIntoView({ behavior:"smooth", block:"center" });
+      if (el?.focus) el.focus({ preventScroll:true });
+    }, 60);
+  };
+
+  /** Navegar a otra sección: sólo si la actual está completa. */
+  const irASeccion = (i) => {
+    if (i === seccion) return;
+    if (i < seccion) { setFaltantes([]); setSeccion(i); return; }
+    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[seccion], form);
+    if (!ok) { señalarFaltantes(pendientes); return; }
+    setFaltantes([]); setSeccion(i);
+  };
+
   const guardar = async (goNext=false) => {
+    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[seccion], form);
+    // Avanzar exige la sección completa; guardar sin avanzar siempre se permite.
+    if (goNext && !ok) { señalarFaltantes(pendientes); return; }
+
     setGuardando(true);
     const progreso = calcProgreso(form);
     const res = await fetch("/api/dashboard/perfil", {
@@ -87,9 +139,18 @@ export default function PerfilAgenciaPage() {
       body: JSON.stringify({ ...form, progreso_agencia: progreso }),
     });
     if (res.ok) {
-      showToast("✓ Guardado correctamente");
-      if (goNext && seccion < SECCIONES.length-1) setSeccion(s => s+1);
-      if (goNext && seccion === SECCIONES.length-1) router.push("/dashboard/perfil");
+      if (goNext) {
+        setFaltantes([]);
+        showToast("✓ Guardado correctamente");
+        if (seccion < SECCIONES.length-1) setSeccion(s => s+1);
+        else router.push("/dashboard/perfil");
+      } else if (!ok) {
+        showToast("✓ Guardado — aún te faltan campos");
+        señalarFaltantes(pendientes);
+      } else {
+        setFaltantes([]);
+        showToast("✓ Guardado correctamente");
+      }
     } else showToast("Error al guardar","error");
     setGuardando(false);
   };
@@ -166,7 +227,7 @@ export default function PerfilAgenciaPage() {
             {SECCIONES.map((s,i) => {
               const completa=seccionCompleta(s,form), active=i===seccion;
               return (
-                <button key={s.id} onClick={()=>setSeccion(i)}
+                <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"none",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"inherit",transition:"all .12s",fontSize:11,fontWeight:active?700:500,
                     background:active?"#a0435f":completa?"#e8f0e0":"#f3f4f6",
                     color:active?"#fff":completa?"#5a8a3a":"#6b7280",
@@ -189,7 +250,7 @@ export default function PerfilAgenciaPage() {
             {SECCIONES.map((s,i) => {
               const completa=seccionCompleta(s,form), active=i===seccion;
               return (
-                <button key={s.id} onClick={()=>setSeccion(i)}
+                <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:14,border:"none",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:4,fontFamily:"inherit",transition:"all .12s",background:active?"#fce8ed":"transparent",boxShadow:active?"0 0 0 1.5px #a0435f":"none" }}>
                   <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,background:completa?"#e8f0e0":active?"#fce8ed":"#f3f4f6",color:completa?"#5a8a3a":active?"#a0435f":"#9ca3af" }}>
                     {completa?<CheckCircle2Icon size={14} style={{ color:"#5a8a3a" }}/>:s.n}
@@ -219,70 +280,94 @@ export default function PerfilAgenciaPage() {
 
           <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"16px":"28px",display:"flex",flexDirection:"column",gap:16 }}>
 
+            {faltantes.length>0 && (
+              <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#dc2626" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:8,fontWeight:700 }}>
+                  <span>⚠️</span>
+                  {faltantes.length===1
+                    ? "Falta 1 campo obligatorio por diligenciar"
+                    : `Faltan ${faltantes.length} campos obligatorios por diligenciar`}
+                </div>
+                <ul style={{ margin:"8px 0 0",paddingLeft:26,fontWeight:500,lineHeight:1.7 }}>
+                  {faltantes.map(c => (
+                    <li key={c.name}>
+                      <button onClick={()=>{
+                        const el=document.querySelector(`[name="${c.name}"]`);
+                        el?.scrollIntoView?.({ behavior:"smooth",block:"center" });
+                        el?.focus?.({ preventScroll:true });
+                      }} style={{ background:"none",border:"none",padding:0,color:"#dc2626",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
+                        {c.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* ── 1: Personal ── */}
             {seccion===0 && (<>
               <div style={G3}>
-                <div><label style={LC}>Estatura *</label><input name="estatura" value={form.estatura||""} onChange={hi} style={IC} placeholder="1.65 m"/></div>
-                <div><label style={LC}>Peso *</label><input name="peso" value={form.peso||""} onChange={hi} style={IC} placeholder="55 kg"/></div>
-                <div><label style={LC}>Estado civil</label><Select name="estado_civil" value={form.estado_civil} onChange={hi} placeholder="Seleccionar" options={["Soltera","Casada","Unión libre","Divorciada","Viuda"]}/></div>
-                <div><label style={LC}>Nacionalidad *</label><Select name="nacionalidad" value={form.nacionalidad} onChange={hi} placeholder="Seleccionar" options={["Colombiana","Venezolana","Ecuatoriana","Peruana","Mexicana","Otra"]}/></div>
-                <div><label style={LC}>Religión</label><Select name="religion" value={form.religion} onChange={hi} placeholder="Seleccionar" options={["Cristiana","Católica","Evangélica","Sin religión","Otra"]}/></div>
+                <div><label style={LC}>Estatura *</label><input name="estatura" value={form.estatura||""} onChange={hi} style={ic("estatura")} placeholder="1.65 m"/><Msg visible={enError("estatura")}/></div>
+                <div><label style={LC}>Peso *</label><input name="peso" value={form.peso||""} onChange={hi} style={ic("peso")} placeholder="55 kg"/><Msg visible={enError("peso")}/></div>
+                <div><label style={LC}>Estado civil</label><Select name="estado_civil" value={form.estado_civil} onChange={hi} placeholder="Seleccionar" options={["Soltera","Casada","Unión libre","Divorciada","Viuda"]} estilo={ic("estado_civil")}/><Msg visible={enError("estado_civil")}/></div>
+                <div><label style={LC}>Nacionalidad *</label><Select name="nacionalidad" value={form.nacionalidad} onChange={hi} placeholder="Seleccionar" options={["Colombiana","Venezolana","Ecuatoriana","Peruana","Mexicana","Otra"]} estilo={ic("nacionalidad")}/><Msg visible={enError("nacionalidad")}/></div>
+                <div><label style={LC}>Religión</label><Select name="religion" value={form.religion} onChange={hi} placeholder="Seleccionar" options={["Cristiana","Católica","Evangélica","Sin religión","Otra"]} estilo={ic("religion")}/><Msg visible={enError("religion")}/></div>
               </div>
               <div style={G3}>
-                <div><label style={LC}>¿Tienes pasaporte? *</label><Select name="tiene_pasaporte" value={form.tiene_pasaporte} onChange={hi} placeholder="Seleccionar" options={["Sí","No","En trámite"]}/></div>
-                <div><label style={LC}>Número de pasaporte</label><input name="numero_pasaporte" value={form.numero_pasaporte||""} onChange={hi} style={IC} placeholder="AR2456789"/></div>
-                <div><label style={LC}>Fecha de vencimiento</label><input name="fecha_vencimiento_pasaporte" type="date" value={(form.fecha_vencimiento_pasaporte||"").slice(0,10)} onChange={hi} style={IC}/></div>
+                <div><label style={LC}>¿Tienes pasaporte? *</label><Select name="tiene_pasaporte" value={form.tiene_pasaporte} onChange={hi} placeholder="Seleccionar" options={["Sí","No","En trámite"]} estilo={ic("tiene_pasaporte")}/><Msg visible={enError("tiene_pasaporte")}/></div>
+                <div><label style={LC}>Número de pasaporte</label><input name="numero_pasaporte" value={form.numero_pasaporte||""} onChange={hi} style={ic("numero_pasaporte")} placeholder="AR2456789"/><Msg visible={enError("numero_pasaporte")}/></div>
+                <div><label style={LC}>Fecha de vencimiento</label><input name="fecha_vencimiento_pasaporte" type="date" value={(form.fecha_vencimiento_pasaporte||"").slice(0,10)} onChange={hi} style={ic("fecha_vencimiento_pasaporte")}/><Msg visible={enError("fecha_vencimiento_pasaporte")}/></div>
               </div>
               <div style={G3}>
-                <div><label style={LC}>¿Tienes visa J-1?</label><Select name="tiene_visa_j1" value={form.tiene_visa_j1} onChange={hi} placeholder="Seleccionar" options={["Sí","No, aún no","Sí, anterior","En trámite"]}/></div>
-                <div><label style={LC}>Número DS-2019</label><input name="numero_ds2019" value={form.numero_ds2019||""} onChange={hi} style={IC} placeholder="N1234567890"/></div>
-                <div><label style={LC}>Número de Sponsor</label><input name="numero_sponsor" value={form.numero_sponsor||""} onChange={hi} style={IC} placeholder="P1234567"/></div>
+                <div><label style={LC}>¿Tienes visa J-1?</label><Select name="tiene_visa_j1" value={form.tiene_visa_j1} onChange={hi} placeholder="Seleccionar" options={["Sí","No, aún no","Sí, anterior","En trámite"]} estilo={ic("tiene_visa_j1")}/><Msg visible={enError("tiene_visa_j1")}/></div>
+                <div><label style={LC}>Número DS-2019</label><input name="numero_ds2019" value={form.numero_ds2019||""} onChange={hi} style={ic("numero_ds2019")} placeholder="N1234567890"/><Msg visible={enError("numero_ds2019")}/></div>
+                <div><label style={LC}>Número de Sponsor</label><input name="numero_sponsor" value={form.numero_sponsor||""} onChange={hi} style={ic("numero_sponsor")} placeholder="P1234567"/><Msg visible={enError("numero_sponsor")}/></div>
               </div>
             </>)}
 
             {/* ── 2: Experiencia ── */}
             {seccion===1 && (<>
-              <div><label style={LC}>Describe tu experiencia con niños *</label><textarea name="experiencia_cuidado" rows={isMobile?4:6} value={form.experiencia_cuidado||""} onChange={hi} style={{ ...IC,resize:"vertical" }} placeholder="Edades de los niños, actividades realizadas, duración..."/></div>
-              <div><label style={LC}>Horas de childcare acumuladas</label><input name="horas_childcare" type="number" min="0" value={form.horas_childcare||""} onChange={hi} style={IC} placeholder="0"/></div>
+              <div><label style={LC}>Describe tu experiencia con niños *</label><textarea name="experiencia_cuidado" rows={isMobile?4:6} value={form.experiencia_cuidado||""} onChange={hi} style={{ ...ic("experiencia_cuidado"),resize:"vertical" }} placeholder="Edades de los niños, actividades realizadas, duración..."/><Msg visible={enError("experiencia_cuidado")}/></div>
+              <div><label style={LC}>Horas de childcare acumuladas *</label><input name="horas_childcare" type="number" min="0" value={form.horas_childcare||""} onChange={hi} style={ic("horas_childcare")} placeholder="0"/><Msg visible={enError("horas_childcare")}/></div>
             </>)}
 
             {/* ── 3: Educación ── */}
             {seccion===2 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Qué haces actualmente? *</label><Select name="situacion_actual" value={form.situacion_actual} onChange={hi} placeholder="Seleccionar" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]}/></div>
-                <div><label style={LC}>Carrera / Profesión</label><input name="carrera_graduada" value={form.carrera_graduada||""} onChange={hi} style={IC} placeholder="Ej: Enfermería"/></div>
-                <div><label style={LC}>¿Tienes curso de primeros auxilios?</label><Select name="curso_primeros_auxilios" value={form.curso_primeros_auxilios} onChange={hi} placeholder="Seleccionar" options={["Si","No","Lo estoy haciendo"]}/></div>
+                <div><label style={LC}>¿Qué haces actualmente? *</label><Select name="situacion_actual" value={form.situacion_actual} onChange={hi} placeholder="Seleccionar" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]} estilo={ic("situacion_actual")}/><Msg visible={enError("situacion_actual")}/></div>
+                <div><label style={LC}>Carrera / Profesión</label><input name="carrera_graduada" value={form.carrera_graduada||""} onChange={hi} style={ic("carrera_graduada")} placeholder="Ej: Enfermería"/><Msg visible={enError("carrera_graduada")}/></div>
+                <div><label style={LC}>¿Tienes curso de primeros auxilios?</label><Select name="curso_primeros_auxilios" value={form.curso_primeros_auxilios} onChange={hi} placeholder="Seleccionar" options={["Si","No","Lo estoy haciendo"]} estilo={ic("curso_primeros_auxilios")}/><Msg visible={enError("curso_primeros_auxilios")}/></div>
               </div>
             </>)}
 
             {/* ── 4: Conducción ── */}
             {seccion===3 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Tienes licencia? *</label><Select name="licencia_conduccion" value={form.licencia_conduccion} onChange={hi} placeholder="Seleccionar" options={["Si","No","Está en proceso"]}/></div>
-                <div><label style={LC}>Tipo de licencia *</label><Select name="tipo_licencia" value={form.tipo_licencia} onChange={hi} placeholder="Seleccionar" options={["Categoría A","Categoría B","Categoría B1","Categoría C","No aplica"]}/></div>
+                <div><label style={LC}>¿Tienes licencia? *</label><Select name="licencia_conduccion" value={form.licencia_conduccion} onChange={hi} placeholder="Seleccionar" options={["Si","No","Está en proceso"]} estilo={ic("licencia_conduccion")}/><Msg visible={enError("licencia_conduccion")}/></div>
+                <div><label style={LC}>Tipo de licencia *</label><Select name="tipo_licencia" value={form.tipo_licencia} onChange={hi} placeholder="Seleccionar" options={["Categoría A","Categoría B","Categoría B1","Categoría C","No aplica"]} estilo={ic("tipo_licencia")}/><Msg visible={enError("tipo_licencia")}/></div>
               </div>
-              <div><label style={LC}>Habilidad de conducción</label><Select name="habilidad_conduccion" value={form.habilidad_conduccion} onChange={hi} placeholder="Seleccionar" options={["Nulas","Puedo conducir pero no lo hago bien.","Conduzco bien pero me falta práctica.","Me siento muy cómoda y segura."]}/></div>
+              <div><label style={LC}>Habilidad de conducción</label><Select name="habilidad_conduccion" value={form.habilidad_conduccion} onChange={hi} placeholder="Seleccionar" options={["Nulas","Puedo conducir pero no lo hago bien.","Conduzco bien pero me falta práctica.","Me siento muy cómoda y segura."]} estilo={ic("habilidad_conduccion")}/><Msg visible={enError("habilidad_conduccion")}/></div>
             </>)}
 
             {/* ── 5: Personalidad ── */}
             {seccion===4 && (<>
-              <div><label style={LC}>Descripción personal *</label><textarea name="bio" rows={isMobile?4:5} value={form.bio||""} onChange={hi} style={{ ...IC,resize:"vertical" }} placeholder="Tu personalidad, valores, forma de ser..."/></div>
-              <div><label style={LC}>Hobbies e intereses *</label><textarea name="hobbies" rows={isMobile?3:4} value={form.hobbies||""} onChange={hi} style={{ ...IC,resize:"vertical" }} placeholder="Deportes, música, arte, viajes, cocina..."/></div>
+              <div><label style={LC}>Descripción personal *</label><textarea name="bio" rows={isMobile?4:5} value={form.bio||""} onChange={hi} style={{ ...ic("bio"),resize:"vertical" }} placeholder="Tu personalidad, valores, forma de ser..."/><Msg visible={enError("bio")}/></div>
+              <div><label style={LC}>Hobbies e intereses *</label><textarea name="hobbies" rows={isMobile?3:4} value={form.hobbies||""} onChange={hi} style={{ ...ic("hobbies"),resize:"vertical" }} placeholder="Deportes, música, arte, viajes, cocina..."/><Msg visible={enError("hobbies")}/></div>
             </>)}
 
             {/* ── 6: Preguntas ── */}
             {seccion===5 && (<>
-              <div><label style={LC}>¿Por qué quieres ser au pair? *</label><textarea name="por_que_au_pair" rows={isMobile?5:6} value={form.por_que_au_pair||""} onChange={hi} style={{ ...IC,resize:"vertical" }} placeholder="Tus motivaciones, objetivos, qué esperas de la experiencia..."/></div>
+              <div><label style={LC}>¿Por qué quieres ser au pair? *</label><textarea name="por_que_au_pair" rows={isMobile?5:6} value={form.por_que_au_pair||""} onChange={hi} style={{ ...ic("por_que_au_pair"),resize:"vertical" }} placeholder="Tus motivaciones, objetivos, qué esperas de la experiencia..."/><Msg visible={enError("por_que_au_pair")}/></div>
             </>)}
 
             {/* ── 7: Salud ── */}
             {seccion===6 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Enfermedad con medicamentos constantes? *</label><Select name="enfermedad_medicamentos" value={form.enfermedad_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]}/></div>
-                <div><label style={LC}>¿Alergias a medicamentos?</label><Select name="alergia_medicamentos" value={form.alergia_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]}/></div>
-                <div><label style={LC}>Dieta especial</label><Select name="dieta_especial" value={form.dieta_especial} onChange={hi} placeholder="Seleccionar" options={["Ninguna","Vegetariana","Vegana","Sin gluten","Sin lactosa","Otra"]}/></div>
-                <div><label style={LC}>¿Fumadora?</label><Select name="fumadora" value={form.fumadora} onChange={hi} placeholder="Seleccionar" options={["No","Sí","Exfumadora"]}/></div>
-                <div><label style={LC}>¿Aceptas mascotas?</label><Select name="acepta_mascotas" value={form.acepta_mascotas} onChange={hi} placeholder="Seleccionar" options={["Sí, todos","Sí, solo perros","Sí, solo gatos","No tengo preferencia","No"]}/></div>
+                <div><label style={LC}>¿Enfermedad con medicamentos constantes? *</label><Select name="enfermedad_medicamentos" value={form.enfermedad_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]} estilo={ic("enfermedad_medicamentos")}/><Msg visible={enError("enfermedad_medicamentos")}/></div>
+                <div><label style={LC}>¿Alergias a medicamentos?</label><Select name="alergia_medicamentos" value={form.alergia_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]} estilo={ic("alergia_medicamentos")}/><Msg visible={enError("alergia_medicamentos")}/></div>
+                <div><label style={LC}>Dieta especial *</label><Select name="dieta_especial" value={form.dieta_especial} onChange={hi} placeholder="Seleccionar" options={["Ninguna","Vegetariana","Vegana","Sin gluten","Sin lactosa","Otra"]} estilo={ic("dieta_especial")}/><Msg visible={enError("dieta_especial")}/></div>
+                <div><label style={LC}>¿Fumadora?</label><Select name="fumadora" value={form.fumadora} onChange={hi} placeholder="Seleccionar" options={["No","Sí","Exfumadora"]} estilo={ic("fumadora")}/><Msg visible={enError("fumadora")}/></div>
+                <div><label style={LC}>¿Aceptas mascotas?</label><Select name="acepta_mascotas" value={form.acepta_mascotas} onChange={hi} placeholder="Seleccionar" options={["Sí, todos","Sí, solo perros","Sí, solo gatos","No tengo preferencia","No"]} estilo={ic("acepta_mascotas")}/><Msg visible={enError("acepta_mascotas")}/></div>
               </div>
             </>)}
 
@@ -291,17 +376,17 @@ export default function PerfilAgenciaPage() {
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
                 <p style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:0 }}>Referencia 1</p>
                 <div style={G1}>
-                  <div><label style={LC}>Nombre completo *</label><input name="referencia_1_nombre" value={form.referencia_1_nombre||""} onChange={hi} style={IC}/></div>
-                  <div><label style={LC}>Relación</label><Select name="referencia_1_relacion" value={form.referencia_1_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]}/></div>
-                  <div><label style={LC}>Email *</label><input name="referencia_1_email" type="email" value={form.referencia_1_email||""} onChange={hi} style={IC}/></div>
-                  <div><label style={LC}>Teléfono</label><input name="referencia_1_telefono" value={form.referencia_1_telefono||""} onChange={hi} style={IC}/></div>
+                  <div><label style={LC}>Nombre completo *</label><input name="referencia_1_nombre" value={form.referencia_1_nombre||""} onChange={hi} style={ic("referencia_1_nombre")}/><Msg visible={enError("referencia_1_nombre")}/></div>
+                  <div><label style={LC}>Relación</label><Select name="referencia_1_relacion" value={form.referencia_1_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]} estilo={ic("referencia_1_relacion")}/><Msg visible={enError("referencia_1_relacion")}/></div>
+                  <div><label style={LC}>Email *</label><input name="referencia_1_email" type="email" value={form.referencia_1_email||""} onChange={hi} style={ic("referencia_1_email")}/><Msg visible={enError("referencia_1_email")}/></div>
+                  <div><label style={LC}>Teléfono</label><input name="referencia_1_telefono" value={form.referencia_1_telefono||""} onChange={hi} style={ic("referencia_1_telefono")}/><Msg visible={enError("referencia_1_telefono")}/></div>
                 </div>
                 <p style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:0 }}>Referencia 2</p>
                 <div style={G1}>
-                  <div><label style={LC}>Nombre completo</label><input name="referencia_2_nombre" value={form.referencia_2_nombre||""} onChange={hi} style={IC}/></div>
-                  <div><label style={LC}>Relación</label><Select name="referencia_2_relacion" value={form.referencia_2_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]}/></div>
-                  <div><label style={LC}>Email</label><input name="referencia_2_email" type="email" value={form.referencia_2_email||""} onChange={hi} style={IC}/></div>
-                  <div><label style={LC}>Teléfono</label><input name="referencia_2_telefono" value={form.referencia_2_telefono||""} onChange={hi} style={IC}/></div>
+                  <div><label style={LC}>Nombre completo</label><input name="referencia_2_nombre" value={form.referencia_2_nombre||""} onChange={hi} style={ic("referencia_2_nombre")}/><Msg visible={enError("referencia_2_nombre")}/></div>
+                  <div><label style={LC}>Relación</label><Select name="referencia_2_relacion" value={form.referencia_2_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]} estilo={ic("referencia_2_relacion")}/><Msg visible={enError("referencia_2_relacion")}/></div>
+                  <div><label style={LC}>Email</label><input name="referencia_2_email" type="email" value={form.referencia_2_email||""} onChange={hi} style={ic("referencia_2_email")}/><Msg visible={enError("referencia_2_email")}/></div>
+                  <div><label style={LC}>Teléfono</label><input name="referencia_2_telefono" value={form.referencia_2_telefono||""} onChange={hi} style={ic("referencia_2_telefono")}/><Msg visible={enError("referencia_2_telefono")}/></div>
                 </div>
               </div>
             </>)}
@@ -314,7 +399,7 @@ export default function PerfilAgenciaPage() {
               }}/>
               <div>
                 <label style={LC}>URL de tu video de presentación</label>
-                <input name="video_presentacion_url" value={form.video_presentacion_url||""} onChange={hi} style={IC} placeholder="https://youtube.com/... o Google Drive..."/>
+                <input name="video_presentacion_url" value={form.video_presentacion_url||""} onChange={hi} style={ic("video_presentacion_url")} placeholder="https://youtube.com/... o Google Drive..."/><Msg visible={enError("video_presentacion_url")}/>
               </div>
             </>)}
 
@@ -354,7 +439,7 @@ export default function PerfilAgenciaPage() {
             {/* Dots */}
             <div style={{ display:"flex",gap:4,alignItems:"center" }}>
               {SECCIONES.map((_,i)=>(
-                <button key={i} onClick={()=>setSeccion(i)}
+                <button key={i} onClick={()=>irASeccion(i)}
                   style={{ width:i===seccion?24:8,height:8,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:i===seccion?"#a0435f":"#f0dde2" }}/>
               ))}
             </div>

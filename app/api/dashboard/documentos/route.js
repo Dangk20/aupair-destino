@@ -1,9 +1,10 @@
 // app/api/dashboard/documentos/route.js
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized, forbidden } from "@/lib/session-aupair";
+import {
+  guardarDocumento, borrarDocumento, archivoDisponible,
+} from "@/lib/almacenamiento-archivos";
 
 /* ── Documentos requeridos del programa ──────────────────────────────────── */
 export const DOCS_REQUERIDOS = [
@@ -27,11 +28,18 @@ export async function GET(req) {
   if (!session) return unauthorized();
 
   try {
-    const [docs] = await dbAupair.query(
+    const [filas] = await dbAupair.query(
       `SELECT id, tipo_doc, nombre, url, tamano_kb, estado, nota_admin, created_at
        FROM documentos_usuario WHERE usuario_id = ? ORDER BY created_at DESC`,
       [session.id]
     );
+    // La URL pública deja de existir: el documento se abre por la ruta
+    // autenticada. `disponible` distingue el registro cuyo archivo se perdió.
+    const docs = await Promise.all(filas.map(async d => ({
+      ...d,
+      url: `/api/documentos/${d.id}`,
+      disponible: await archivoDisponible(d.url),
+    })));
     return NextResponse.json({ docs, docs_requeridos: DOCS_REQUERIDOS });
   } catch (err) {
     // Tabla no existe aún
@@ -70,36 +78,41 @@ export async function POST(req) {
     if (file.size > 10 * 1024 * 1024)
       return NextResponse.json({ error: "El archivo no puede superar 10 MB" }, { status: 400 });
 
-    // Guardar en disco
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "documentos", String(session.id));
-    await mkdir(uploadDir, { recursive: true });
-    const ext      = path.extname(file.name).toLowerCase();
-    const filename = `${tipo_doc}_${Date.now()}${ext}`;
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, Buffer.from(await file.arrayBuffer()));
-
-    const url       = `/uploads/documentos/${session.id}/${filename}`;
+    // Guardar fuera de public/ — ver lib/almacenamiento-archivos.js
+    const referencia = await guardarDocumento({
+      usuarioId:      session.id,
+      tipoDoc:        tipo_doc,
+      nombreOriginal: file.name,
+      buffer:         Buffer.from(await file.arrayBuffer()),
+    });
     const tamano_kb = Math.round(file.size / 1024);
 
     // Si ya existe uno de este tipo, reemplazar (upsert)
     const [existing] = await dbAupair.query(
-      "SELECT id FROM documentos_usuario WHERE usuario_id = ? AND tipo_doc = ?",
+      "SELECT id, url FROM documentos_usuario WHERE usuario_id = ? AND tipo_doc = ?",
       [session.id, tipo_doc]
     );
 
+    let docId;
     if (existing.length > 0) {
       await dbAupair.query(
         "UPDATE documentos_usuario SET nombre=?, url=?, tamano_kb=?, estado='pendiente', nota_admin=NULL, created_at=NOW() WHERE id=?",
-        [nombre, url, tamano_kb, existing[0].id]
+        [nombre, referencia, tamano_kb, existing[0].id]
       );
+      docId = existing[0].id;
+      // El archivo reemplazado ya no lo referencia nadie.
+      if (existing[0].url && existing[0].url !== referencia) {
+        await borrarDocumento(existing[0].url);
+      }
     } else {
-      await dbAupair.query(
+      const [ins] = await dbAupair.query(
         "INSERT INTO documentos_usuario (usuario_id, tipo_doc, nombre, url, tamano_kb) VALUES (?,?,?,?,?)",
-        [session.id, tipo_doc, nombre, url, tamano_kb]
+        [session.id, tipo_doc, nombre, referencia, tamano_kb]
       );
+      docId = ins.insertId;
     }
 
-    return NextResponse.json({ ok: true, url, nombre });
+    return NextResponse.json({ ok: true, id: docId, url: `/api/documentos/${docId}`, nombre });
   } catch (err) {
     console.error("[POST documentos]", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -120,10 +133,7 @@ export async function DELETE(req) {
       "SELECT url FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
       [id, session.id]
     );
-    if (doc?.url) {
-      const { unlink } = await import("fs/promises");
-      await unlink(path.join(process.cwd(), "public", doc.url)).catch(() => {});
-    }
+    if (doc?.url) await borrarDocumento(doc.url);
     await dbAupair.query("DELETE FROM documentos_usuario WHERE id = ? AND usuario_id = ?", [id, session.id]);
     return NextResponse.json({ ok: true });
   } catch (err) {

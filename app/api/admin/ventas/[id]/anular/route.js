@@ -1,11 +1,12 @@
 // ════════════════════════════════════════════════════════════════════════
 // app/api/admin/ventas/[id]/anular/route.js
-// El admin anula una venta pendiente (la candidata no pagó / desistió).
-// No toca permisos ni comisiones. Solo marca la venta como 'anulado'.
+// El admin anula una venta. Si estaba confirmada, anularla revierte todo su
+// efecto: libera el cupo del código, anula la comisión y apaga los permisos.
+// Toda la lógica vive en lib/ventas-aupair.js (anularVenta).
 // ════════════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
-import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { anularVenta } from "@/lib/ventas-aupair";
 
 export async function POST(req, { params }) {
   const session = getSessionFromRequest(req);
@@ -16,13 +17,9 @@ export async function POST(req, { params }) {
   if (!ventaId) return NextResponse.json({ error: "id inválido" }, { status: 400 });
 
   try {
-    const [res] = await dbAupair.query(
-      "UPDATE ventas SET estado = 'anulado' WHERE id = ? AND estado = 'pendiente'",
-      [ventaId]
-    );
-    if (res.affectedRows === 0)
-      return NextResponse.json({ error: "La venta no existe o ya no está pendiente" }, { status: 409 });
-    return NextResponse.json({ ok: true });
+    const result = await anularVenta(ventaId);
+    if (!result.ok) return NextResponse.json(result, { status: 404 });
+    return NextResponse.json(result);
   } catch (err) {
     console.error("[admin/ventas anular]", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

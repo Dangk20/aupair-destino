@@ -118,13 +118,32 @@ export async function GET(req) {
     const publicadas    = totalSesiones; // todas las sesiones cuentan
     const tiempo_promedio = "—";         // requiere columna duracion_minutos
 
+    // `...resto` quedó referenciando una variable que nunca existió: la ruta
+    // reventaba con 500 y el Resumen del admin no cargaba ningún dato.
     return NextResponse.json({
-    total: totalUsuarias,
-    conAcceso,
-    soloGratis: totalUsuarias - conAcceso,
-    conversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
-    ...resto
-  });
+      total: totalUsuarias,
+      conAcceso,
+      soloGratis: totalUsuarias - conAcceso,
+      conversion: totalUsuarias > 0 ? Math.round((conAcceso / totalUsuarias) * 100) : 0,
+
+      total_sesiones: totalSesiones,
+      publicadas,
+      tiempo_promedio,
+      completaron,
+      promedio_completado: progresoPromedio,
+      completadas_pct,
+      en_progreso_pct,
+      sin_iniciar_pct,
+      enProgreso,
+      sinProgreso,
+
+      sesionesPopulares,
+      ultimasUsuarias,
+      registrosPorSemana,
+      actividad,
+      recursos_por_tipo,
+      total_recursos,
+    });
 
   } catch (err) {
     console.error("[GET /api/admin/stats]", err.message);

@@ -212,6 +212,14 @@ function TabDocumentos({ userId }) {
                     <span style={{ fontSize:11, color:"#9a7080" }}>📎 {doc.tamano_kb ? `${doc.tamano_kb} KB` : "—"}</span>
                     <span style={{ fontSize:11, color:"#9a7080" }}>📅 {doc.created_at ? new Date(doc.created_at).toLocaleDateString("es-CO") : "—"}</span>
                   </div>
+                  {/* Archivo perdido del almacenamiento */}
+                  {doc.disponible === false && (
+                    <div style={{ marginTop:8, background:"#fee2e2", border:"1px solid #fca5a5", borderRadius:8, padding:"8px 12px" }}>
+                      <p style={{ fontSize:11, color:"#991b1b", margin:0 }}>
+                        ⚠️ <strong>Archivo no disponible.</strong> El registro existe pero el archivo no está en el servidor. Pídele a la candidata que lo vuelva a cargar.
+                      </p>
+                    </div>
+                  )}
                   {/* Nota admin existente */}
                   {doc.nota_admin && !enEdit && (
                     <div style={{ marginTop:8, background:"#fef3c7", border:"1px solid #fde68a", borderRadius:8, padding:"8px 12px" }}>
@@ -242,11 +250,17 @@ function TabDocumentos({ userId }) {
 
                 {/* Acciones */}
                 <div style={{ display:"flex", gap:6, flexShrink:0, alignItems:"flex-start" }}>
-                  {doc.url && (
+                  {doc.url && doc.disponible !== false && (
                     <a href={doc.url} target="_blank" rel="noopener noreferrer" title="Ver documento"
                       style={{ width:34, height:34, borderRadius:10, background:"#f5f0ff", display:"flex", alignItems:"center", justifyContent:"center", textDecoration:"none" }}>
                       <EyeIcon size={15} style={{ color:"#7c3aed" }}/>
                     </a>
+                  )}
+                  {doc.disponible === false && (
+                    <span title="El archivo no está en el servidor. Pídele a la candidata que lo vuelva a cargar."
+                      style={{ width:34, height:34, borderRadius:10, background:"#fee2e2", display:"flex", alignItems:"center", justifyContent:"center", cursor:"help" }}>
+                      <EyeIcon size={15} style={{ color:"#dc2626" }}/>
+                    </span>
                   )}
                   <button onClick={() => { setEditando(enEdit?null:doc.id); setNotaTemp(doc.nota_admin||""); }}
                     title="Agregar nota"

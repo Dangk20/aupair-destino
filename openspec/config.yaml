@@ -1,0 +1,47 @@
+schema: spec-driven
+
+context: |
+  Producto: Destino Au Pair — plataforma que prepara, evalúa y conecta candidatas
+  au pair colombianas con agencias aliadas. Está en producción y fue dejada a
+  medias por un proveedor anterior; el encargo actual es estabilizarla y
+  terminarla (MVP a 2 meses, prioridad estricta: 1) Admin, 2) Candidatas,
+  3) Agencias).
+
+  Idioma: todo se escribe en español (es_CO) — proposals, specs, tasks, código,
+  comentarios, UI y nombres de tabla. Es la convención del proyecto y de la
+  clienta.
+
+  Stack: Next.js 16 (App Router, JavaScript puro — no TypeScript), React 19,
+  Tailwind 4, MySQL con SQL crudo vía mysql2 (sin ORM), auth por JWT en cookie.
+  Sin pruebas automatizadas: la verificación es manual y debe quedar escrita
+  como recorridos concretos en tasks.md.
+
+  Convivencia crítica: el repositorio contiene dos aplicaciones. Sólo la capa
+  Destino Au Pair es el producto real (lib/db-aupair.js, lib/session-aupair.js,
+  cookie dap_token, rutas /dashboard /admin /asociada /agencia). La capa
+  Project Center (lib/db.js, cookie token, rutas /app/*) y saasly-nextjs-1.0.0/
+  son herencia del proveedor anterior: no se extienden.
+
+  Roles: usuaria (candidata), asociada (asesora que vende con su código),
+  agencia, admin. Un solo rol por usuario en la tabla usuarios.
+
+  Modelo de negocio: la candidata paga el acompañamiento (35 USD, o el precio
+  del código que aplique). El pago se coordina por WhatsApp y lo confirma el
+  admin a mano. El código de una asociada le genera comisión sobre la venta.
+
+rules:
+  proposal:
+    - Escribir en español.
+    - Fundamentar el "Why" en lo que se verificó en el código o en la base de datos, no en suposiciones.
+    - Declarar explícitamente lo que queda fuera de alcance: es la defensa contra el scope creep del contrato cerrado.
+  design:
+    - Escribir en español.
+    - Cada decisión lleva la alternativa que se descartó y por qué.
+    - Nombrar los archivos concretos que se tocan; este repositorio tiene dos apps y hay que dejar claro sobre cuál se opera.
+  specs:
+    - Escribir los requisitos y escenarios en español, manteniendo WHEN/THEN y SHALL/MUST en mayúscula como marcadores.
+    - Los escenarios deben ser verificables a mano: no hay suite automatizada que los ejecute.
+  tasks:
+    - Escribir en español.
+    - Incluir siempre un grupo final de verificación con los recorridos manuales concretos y `npm run build` + `npm run lint`.
+    - Las tareas que tocan datos o despliegue deben decir en qué orden se ejecutan respecto del código.

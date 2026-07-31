@@ -8,18 +8,27 @@ export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session || session.rol !== "admin") return unauthorized();
 
+  // usos_confirmados = ventas pagadas (consumen cupo)
+  // aplicaciones_pendientes = candidatas que aplicaron el código y aún no
+  //   tienen venta confirmada. No consumen cupo, pero la clienta necesita
+  //   verlas: son el movimiento del código antes de que entre la plata.
   const [codigos] = await dbAupair.query(`
     SELECT c.*,
-      COUNT(u.id) AS total_usos,
-      SUM(u.monto_pagado) AS total_recaudado,
-      a.nombre AS asociada_nombre,
+      (SELECT COUNT(*) FROM codigos_promo_usos u WHERE u.codigo_id = c.id)         AS usos_confirmados,
+      (SELECT COALESCE(SUM(u.monto_pagado),0) FROM codigos_promo_usos u
+        WHERE u.codigo_id = c.id)                                                  AS total_recaudado,
+      (SELECT COUNT(*) FROM ventas v
+        WHERE v.codigo_promo_id = c.id AND v.estado = 'pendiente')                 AS aplicaciones_pendientes,
+      a.nombre   AS asociada_nombre,
       a.apellido AS asociada_apellido
     FROM codigos_promo c
-    LEFT JOIN codigos_promo_usos u ON u.codigo_id = c.id
     LEFT JOIN usuarios a ON a.id = c.asociada_id
-    GROUP BY c.id, a.id
     ORDER BY c.created_at DESC
   `);
+
+  // total_usos se mantiene como alias de usos_confirmados por compatibilidad
+  // con lo que ya consumía la UI.
+  for (const c of codigos) c.total_usos = c.usos_confirmados;
 
   return NextResponse.json({ codigos });
 }

@@ -11,35 +11,52 @@ import {
 import FotoUpload from "@/components/dashboard/FotoUpload";
 import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
 import { useMobile } from "@/context/MobileContext";
+import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe } from "@/lib/campos-perfil";
 
-const SECCIONES = [
-  { id:"personal",    icon:User,      color:"#ec4899", bg:"#fce7f3", titulo:"Información personal",    desc:"Datos básicos de identificación",    campos_req:["cedula","telefono","fecha_nacimiento","ciudad","pais"] },
-  { id:"habilidades", icon:Wrench,    color:"#7c3aed", bg:"#ede9fe", titulo:"Requisitos y habilidades", desc:"Inglés, licencia y primeros auxilios", campos_req:["conoce_requisitos_26","conoce_requisitos_18_20","curso_primeros_auxilios","nivel_ingles","licencia_conduccion","habilidad_conduccion"] },
-  { id:"situacion",   icon:Briefcase, color:"#d97706", bg:"#fef3c7", titulo:"Situación actual",          desc:"Qué estás haciendo actualmente",     campos_req:["situacion_actual"] },
-  { id:"salud",       icon:Heart,     color:"#ef4444", bg:"#fee2e2", titulo:"Salud",                     desc:"Condiciones médicas relevantes",      campos_req:["enfermedad_medicamentos","enfermedad_grave","depresion_panico","trastorno_alimenticio","autolesiones","abuso_sustancias","detalle_salud_mental","isotretinoina","condiciones_fisicas","alergia_medicamentos","dosis_covid","vacuna_covid"] },
-  { id:"experiencia", icon:Baby,      color:"#10b981", bg:"#d1fae5", titulo:"Experiencia con niños",     desc:"Horas y tipo de experiencia",         campos_req:["exp_ninos_externos","horas_exp_ninos"] },
-  { id:"visas",       icon:FileCheck, color:"#1d4ed8", bg:"#dbeafe", titulo:"Visas y compromisos",       desc:"Historial migratorio",                campos_req:["visa_negada","visa_cancelada","familiar_residencia_usa","familiar_visa_estudio_usa","overstay_otro_pais","entiende_intercambio_cultural","consciente_riesgo_familiar","participo_programa_ap"] },
+// La presentación vive acá; QUÉ es obligatorio vive en lib/campos-perfil.js,
+// que comparten el formulario, el servidor y el cálculo de progreso.
+const PRESENTACION = [
+  { icon:User,      color:"#ec4899", bg:"#fce7f3", desc:"Datos básicos de identificación" },
+  { icon:Wrench,    color:"#7c3aed", bg:"#ede9fe", desc:"Inglés, licencia y primeros auxilios" },
+  { icon:Briefcase, color:"#d97706", bg:"#fef3c7", desc:"Qué estás haciendo actualmente" },
+  { icon:Heart,     color:"#ef4444", bg:"#fee2e2", desc:"Condiciones médicas relevantes" },
+  { icon:Baby,      color:"#10b981", bg:"#d1fae5", desc:"Horas y tipo de experiencia" },
+  { icon:FileCheck, color:"#1d4ed8", bg:"#dbeafe", desc:"Historial migratorio" },
 ];
+const SECCIONES = PARTE1.map((s,i) => ({ ...s, ...PRESENTACION[i] }));
 
-function seccionCompleta(s, form) {
-  return s.campos_req.every(c => form[c] && String(form[c]).trim() !== "");
-}
+const seccionCompleta = (s, form) => seccionCompletaDe(s, form);
 
 const IC = { width:"100%", border:"1.5px solid #f0dde2", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color .15s" };
+// El borde rojo se pierde al enfocar el campo (la regla :focus de la página
+// usa !important sobre border-color), así que el error se marca además con
+// un outline inline, que sí sobrevive al foco.
+const IC_ERR = { ...IC, border:"1.5px solid #dc2626", background:"#fef2f2", outline:"2px solid #dc2626", outlineOffset:"1px" };
 const LC = { fontSize:11, fontWeight:700, color:"#1e1033", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
 
-function Radio({ name, options, value, onChange }) {
+function Radio({ name, options, value, onChange, error }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4,
+      ...(error ? { border:"1.5px solid #dc2626", background:"#fef2f2", borderRadius:12, padding:"10px 12px" } : {}) }}>
       {options.map(opt => (
         <label key={opt} onClick={()=>onChange(name,opt)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
-          <div style={{ width:20,height:20,borderRadius:"50%",border:`2px solid ${value===opt?"#ec4899":"#f0dde2"}`,background:value===opt?"#ec4899":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .12s" }}>
+          <div style={{ width:20,height:20,borderRadius:"50%",border:`2px solid ${value===opt?"#ec4899":error?"#dc2626":"#f0dde2"}`,background:value===opt?"#ec4899":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .12s" }}>
             {value===opt&&<div style={{ width:8,height:8,borderRadius:"50%",background:"#fff" }}/>}
           </div>
           <span style={{ fontSize:13,color:"#1e1033",lineHeight:1.4 }}>{opt}</span>
         </label>
       ))}
     </div>
+  );
+}
+
+/** Mensaje bajo un campo obligatorio sin diligenciar. */
+function Msg({ visible }) {
+  if (!visible) return null;
+  return (
+    <p style={{ fontSize:11.5, color:"#dc2626", fontWeight:600, margin:"5px 0 0" }}>
+      Este campo es obligatorio.
+    </p>
   );
 }
 
@@ -69,6 +86,8 @@ export default function PerfilEvaluacionPage() {
   const [toast,        setToast]        = useState(null);
   const [user,         setUser]         = useState(null);
   const [errorVal,     setErrorVal]     = useState("");
+  // Campos obligatorios marcados en rojo tras una validación fallida.
+  const [faltantes,    setFaltantes]    = useState([]);
 
   useEffect(() => {
     const safe = (p,fb=null) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -91,8 +110,43 @@ export default function PerfilEvaluacionPage() {
     });
   }, []);
 
-  const set = (name, value) => setForm(prev=>({...prev,[name]:value}));
+  const set = (name, value) => {
+    setForm(prev=>({...prev,[name]:value}));
+    // La marca de error desaparece en cuanto la candidata diligencia el campo.
+    if (String(value ?? "").trim() !== "") setFaltantes(f => f.filter(c => c.name !== name));
+  };
   const hi  = e => set(e.target.name, e.target.value);
+
+  // ── Validación ────────────────────────────────────────────────────────────
+  const enError = (name) => faltantes.some(c => c.name === name);
+  const ic = (name) => (enError(name) ? IC_ERR : IC);
+
+  /** Marca los faltantes, arma el resumen y lleva el foco al primero. */
+  const señalarFaltantes = (lista) => {
+    setFaltantes(lista);
+    setErrorVal(
+      lista.length === 1
+        ? `Falta diligenciar: ${lista[0].label}.`
+        : `Faltan ${lista.length} campos por diligenciar: ${lista.map(c=>c.label).join(", ")}.`
+    );
+    // Foco en el primer campo con error.
+    setTimeout(() => {
+      const el = document.querySelector(`[name="${lista[0].name}"]`);
+      if (el?.scrollIntoView) el.scrollIntoView({ behavior:"smooth", block:"center" });
+      if (el?.focus) el.focus({ preventScroll:true });
+      else window.scrollTo({ top:0, behavior:"smooth" });
+    }, 60);
+  };
+
+  /** Navegar a otra sección: sólo si la actual está completa. */
+  const irASeccion = (i) => {
+    if (i === paso) return;
+    // Retroceder siempre se permite: nunca dejar a la candidata encerrada.
+    if (i < paso) { setErrorVal(""); setFaltantes([]); setPaso(i); return; }
+    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[paso], form);
+    if (!ok) { señalarFaltantes(pendientes); return; }
+    setErrorVal(""); setFaltantes([]); setPaso(i);
+  };
 
   // Sube un documento (cédula frontal/posterior) de inmediato, igual que la foto
   const subirDocumento = async (campo, base64) => {
@@ -106,23 +160,31 @@ export default function PerfilEvaluacionPage() {
 
   const guardar = async (goNext=false) => {
     setErrorVal("");
-    if (goNext) {
-      const vacios = seccion.campos_req.filter(c=>!form[c]||String(form[c]).trim()==="");
-      if (vacios.length>0) {
-        setErrorVal(`Completa todos los campos obligatorios. Faltan ${vacios.length} campo(s).`);
-        window.scrollTo({top:0,behavior:"smooth"});
-        return;
-      }
-    }
+    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[paso], form);
+
+    // Avanzar exige la sección completa. Guardar sin avanzar siempre se
+    // permite: la candidata debe poder dejar el formulario a medias.
+    if (goNext && !ok) { señalarFaltantes(pendientes); return; }
+
     setGuardando(true);
     const res = await fetch("/api/dashboard/perfil", {
       method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form),
     });
     if (res.ok) {
-      setToast("✓ Guardado correctamente");
+      if (goNext) {
+        setFaltantes([]);
+        setToast("✓ Guardado correctamente");
+        if (paso<SECCIONES.length-1) setPaso(paso+1);
+        else router.push("/dashboard/perfil");
+      } else if (!ok) {
+        // Guardado parcial: se guardó, pero le decimos qué le falta.
+        setToast("✓ Guardado — aún te faltan campos");
+        señalarFaltantes(pendientes);
+      } else {
+        setFaltantes([]);
+        setToast("✓ Guardado correctamente");
+      }
       setTimeout(()=>setToast(null),2500);
-      if (goNext&&paso<SECCIONES.length-1) setPaso(paso+1);
-      if (goNext&&paso===SECCIONES.length-1) router.push("/dashboard/perfil");
     } else setToast("Error al guardar");
     setGuardando(false);
   };
@@ -180,7 +242,7 @@ export default function PerfilEvaluacionPage() {
             {SECCIONES.map((s,i) => {
               const completa=seccionCompleta(s,form), active=i===paso;
               return (
-                <button key={s.id} onClick={()=>setPaso(i)}
+                <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"none",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"inherit",fontSize:11,fontWeight:active?700:500,transition:"all .12s",
                     background:active?s.color:completa?s.bg:"#f3f4f6",
                     color:active?"#fff":completa?s.color:"#6b7280",
@@ -203,7 +265,7 @@ export default function PerfilEvaluacionPage() {
             {SECCIONES.map((s,i) => {
               const SIcon=s.icon, active=i===paso, completa=seccionCompleta(s,form);
               return (
-                <button key={s.id} onClick={()=>setPaso(i)}
+                <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:14,border:"none",cursor:"pointer",textAlign:"left",transition:"all .12s",fontFamily:"inherit",background:active?s.bg:"transparent",boxShadow:active?`0 0 0 1.5px ${s.color}`:"none" }}>
                   <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:completa?s.bg:active?s.bg:"#f3f4f6" }}>
                     {completa?<Check size={14} style={{ color:s.color }}/>:<SIcon size={14} style={{ color:active?s.color:"#9ca3af" }}/>}
@@ -240,8 +302,28 @@ export default function PerfilEvaluacionPage() {
           <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"16px":"24px",display:"flex",flexDirection:"column",gap:18 }}>
 
             {errorVal && (
-              <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",display:"flex",alignItems:"center",gap:10,fontSize:13,color:"#dc2626",fontWeight:500 }}>
-                <span>⚠️</span>{errorVal}
+              <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#dc2626" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:8,fontWeight:700 }}>
+                  <span>⚠️</span>
+                  {faltantes.length===1
+                    ? "Falta 1 campo obligatorio por diligenciar"
+                    : `Faltan ${faltantes.length} campos obligatorios por diligenciar`}
+                </div>
+                {faltantes.length>0 && (
+                  <ul style={{ margin:"8px 0 0",paddingLeft:26,fontWeight:500,lineHeight:1.7 }}>
+                    {faltantes.map(c => (
+                      <li key={c.name}>
+                        <button onClick={()=>{
+                          const el=document.querySelector(`[name="${c.name}"]`);
+                          el?.scrollIntoView?.({ behavior:"smooth",block:"center" });
+                          el?.focus?.({ preventScroll:true });
+                        }} style={{ background:"none",border:"none",padding:0,color:"#dc2626",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
+                          {c.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 
@@ -250,8 +332,8 @@ export default function PerfilEvaluacionPage() {
               <FotoUpload value={form.foto_url} onChange={async(base64)=>{ set("foto_url",base64); await fetch("/api/dashboard/foto",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({foto_url:base64})}); }}/>
 
               <div style={G2}>
-                <div><label style={LC}>Cédula *</label><input name="cedula" type="text" placeholder="1234567890" value={form.cedula} onChange={hi} style={IC}/></div>
-                <div><label style={LC}>Teléfono *</label><input name="telefono" type="text" placeholder="+57 300 000 0000" value={form.telefono} onChange={hi} style={IC}/></div>
+                <div><label style={LC}>Cédula *</label><input name="cedula" type="text" placeholder="1234567890" value={form.cedula} onChange={hi} style={ic("cedula")}/><Msg visible={enError("cedula")}/></div>
+                <div><label style={LC}>Teléfono *</label><input name="telefono" type="text" placeholder="+57 300 000 0000" value={form.telefono} onChange={hi} style={ic("telefono")}/><Msg visible={enError("telefono")}/></div>
               </div>
 
               {/* Documento de identidad — frontal y posterior */}
@@ -274,13 +356,13 @@ export default function PerfilEvaluacionPage() {
                 </div>
               </div>
 
-              <div><label style={LC}>Fecha de nacimiento *</label><input name="fecha_nacimiento" type="date" value={(form.fecha_nacimiento||"").slice(0,10)} onChange={hi} style={IC}/></div>
+              <div><label style={LC}>Fecha de nacimiento *</label><input name="fecha_nacimiento" type="date" value={(form.fecha_nacimiento||"").slice(0,10)} onChange={hi} style={ic("fecha_nacimiento")}/><Msg visible={enError("fecha_nacimiento")}/></div>
               <div style={G2}>
-                <div><label style={LC}>Ciudad *</label><input name="ciudad" type="text" placeholder="Bogotá" value={form.ciudad} onChange={hi} style={IC}/></div>
-                <div><label style={LC}>País *</label><input name="pais" type="text" placeholder="Colombia" value={form.pais} onChange={hi} style={IC}/></div>
+                <div><label style={LC}>Ciudad *</label><input name="ciudad" type="text" placeholder="Bogotá" value={form.ciudad} onChange={hi} style={ic("ciudad")}/><Msg visible={enError("ciudad")}/></div>
+                <div><label style={LC}>País *</label><input name="pais" type="text" placeholder="Colombia" value={form.pais} onChange={hi} style={ic("pais")}/><Msg visible={enError("pais")}/></div>
               </div>
-              <div><label style={LC}>Descripción personal</label><textarea name="bio" rows={3} placeholder="Cuéntanos quién eres..." value={form.bio} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>
-              <div><label style={LC}>País de destino deseado</label><input name="pais_destino" type="text" placeholder="Estados Unidos" value={form.pais_destino} onChange={hi} style={IC}/></div>
+              <div><label style={LC}>Descripción personal</label><textarea name="bio" rows={3} placeholder="Cuéntanos quién eres..." value={form.bio} onChange={hi} style={{ ...ic("bio"),resize:"vertical" }}/><Msg visible={enError("bio")}/></div>
+              <div><label style={LC}>País de destino deseado</label><input name="pais_destino" type="text" placeholder="Estados Unidos" value={form.pais_destino} onChange={hi} style={ic("pais_destino")}/><Msg visible={enError("pais_destino")}/></div>
             </>)}
 
             {/* ── Sección 1: Habilidades ── */}
@@ -292,77 +374,77 @@ export default function PerfilEvaluacionPage() {
                 {name:"nivel_ingles",           label:"¿Cuál es tu nivel de inglés conversacional? *",                                                opts:["Ninguno","Básico","Intermedio","Avanzado"]},
                 {name:"licencia_conduccion",    label:"¿Tienes licencia de conducción? *",                                                            opts:["Si","No","Está en proceso","No, pero tengo habilidades y la puedo obtener en menos de un mes"]},
                 {name:"habilidad_conduccion",   label:"¿Cómo calificarías tus habilidades para conducir? *",                                          opts:["Nulas","Puedo conducir pero no lo hago bien.","Conduzco bien pero me falta práctica.","Me siento muy cómoda y segura."]},
-              ].map(q=><div key={q.name}><label style={LC}>{q.label}</label><Radio name={q.name} options={q.opts} value={form[q.name]} onChange={set}/></div>)}
+              ].map(q=><div key={q.name}><label style={LC}>{q.label}</label><Radio name={q.name} options={q.opts} value={form[q.name]} onChange={set} error={enError(q.name)}/><Msg visible={enError(q.name)}/></div>)}
             </>)}
 
             {/* ── Sección 2: Situación ── */}
             {paso===2 && (<>
-              <div><label style={LC}>¿Qué haces en este momento? *</label><Radio name="situacion_actual" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]} value={form.situacion_actual} onChange={set}/></div>
-              {form.situacion_actual==="Desempeño otra actividad"&&<div><label style={LC}>Explica con detalles</label><textarea name="detalle_otra_actividad" rows={3} value={form.detalle_otra_actividad} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
-              {form.situacion_actual==="Estudio"&&<div><label style={LC}>¿Qué estudias, semestre y duración?</label><textarea name="detalle_estudios" rows={3} value={form.detalle_estudios} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
-              {form.situacion_actual==="Trabajo"&&<div><label style={LC}>¿Formal o informal? ¿Desde cuándo?</label><textarea name="detalle_trabajo" rows={3} value={form.detalle_trabajo} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
-              {form.situacion_actual==="No hago nada"&&<div><label style={LC}>¿Desde cuándo?</label><textarea name="detalle_sin_ocupacion" rows={2} value={form.detalle_sin_ocupacion} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
-              <div><label style={LC}>Si ya te graduaste, ¿qué estudiaste?</label><input name="carrera_graduada" type="text" placeholder="Ej: Administración de Empresas" value={form.carrera_graduada} onChange={hi} style={IC}/></div>
+              <div><label style={LC}>¿Qué haces en este momento? *</label><Radio name="situacion_actual" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]} value={form.situacion_actual} onChange={set} error={enError("situacion_actual")}/><Msg visible={enError("situacion_actual")}/></div>
+              {form.situacion_actual==="Desempeño otra actividad"&&<div><label style={LC}>Explica con detalles *</label><textarea name="detalle_otra_actividad" rows={3} value={form.detalle_otra_actividad} onChange={hi} style={{ ...ic("detalle_otra_actividad"),resize:"vertical" }}/><Msg visible={enError("detalle_otra_actividad")}/></div>}
+              {form.situacion_actual==="Estudio"&&<div><label style={LC}>¿Qué estudias, semestre y duración? *</label><textarea name="detalle_estudios" rows={3} value={form.detalle_estudios} onChange={hi} style={{ ...ic("detalle_estudios"),resize:"vertical" }}/><Msg visible={enError("detalle_estudios")}/></div>}
+              {form.situacion_actual==="Trabajo"&&<div><label style={LC}>¿Formal o informal? ¿Desde cuándo? *</label><textarea name="detalle_trabajo" rows={3} value={form.detalle_trabajo} onChange={hi} style={{ ...ic("detalle_trabajo"),resize:"vertical" }}/><Msg visible={enError("detalle_trabajo")}/></div>}
+              {form.situacion_actual==="No hago nada"&&<div><label style={LC}>¿Desde cuándo? *</label><textarea name="detalle_sin_ocupacion" rows={2} value={form.detalle_sin_ocupacion} onChange={hi} style={{ ...ic("detalle_sin_ocupacion"),resize:"vertical" }}/><Msg visible={enError("detalle_sin_ocupacion")}/></div>}
+              <div><label style={LC}>Si ya te graduaste, ¿qué estudiaste?</label><input name="carrera_graduada" type="text" placeholder="Ej: Administración de Empresas" value={form.carrera_graduada} onChange={hi} style={ic("carrera_graduada")}/><Msg visible={enError("carrera_graduada")}/></div>
             </>)}
 
             {/* ── Sección 3: Salud ── */}
             {paso===3 && (<>
               {[
-                {name:"enfermedad_medicamentos",label:"¿Tienes enfermedad que requiera medicamentos constantes? *",opts:["Si","No"],dk:"detalle_enfermedad_med",dl:"Por favor explica"},
-                {name:"enfermedad_grave",       label:"¿Tienes o has tenido alguna enfermedad grave? *",          opts:["Si","No"],dk:"detalle_enfermedad_grave",dl:"Explica con detalle"},
+                {name:"enfermedad_medicamentos",label:"¿Tienes enfermedad que requiera medicamentos constantes? *",opts:["Si","No"],dk:"detalle_enfermedad_med",dl:"Por favor explica *"},
+                {name:"enfermedad_grave",       label:"¿Tienes o has tenido alguna enfermedad grave? *",          opts:["Si","No"],dk:"detalle_enfermedad_grave",dl:"Explica con detalle *"},
                 {name:"depresion_panico",       label:"¿Has sufrido depresión o ataques de pánico diagnosticados? *",opts:["Si","No"]},
                 {name:"trastorno_alimenticio",  label:"¿Has sufrido trastorno alimenticio? *",                   opts:["Si","No"]},
                 {name:"autolesiones",           label:"¿Te has autolesionado? *",                                opts:["Si","No"]},
                 {name:"abuso_sustancias",       label:"¿Has abusado de sustancias tóxicas? *",                  opts:["Si","No"]},
                 {name:"isotretinoina",          label:"¿Sigues tratamiento con Isotretinoina últimos 3 meses? *",opts:["Si","No"]},
                 {name:"condiciones_fisicas",    label:"¿Sufres condiciones físicas que impidan cuidar niños? *", opts:["Si","No"]},
-                {name:"alergia_medicamentos",   label:"¿Eres alérgica a algún medicamento? *",                  opts:["Si","No"],dk:"detalle_alergias",dl:"¿A cuáles?"},
+                {name:"alergia_medicamentos",   label:"¿Eres alérgica a algún medicamento? *",                  opts:["Si","No"],dk:"detalle_alergias",dl:"¿A cuáles? *"},
               ].map(q=>(
                 <div key={q.name}>
                   <label style={LC}>{q.label}</label>
-                  <Radio name={q.name} options={q.opts} value={form[q.name]} onChange={set}/>
-                  {q.dk&&form[q.name]==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>{q.dl}</label><textarea name={q.dk} rows={3} value={form[q.dk]} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
+                  <Radio name={q.name} options={q.opts} value={form[q.name]} onChange={set} error={enError(q.name)}/><Msg visible={enError(q.name)}/>
+                  {q.dk&&form[q.name]==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>{q.dl}</label><textarea name={q.dk} rows={3} value={form[q.dk]} onChange={hi} style={{ ...ic(q.dk),resize:"vertical" }}/><Msg visible={enError(q.dk)}/></div>}
                 </div>
               ))}
-              <div><label style={LC}>Si has tenido alteración mental, ¿cuándo fue y cómo la controlaste? *</label><textarea name="detalle_salud_mental" rows={3} placeholder="Si no aplica, escribe 'No aplica'" value={form.detalle_salud_mental} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>
-              <div><label style={LC}>¿Cuántas dosis de vacuna covid? *</label><Radio name="dosis_covid" options={["Ninguna","Una","Dos","Más de dos"]} value={form.dosis_covid} onChange={set}/></div>
-              <div><label style={LC}>¿Qué vacuna te aplicaron? *</label><input name="vacuna_covid" type="text" placeholder="Ej: Pfizer, Moderna..." value={form.vacuna_covid} onChange={hi} style={IC}/></div>
+              <div><label style={LC}>Si has tenido alteración mental, ¿cuándo fue y cómo la controlaste? *</label><textarea name="detalle_salud_mental" rows={3} placeholder="Si no aplica, escribe 'No aplica'" value={form.detalle_salud_mental} onChange={hi} style={{ ...ic("detalle_salud_mental"),resize:"vertical" }}/><Msg visible={enError("detalle_salud_mental")}/></div>
+              <div><label style={LC}>¿Cuántas dosis de vacuna covid? *</label><Radio name="dosis_covid" options={["Ninguna","Una","Dos","Más de dos"]} value={form.dosis_covid} onChange={set} error={enError("dosis_covid")}/><Msg visible={enError("dosis_covid")}/></div>
+              <div><label style={LC}>¿Qué vacuna te aplicaron? *</label><input name="vacuna_covid" type="text" placeholder="Ej: Pfizer, Moderna..." value={form.vacuna_covid} onChange={hi} style={ic("vacuna_covid")}/><Msg visible={enError("vacuna_covid")}/></div>
             </>)}
 
             {/* ── Sección 4: Experiencia ── */}
             {paso===4 && (<>
-              <div><label style={LC}>¿Tienes experiencia con niños que no sean de tu familia? *</label><Radio name="exp_ninos_externos" options={["Si","No","La estoy haciendo"]} value={form.exp_ninos_externos} onChange={set}/></div>
-              <div><label style={LC}>¿Cuántas horas de experiencia tienes? *</label><Radio name="horas_exp_ninos" options={["Menos de 500 horas","Entre 501 y 800 horas","Entre 801 y 1500 horas","Más de 1500"]} value={form.horas_exp_ninos} onChange={set}/></div>
+              <div><label style={LC}>¿Tienes experiencia con niños que no sean de tu familia? *</label><Radio name="exp_ninos_externos" options={["Si","No","La estoy haciendo"]} value={form.exp_ninos_externos} onChange={set} error={enError("exp_ninos_externos")}/><Msg visible={enError("exp_ninos_externos")}/></div>
+              <div><label style={LC}>¿Cuántas horas de experiencia tienes? *</label><Radio name="horas_exp_ninos" options={["Menos de 500 horas","Entre 501 y 800 horas","Entre 801 y 1500 horas","Más de 1500"]} value={form.horas_exp_ninos} onChange={set} error={enError("horas_exp_ninos")}/><Msg visible={enError("horas_exp_ninos")}/></div>
             </>)}
 
             {/* ── Sección 5: Visas ── */}
             {paso===5 && (<>
               <div>
                 <label style={LC}>¿Te han negado alguna visa? *</label>
-                <Radio name="visa_negada" options={["Si","No"]} value={form.visa_negada} onChange={set}/>
-                {form.visa_negada==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>Detalla cuándo, razón y país</label><textarea name="detalle_visa_negada" rows={3} value={form.detalle_visa_negada} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
+                <Radio name="visa_negada" options={["Si","No"]} value={form.visa_negada} onChange={set} error={enError("visa_negada")}/><Msg visible={enError("visa_negada")}/>
+                {form.visa_negada==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>Detalla cuándo, razón y país *</label><textarea name="detalle_visa_negada" rows={3} value={form.detalle_visa_negada} onChange={hi} style={{ ...ic("detalle_visa_negada"),resize:"vertical" }}/><Msg visible={enError("detalle_visa_negada")}/></div>}
               </div>
-              <div><label style={LC}>¿Te han cancelado alguna visa? *</label><textarea name="visa_cancelada" rows={2} placeholder="Si no aplica, escribe 'No'" value={form.visa_cancelada} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>
+              <div><label style={LC}>¿Te han cancelado alguna visa? *</label><textarea name="visa_cancelada" rows={2} placeholder="Si no aplica, escribe 'No'" value={form.visa_cancelada} onChange={hi} style={{ ...ic("visa_cancelada"),resize:"vertical" }}/><Msg visible={enError("visa_cancelada")}/></div>
               <div>
                 <label style={LC}>¿Familiar en USA solicitando residencia o green card? *</label>
-                <Radio name="familiar_residencia_usa" options={["Si","No"]} value={form.familiar_residencia_usa} onChange={set}/>
-                {form.familiar_residencia_usa==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>¿Quién y qué solicita?</label><textarea name="detalle_familiar_residencia" rows={3} value={form.detalle_familiar_residencia} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
+                <Radio name="familiar_residencia_usa" options={["Si","No"]} value={form.familiar_residencia_usa} onChange={set} error={enError("familiar_residencia_usa")}/><Msg visible={enError("familiar_residencia_usa")}/>
+                {form.familiar_residencia_usa==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>¿Quién y qué solicita? *</label><textarea name="detalle_familiar_residencia" rows={3} value={form.detalle_familiar_residencia} onChange={hi} style={{ ...ic("detalle_familiar_residencia"),resize:"vertical" }}/><Msg visible={enError("detalle_familiar_residencia")}/></div>}
               </div>
               <div>
                 <label style={LC}>¿Familiar en USA con visa de estudio o en situación ilegal? *</label>
-                <Radio name="familiar_visa_estudio_usa" options={["Si","No"]} value={form.familiar_visa_estudio_usa} onChange={set}/>
-                {form.familiar_visa_estudio_usa==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>¿Quién y cuál es su situación?</label><textarea name="detalle_familiar_visa_estudio" rows={3} value={form.detalle_familiar_visa_estudio} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>}
+                <Radio name="familiar_visa_estudio_usa" options={["Si","No"]} value={form.familiar_visa_estudio_usa} onChange={set} error={enError("familiar_visa_estudio_usa")}/><Msg visible={enError("familiar_visa_estudio_usa")}/>
+                {form.familiar_visa_estudio_usa==="Si"&&<div style={{ marginTop:10 }}><label style={LC}>¿Quién y cuál es su situación? *</label><textarea name="detalle_familiar_visa_estudio" rows={3} value={form.detalle_familiar_visa_estudio} onChange={hi} style={{ ...ic("detalle_familiar_visa_estudio"),resize:"vertical" }}/><Msg visible={enError("detalle_familiar_visa_estudio")}/></div>}
               </div>
-              <div><label style={LC}>¿Has permanecido en otro país más tiempo del autorizado? *</label><textarea name="overstay_otro_pais" rows={2} placeholder="Si no aplica, escribe 'No'" value={form.overstay_otro_pais} onChange={hi} style={{ ...IC,resize:"vertical" }}/></div>
-              <div><label style={LC}>¿Entiendes que el programa es solo intercambio cultural y debes regresar? *</label><Radio name="entiende_intercambio_cultural" options={["SI","No"]} value={form.entiende_intercambio_cultural} onChange={set}/></div>
-              <div><label style={LC}>¿Consciente de que si un familiar pide asilo el programa se cancela sin devolución? *</label><Radio name="consciente_riesgo_familiar" options={["SI","No"]} value={form.consciente_riesgo_familiar} onChange={set}/></div>
+              <div><label style={LC}>¿Has permanecido en otro país más tiempo del autorizado? *</label><textarea name="overstay_otro_pais" rows={2} placeholder="Si no aplica, escribe 'No'" value={form.overstay_otro_pais} onChange={hi} style={{ ...ic("overstay_otro_pais"),resize:"vertical" }}/><Msg visible={enError("overstay_otro_pais")}/></div>
+              <div><label style={LC}>¿Entiendes que el programa es solo intercambio cultural y debes regresar? *</label><Radio name="entiende_intercambio_cultural" options={["SI","No"]} value={form.entiende_intercambio_cultural} onChange={set} error={enError("entiende_intercambio_cultural")}/><Msg visible={enError("entiende_intercambio_cultural")}/></div>
+              <div><label style={LC}>¿Consciente de que si un familiar pide asilo el programa se cancela sin devolución? *</label><Radio name="consciente_riesgo_familiar" options={["SI","No"]} value={form.consciente_riesgo_familiar} onChange={set} error={enError("consciente_riesgo_familiar")}/><Msg visible={enError("consciente_riesgo_familiar")}/></div>
               <div>
                 <label style={LC}>¿Has participado antes en Au Pair USA? *</label>
-                <Radio name="participo_programa_ap" options={["Si","No"]} value={form.participo_programa_ap} onChange={set}/>
+                <Radio name="participo_programa_ap" options={["Si","No"]} value={form.participo_programa_ap} onChange={set} error={enError("participo_programa_ap")}/><Msg visible={enError("participo_programa_ap")}/>
                 {form.participo_programa_ap==="Si"&&(
                   <div style={{ display:"flex",flexDirection:"column",gap:14,marginTop:14 }}>
-                    <div><label style={LC}>¿Finalizaste exitosamente?</label><Radio name="finalizo_programa_ap" options={["Si","No","No aplica"]} value={form.finalizo_programa_ap} onChange={set}/></div>
-                    <div><label style={LC}>¿Puedes proveer certificados?</label><Radio name="puede_proveer_certificados" options={["Si","No"]} value={form.puede_proveer_certificados} onChange={set}/></div>
+                    <div><label style={LC}>¿Finalizaste exitosamente? *</label><Radio name="finalizo_programa_ap" options={["Si","No","No aplica"]} value={form.finalizo_programa_ap} onChange={set} error={enError("finalizo_programa_ap")}/><Msg visible={enError("finalizo_programa_ap")}/></div>
+                    <div><label style={LC}>¿Puedes proveer certificados? *</label><Radio name="puede_proveer_certificados" options={["Si","No"]} value={form.puede_proveer_certificados} onChange={set} error={enError("puede_proveer_certificados")}/><Msg visible={enError("puede_proveer_certificados")}/></div>
                   </div>
                 )}
               </div>
@@ -396,7 +478,7 @@ export default function PerfilEvaluacionPage() {
             {SECCIONES.map((s,i) => {
               const completa=seccionCompleta(s,form);
               return (
-                <button key={i} onClick={()=>setPaso(i)}
+                <button key={i} onClick={()=>irASeccion(i)}
                   style={{ width:i===paso?26:9,height:9,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:completa?s.color:i===paso?"#ec4899":"#e5e7eb" }}/>
               );
             })}

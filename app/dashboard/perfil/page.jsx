@@ -13,36 +13,22 @@ import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema-candidata";
 import { useAccessGate, GateLoading, GateScreen } from "@/components/dashboard/AccessGate";
 
-const SECCIONES = [
-  { id:"personal",    titulo:"Datos personales",        icon:User,          campos:["cedula","telefono","fecha_nacimiento","ciudad","pais"] },
-  { id:"habilidades", titulo:"Habilidades y requisitos",icon:ClipboardCheck,campos:["conoce_requisitos_26","conoce_requisitos_18_20","curso_primeros_auxilios","nivel_ingles","licencia_conduccion","habilidad_conduccion"] },
-  { id:"situacion",   titulo:"Tu situación actual",     icon:Briefcase,     campos:["situacion_actual"] },
-  { id:"salud",       titulo:"Salud",                   icon:Heart,         campos:["enfermedad_medicamentos","enfermedad_grave","depresion_panico","trastorno_alimenticio","autolesiones","abuso_sustancias","detalle_salud_mental","isotretinoina","condiciones_fisicas","alergia_medicamentos","dosis_covid","vacuna_covid"] },
-  { id:"experiencia", titulo:"Experiencia con niños",   icon:Baby,          campos:["exp_ninos_externos","horas_exp_ninos"] },
-  { id:"visas",       titulo:"Visas y antecedentes",    icon:Plane,         campos:["visa_negada","visa_cancelada","familiar_residencia_usa","familiar_visa_estudio_usa","overstay_otro_pais","entiende_intercambio_cultural","consciente_riesgo_familiar","participo_programa_ap"] },
-];
+import {
+  PARTE1, seccionCompleta as seccionCompletaDe, progresoParte,
+} from "@/lib/campos-perfil";
 
-const seccionCompleta = (p, s) => !!p && s.campos.every(c => p[c] !== undefined && p[c] !== null && String(p[c]).trim() !== "");
-
-// Parte 2 — el perfil detallado que se presenta a la agencia/familias.
-const SECCIONES_AGENCIA = [
-  { campos:["estatura","peso","nacionalidad","tiene_pasaporte"] },
-  { campos:["exp_ninos_externos","horas_exp_ninos","horas_childcare"] },
-  { campos:["situacion_actual","carrera_graduada"] },
-  { campos:["licencia_conduccion","tipo_licencia"] },
-  { campos:["bio","hobbies"] },
-  { campos:["por_que_au_pair"] },
-  { campos:["enfermedad_medicamentos","dieta_especial"] },
-  { campos:["referencia_1_nombre","referencia_1_email"] },
-  { campos:["foto_url"] },
+// Los íconos y títulos de esta pantalla; los campos obligatorios vienen de
+// lib/campos-perfil.js, para que este progreso y la validación del formulario
+// no puedan discrepar (antes cada uno usaba su propio criterio).
+const ICONOS = [User, ClipboardCheck, Briefcase, Heart, Baby, Plane];
+const TITULOS = [
+  "Datos personales", "Habilidades y requisitos", "Tu situación actual",
+  "Salud", "Experiencia con niños", "Visas y antecedentes",
 ];
-function progresoAgencia(p) {
-  if (!p) return 0;
-  const comp = SECCIONES_AGENCIA.filter(s =>
-    s.campos.filter(c => p[c] && String(p[c]).trim() !== "" && p[c] !== "0").length >= Math.ceil(s.campos.length/2)
-  ).length;
-  return Math.round((comp / SECCIONES_AGENCIA.length) * 100);
-}
+const SECCIONES = PARTE1.map((s,i) => ({ ...s, icon:ICONOS[i], titulo:TITULOS[i] }));
+
+const seccionCompleta = (p, s) => !!p && seccionCompletaDe(s, p);
+const progresoAgencia = (p) => (p ? progresoParte(2, p) : 0);
 
 export default function CuentanosDeTiPage() {
   const router = useRouter();

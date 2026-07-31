@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
-import { writeFile, mkdir } from "fs/promises";
+import { guardarArchivo, borrarArchivo, archivoDisponible } from "@/lib/almacenamiento-archivos";
 import path from "path";
 
 // ── GET /api/admin/recursos?sesion_id=X ──────────────────────────────────────
@@ -14,13 +14,21 @@ export async function GET(req) {
   const sesion_id = searchParams.get("sesion_id");
   if (!sesion_id) return NextResponse.json({ error: "sesion_id requerido" }, { status: 400 });
 
-  const [recursos] = await dbAupair.query(
+  const [filas] = await dbAupair.query(
     `SELECT id, nombre, tipo, url, tamano_kb, created_at
      FROM sesion_recursos
      WHERE sesion_id = ?
      ORDER BY created_at DESC`,
     [sesion_id]
   );
+
+  // Igual que los documentos: el archivo se abre por ruta autenticada y se
+  // informa si el archivo sigue en el almacenamiento.
+  const recursos = await Promise.all(filas.map(async r => ({
+    ...r,
+    url: `/api/sesion-recursos/${r.id}/archivo`,
+    disponible: await archivoDisponible(r.url),
+  })));
 
   return NextResponse.json({ recursos });
 }
@@ -45,30 +53,30 @@ export async function POST(req) {
   const tipoMap   = { ".pdf": "pdf", ".doc": "docx", ".docx": "docx" };
   const tipo      = tipoMap[ext] || "otro";
 
-  // Guardar archivo en /public/uploads/recursos/
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "recursos");
-  await mkdir(uploadDir, { recursive: true });
-
-  const timestamp  = Date.now();
-  const safeNombre = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const filename   = `${timestamp}_${safeNombre}`;
-  const filepath   = path.join(uploadDir, filename);
+  // Guardar fuera de public/ — ver lib/almacenamiento-archivos.js
   const buffer     = Buffer.from(await file.arrayBuffer());
-  await writeFile(filepath, buffer);
-
-  const url        = `/uploads/recursos/${filename}`;
+  const referencia = await guardarArchivo({
+    carpeta:        ["recursos"],
+    prefijo:        path.basename(file.name, ext),
+    nombreOriginal: file.name,
+    buffer,
+  });
   const tamano_kb  = Math.round(buffer.length / 1024);
 
-  // Guardar en BD
+  // Guardar en BD (la columna url guarda la referencia, no una URL pública)
   const [result] = await dbAupair.query(
     `INSERT INTO sesion_recursos (sesion_id, nombre, tipo, url, tamano_kb)
      VALUES (?, ?, ?, ?, ?)`,
-    [sesion_id, nombre, tipo, url, tamano_kb]
+    [sesion_id, nombre, tipo, referencia, tamano_kb]
   );
 
   return NextResponse.json({
     ok: true,
-    recurso: { id: result.insertId, nombre, tipo, url, tamano_kb },
+    recurso: {
+      id: result.insertId, nombre, tipo, tamano_kb,
+      url: `/api/sesion-recursos/${result.insertId}/archivo`,
+      disponible: true,
+    },
   });
 }
 
@@ -85,11 +93,7 @@ export async function DELETE(req) {
   const [[recurso]] = await dbAupair.query(
     "SELECT url FROM sesion_recursos WHERE id = ?", [id]
   );
-  if (recurso?.url) {
-    const { unlink } = await import("fs/promises");
-    const abs = path.join(process.cwd(), "public", recurso.url);
-    await unlink(abs).catch(() => {}); // si ya no existe, ignorar
-  }
+  if (recurso?.url) await borrarArchivo(recurso.url);
 
   await dbAupair.query("DELETE FROM sesion_recursos WHERE id = ?", [id]);
   return NextResponse.json({ ok: true });

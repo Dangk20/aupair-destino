@@ -119,7 +119,8 @@ export default function DocumentosPage() {
 
   const docsPorTipo = Object.fromEntries(docs.map(d=>[d.tipo_doc,d]));
   const docTotal = requeridos.length;
-  const docCount = requeridos.filter(r=>docsPorTipo[r.tipo]).length;
+  // Un documento cuyo archivo se perdió del servidor no cuenta como cargado.
+  const docCount = requeridos.filter(r=>docsPorTipo[r.tipo] && docsPorTipo[r.tipo].disponible !== false).length;
   const pct = docTotal? Math.round(docCount/docTotal*100):0;
   const docsDone = docTotal>0 && docCount>=docTotal;
   const hint = docCount===0 ? "Empieza por tu pasaporte y cédula."
@@ -161,17 +162,26 @@ export default function DocumentosPage() {
         {requeridos.map(r => {
           const subido = docsPorTipo[r.tipo];
           const up = !!subido;
+          // El registro existe pero su archivo no está en el servidor: la
+          // candidata tiene que volver a subirlo.
+          const perdido = up && subido.disponible === false;
           const DocIcon = DOC_ICON[r.tipo] || FileText;
           return (
-            <div key={r.tipo} style={{ background:"#fff",border:`1.5px solid ${up?T.primary3:"transparent"}`,borderRadius:16,padding:13,display:"flex",alignItems:"center",gap:12,boxShadow:T.shadow }}>
-              <div style={{ width:42,height:42,borderRadius:12,background:up?T.primary:T.lilac,color:up?"#fff":T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><DocIcon size={20}/></div>
+            <div key={r.tipo} style={{ background:"#fff",border:`1.5px solid ${perdido?"#fca5a5":up?T.primary3:"transparent"}`,borderRadius:16,padding:13,display:"flex",alignItems:"center",gap:12,boxShadow:T.shadow }}>
+              <div style={{ width:42,height:42,borderRadius:12,background:perdido?"#fee2e2":up?T.primary:T.lilac,color:perdido?"#dc2626":up?"#fff":T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><DocIcon size={20}/></div>
               <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ fontWeight:600,fontSize:14,color:T.text,lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.label}</div>
-                <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:up?T.primary:T.textSoft,fontWeight:600 }}>
-                  {up && <Check size={12}/>}{up?"Cargado":"Pendiente"}
+                <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:perdido?"#dc2626":up?T.primary:T.textSoft,fontWeight:600 }}>
+                  {up && !perdido && <Check size={12}/>}
+                  {perdido?"Vuelve a subirlo":up?"Cargado":"Pendiente"}
                 </div>
               </div>
-              {up ? (
+              {perdido ? (
+                <button onClick={()=>setModal(r)}
+                  style={{ background:"#dc2626",color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
+                  Volver a subir
+                </button>
+              ) : up ? (
                 <div style={{ display:"flex",gap:6,flexShrink:0 }}>
                   <a href={subido.url} target="_blank" rel="noopener noreferrer" style={{ width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.textSoft }}><Eye size={14}/></a>
                   <button onClick={()=>eliminar(subido.id)} disabled={deleting===subido.id} style={{ background:T.lilac,color:T.primary,border:"none",borderRadius:10,padding:"9px 12px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer" }}>

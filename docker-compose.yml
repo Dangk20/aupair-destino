@@ -7,7 +7,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: destino_aupair
-    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - dbdata:/var/lib/mysql
     # Solo accesible dentro de la red de compose (no expuesto al mundo)
@@ -31,8 +30,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      # Documentos fuera de public/: se sirven autenticados por /api/documentos
+      UPLOADS_DIR: /app/data/uploads
     volumes:
-      - uploads:/app/public/uploads
+      - uploads:/app/data/uploads
     ports:
       - "127.0.0.1:3000:3000"   # solo localhost → nginx del host hace de proxy
     depends_on:

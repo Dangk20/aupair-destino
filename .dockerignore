@@ -10,6 +10,14 @@ dump-railway.sql
 *.md
 saasly-nextjs-1.0.0
 public/uploads/documentos
+# Archivos subidos en local: nunca deben viajar dentro de la imagen
+data
+# 32 MB que ningún componente referencia; sólo engordaban la imagen
+video1.mp4
+# Planeación y config de herramientas: no hacen falta en runtime
+openspec
+.claude
+.playwright-mcp
 check-asesoras.js
 test-api-asociadas.js
 test-insert-asesora.sql

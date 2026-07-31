@@ -258,10 +258,14 @@ export default function AdminCodigosPromoPage() {
     setTimeout(()=>setCopiado(null),2000);
   };
 
-  /* Stats generales */
-  const totalActivos   = codigos.filter(c=>c.activo&&!isVencido(c.fecha_expiracion)).length;
-  const totalUsos      = codigos.reduce((s,c)=>s+(Number(c.total_usos)||0),0);
-  const totalRecaudado = codigos.reduce((s,c)=>s+(Number(c.total_recaudado)||0),0);
+  /* Stats generales
+     Usos confirmados = ventas pagadas (consumen cupo).
+     Aplicaciones pendientes = candidatas que ya aplicaron el código y aún no
+     tienen la venta confirmada; no consumen cupo. */
+  const totalActivos    = codigos.filter(c=>c.activo&&!isVencido(c.fecha_expiracion)).length;
+  const totalUsos       = codigos.reduce((s,c)=>s+(Number(c.usos_confirmados)||0),0);
+  const totalPendientes = codigos.reduce((s,c)=>s+(Number(c.aplicaciones_pendientes)||0),0);
+  const totalRecaudado  = codigos.reduce((s,c)=>s+(Number(c.total_recaudado)||0),0);
 
   return (
     <div style={{ minHeight:"100vh",background:"#f5f0ff",fontFamily:"system-ui,-apple-system,sans-serif" }}>
@@ -285,10 +289,11 @@ export default function AdminCodigosPromoPage() {
       <div style={{ maxWidth:1200,margin:"0 auto",padding:isMobile?"14px 16px 40px":"20px 24px 40px" }}>
 
         {/* Stats */}
-        <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:isMobile?10:14,marginBottom:16 }}>
+        <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?10:14,marginBottom:16 }}>
           {[
             { n:totalActivos,            label:"Códigos activos",      color:"#7c5cc4",bg:"#f5f0ff",emoji:"🎟️" },
-            { n:totalUsos,               label:"Total de usos",        color:"#059669",bg:"#d1fae5",emoji:"✅" },
+            { n:totalUsos,               label:"Usos confirmados",     color:"#059669",bg:"#d1fae5",emoji:"✅" },
+            { n:totalPendientes,         label:"Aplicados sin pagar",  color:"#d97706",bg:"#fef3c7",emoji:"⏳" },
             { n:`$${totalRecaudado.toFixed(0)}`, label:"Recaudado con códigos", color:"#d97706",bg:"#fef3c7",emoji:"💰" },
           ].map((s,i)=>(
             <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #e0d4f5",padding:isMobile?"12px":"16px 20px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
@@ -319,11 +324,15 @@ export default function AdminCodigosPromoPage() {
         ) : (
           <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
             {codigos.map(c => {
+              // El cupo se evalúa SÓLO contra los usos confirmados (ventas
+              // pagadas). Las aplicaciones pendientes no agotan el código.
+              const usosConf   = Number(c.usos_confirmados ?? c.usos_actuales ?? 0);
+              const pendientes = Number(c.aplicaciones_pendientes || 0);
               const vencido    = isVencido(c.fecha_expiracion);
-              const agotado    = c.usos_max && c.usos_actuales >= c.usos_max;
+              const agotado    = c.usos_max && usosConf >= c.usos_max;
               const inactivo   = !c.activo || vencido || agotado;
-              const usosRest   = c.usos_max ? c.usos_max - c.usos_actuales : null;
-              const pctUsos    = c.usos_max ? Math.round((c.usos_actuales/c.usos_max)*100) : null;
+              const usosRest   = c.usos_max ? c.usos_max - usosConf : null;
+              const pctUsos    = c.usos_max ? Math.round((usosConf/c.usos_max)*100) : null;
 
               return (
                 <div key={c.id} style={{ background:"#fff",borderRadius:20,border:`1.5px solid ${inactivo?"#e5e7eb":"#c4b0e8"}`,padding:isMobile?"14px 16px":"18px 22px",boxShadow:"0 1px 4px rgba(0,0,0,.04)",opacity:inactivo?.7:1 }}>
@@ -381,7 +390,7 @@ export default function AdminCodigosPromoPage() {
                         <div style={{ flex:1 }}>
                           <div style={{ display:"flex",justifyContent:"space-between",marginBottom:3 }}>
                             <span style={{ fontSize:11,color:"#374151" }}>
-                              {c.usos_actuales||0} usos{c.usos_max?` / ${c.usos_max}`:` / ∞`}
+                              {usosConf} usos{c.usos_max?` / ${c.usos_max}`:` / ∞`}
                             </span>
                             {usosRest!==null && <span style={{ fontSize:11,color:"#9a80c0" }}>{usosRest} rest.</span>}
                           </div>
@@ -389,6 +398,11 @@ export default function AdminCodigosPromoPage() {
                             <div style={{ height:5,background:"#ede9f8",borderRadius:99,overflow:"hidden" }}>
                               <div style={{ height:"100%",width:`${pctUsos}%`,background:pctUsos>80?"#dc2626":"#7c5cc4",borderRadius:99 }}/>
                             </div>
+                          )}
+                          {pendientes>0 && (
+                            <p style={{ fontSize:10.5,color:"#d97706",margin:"3px 0 0" }}>
+                              ⏳ {pendientes} aplicado{pendientes>1?"s":""} sin pago confirmado
+                            </p>
                           )}
                         </div>
                       </div>

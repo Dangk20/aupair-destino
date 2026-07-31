@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import {
+  parteCompleta, faltantesDeParte, progresoParte,
+} from "@/lib/campos-perfil";
 
 export async function GET(req) {
   const session = getSessionFromRequest(req);
@@ -63,15 +66,30 @@ export async function PUT(req) {
       await dbAupair.query(`UPDATE usuarios SET ${setSql} WHERE id=?`, [...vals, session.id]);
     }
 
-    // Recalcular perfil_completo (Parte 1) desde la BD, no desde el body.
-    const [[u]] = await dbAupair.query(
-      "SELECT cedula, fecha_nacimiento, nivel_ingles, situacion_actual FROM usuarios WHERE id=?",
-      [session.id]
-    );
-    const completo = !!(u?.cedula && u?.fecha_nacimiento && u?.nivel_ingles && u?.situacion_actual) ? 1 : 0;
-    await dbAupair.query("UPDATE usuarios SET perfil_completo=? WHERE id=?", [completo, session.id]);
+    // El estado de completitud lo decide SIEMPRE el servidor, leyendo la fila
+    // guardada y aplicando lib/campos-perfil.js — la misma fuente que usa el
+    // formulario. Nunca se toma del body: es lo que ve la agencia y no puede
+    // depender de la validación del navegador.
+    const [[u]] = await dbAupair.query("SELECT * FROM usuarios WHERE id=?", [session.id]);
 
-    return NextResponse.json({ ok: true, perfil_completo: completo });
+    const completo  = parteCompleta(1, u) ? 1 : 0;
+    const pctAgencia = progresoParte(2, u);
+    await dbAupair.query(
+      "UPDATE usuarios SET perfil_completo=?, progreso_agencia=? WHERE id=?",
+      [completo, pctAgencia, session.id]
+    );
+
+    // Guardado parcial permitido: se guarda igual, pero se responde qué falta.
+    const faltantes_parte1 = faltantesDeParte(1, u);
+    const faltantes_parte2 = faltantesDeParte(2, u);
+
+    return NextResponse.json({
+      ok: true,
+      perfil_completo: completo,
+      progreso_agencia: pctAgencia,
+      faltantes_parte1,
+      faltantes_parte2,
+    });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Error al guardar." }, { status: 500 });

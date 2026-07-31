@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { archivoDisponible, borrarDocumento } from "@/lib/almacenamiento-archivos";
 
 /* ── GET: traer todos los documentos del usuario ── */
 export async function GET(req, { params }) {
@@ -10,13 +11,20 @@ export async function GET(req, { params }) {
 
   try {
     const { id } = await params;
-    const [docs] = await dbAupair.query(
+    const [filas] = await dbAupair.query(
       `SELECT id, usuario_id, tipo_doc, nombre, url, tamano_kb, estado, nota_admin, created_at
        FROM documentos_usuario
        WHERE usuario_id = ?
        ORDER BY created_at DESC`,
       [id]
     );
+    // Los documentos se abren por la ruta autenticada, no por URL pública.
+    // `disponible` marca el registro cuyo archivo se perdió del almacenamiento.
+    const docs = await Promise.all(filas.map(async d => ({
+      ...d,
+      url: `/api/documentos/${d.id}`,
+      disponible: await archivoDisponible(d.url),
+    })));
     return NextResponse.json({ docs });
   } catch (err) {
     console.error("[GET docs usuario]", err.message);
@@ -70,10 +78,16 @@ export async function DELETE(req, { params }) {
 
     if (!doc_id) return NextResponse.json({ error: "doc_id requerido" }, { status: 400 });
 
+    const [[doc]] = await dbAupair.query(
+      "SELECT url FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
+      [doc_id, id]
+    );
     await dbAupair.query(
       "DELETE FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
       [doc_id, id]
     );
+    // El archivo deja de ser accesible por la ruta autenticada.
+    if (doc?.url) await borrarDocumento(doc.url);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[DELETE docs usuario]", err.message);
