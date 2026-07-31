@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";        // ← falta
-import dbAupair from "@/lib/db-aupair";  
+import { NextResponse } from "next/server";
+import dbAupair from "@/lib/db-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
-export async function GET() {
+export async function GET(req) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   try {
     const [referentes] = await dbAupair.query(`
       SELECT
@@ -70,6 +75,10 @@ export async function GET() {
   }
 }
 export async function POST(req) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   try {
     const { nombre, email, codigo, porcentaje } = await req.json();
 

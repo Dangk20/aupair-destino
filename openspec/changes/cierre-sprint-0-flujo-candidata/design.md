@@ -51,7 +51,7 @@ Anular decrementa `usos_actuales` con piso en cero y borra la fila de `codigos_p
 
 ### 4. Documentos: directorio de datos + ruta API autenticada
 
-Los archivos pasan de `public/uploads/documentos/` a un directorio configurable por `UPLOADS_DIR` (por defecto `<cwd>/data/uploads`), montado como volumen en producción. `documentos_usuario.url` deja de guardar una URL pública y guarda una referencia relativa (`documentos/<usuario_id>/<archivo>`). Se sirven por `GET /api/documentos/[id]`, que exige sesión, autoriza a la dueña o a un rol administrativo, resuelve la ruta contra el directorio de datos y verifica que la ruta resuelta siga dentro de él antes de leer.
+Los archivos pasan de `public/uploads/documentos/` a un directorio configurable por `UPLOADS_DIR` (por defecto `<cwd>/almacenamiento` — directorio propio: `data/` ya existe en el repo y contiene módulos que el sitio público importa), montado como volumen en producción. `documentos_usuario.url` deja de guardar una URL pública y guarda una referencia relativa (`documentos/<usuario_id>/<archivo>`). Se sirven por `GET /api/documentos/[id]`, que exige sesión, autoriza a la dueña o a un rol administrativo, resuelve la ruta contra el directorio de datos y verifica que la ruta resuelta siga dentro de él antes de leer.
 
 *Alternativa descartada A:* dejarlos en `public/` y proteger con middleware. No sirve: el middleware salta toda ruta con punto y, aunque se corrigiera, el servidor de estáticos de Next no es el lugar para decidir autorización — y no resuelve el 404 de producción.
 

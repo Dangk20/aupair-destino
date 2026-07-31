@@ -1,8 +1,13 @@
 // app/api/admin/pagos/movimientos/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
-export async function GET() {
+export async function GET(req) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   try {
     // INGRESOS: todos los usuarios con acceso activado
     // Usa LEFT JOIN para mostrarlos aunque no tengan referido_registros

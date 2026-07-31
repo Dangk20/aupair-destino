@@ -34,6 +34,8 @@ rules:
     - Escribir en español.
     - Fundamentar el "Why" en lo que se verificó en el código o en la base de datos, no en suposiciones.
     - Declarar explícitamente lo que queda fuera de alcance: es la defensa contra el scope creep del contrato cerrado.
+    - Incluir SIEMPRE una sección "Qué queda muerto" — código, tablas, columnas o rutas que este cambio deja sin uso. Si no queda nada, decirlo. Es código heredado: la deuda se retira en el mismo change que la produce, no en una limpieza futura que nunca llega.
+    - No construir funcionalidad nueva sobre algo que la auditoría de arquitectura marcó como muerto (proyectos/aupair/tech/auditoria-arquitectura-aupair.md). Primero se retira o se decide qué lo reemplaza.
   design:
     - Escribir en español.
     - Cada decisión lleva la alternativa que se descartó y por qué.
@@ -43,5 +45,6 @@ rules:
     - Los escenarios deben ser verificables a mano: no hay suite automatizada que los ejecute.
   tasks:
     - Escribir en español.
-    - Incluir siempre un grupo final de verificación con los recorridos manuales concretos y `npm run build` + `npm run lint`.
+    - Incluir siempre un grupo final de verificación con los recorridos manuales concretos y `npm run build`. (`npm run lint` está roto de antes: llama a `next lint`, retirado en Next 16.)
     - Las tareas que tocan datos o despliegue deben decir en qué orden se ejecutan respecto del código.
+    - Si el proposal declaró algo en "Qué queda muerto", debe haber una tarea explícita que lo retire.

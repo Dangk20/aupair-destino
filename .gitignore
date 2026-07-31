@@ -44,7 +44,7 @@ next-env.d.ts
 dump-railway.sql
 !.env.example
 
-# Documentos subidos por candidatas (runtime, no versionar).
+# Archivos subidos en runtime (documentos de candidatas y recursos del curso).
 # Viven fuera de public/ y se sirven autenticados por /api/documentos.
-/data/
+/almacenamiento/
 public/uploads/documentos/

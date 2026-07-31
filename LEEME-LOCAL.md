@@ -49,7 +49,7 @@ for f in migrations/*.sql; do
 done
 ```
 
-> `004` normaliza las rutas de documentos y recursos al nuevo almacenamiento. Si el dump trae documentos, sus archivos deben estar en `data/uploads/documentos/<usuario_id>/`; los que falten aparecerán en la app como "archivo no disponible", que es el comportamiento esperado.
+> `004` normaliza las rutas de documentos y recursos al nuevo almacenamiento. Si el dump trae documentos, sus archivos deben estar en `almacenamiento/documentos/<usuario_id>/`; los que falten aparecerán en la app como "archivo no disponible", que es el comportamiento esperado.
 
 ## 4. Correr la app
 
@@ -86,12 +86,12 @@ npm run dev
 
 ## Archivos subidos
 
-Documentos de las candidatas y recursos del curso se guardan en `data/uploads/`
+Documentos de las candidatas y recursos del curso se guardan en `almacenamiento/`
 (fuera de `public/`, sin versionar) y se sirven autenticados por
 `/api/documentos/<id>` y `/api/sesion-recursos/<id>/archivo`. Configurable con
 `UPLOADS_DIR`.
 
 ## Notas
 - Los correos (recuperar contraseña, notificaciones de reunión) **no se envían** en local porque `RESEND_API_KEY` va vacío. Es esperado.
-- Las **fotos de perfil** siguen guardándose como base64 dentro de MySQL (deuda técnica conocida, ver auditoría). Los documentos ya no: viven en `data/uploads/`.
+- Las **fotos de perfil** siguen guardándose como base64 dentro de MySQL (deuda técnica conocida, ver auditoría). Los documentos ya no: viven en `almacenamiento/`.
 - `npm run lint` está roto de antes (llama a `next lint`, retirado en Next 16). Usar `npm run build` para verificar.

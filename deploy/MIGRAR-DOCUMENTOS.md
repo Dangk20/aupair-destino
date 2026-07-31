@@ -1,7 +1,7 @@
 # Migración de documentos al almacenamiento de datos
 
 Los documentos de las candidatas dejan de vivir en `public/uploads/` y pasan a
-`UPLOADS_DIR` (`/app/data/uploads` en el contenedor), servidos por la ruta
+`UPLOADS_DIR` (`/app/almacenamiento` en el contenedor), servidos por la ruta
 autenticada `/api/documentos/<id>`.
 
 **Por qué:** bajo `public/` cualquiera con el enlace abría el pasaporte o la
@@ -62,13 +62,30 @@ docker compose cp app:/app/public/uploads ./respaldo-uploads
 
 ## 3. Desplegar el código nuevo
 
+`/opt/dap` **no es un repositorio git**: el código se sincroniza con rsync desde
+la máquina local (el VPS no tiene credenciales de GitHub).
+
+Desde local, en la raíz del proyecto:
+
 ```bash
-git pull
+rsync -az --delete \
+  --exclude node_modules --exclude .next --exclude .git \
+  --exclude .env --exclude almacenamiento --exclude dump-railway.sql \
+  ./ root@2.25.88.197:/opt/dap/
+```
+
+`--exclude .env` es importante: el `.env` del servidor tiene los secretos de
+producción y no debe pisarse con el local.
+
+Luego, en el VPS:
+
+```bash
+cd /opt/dap
 docker compose build app
 docker compose up -d
 ```
 
-El `docker-compose.yml` ya monta el volumen `uploads` en `/app/data/uploads` y
+El `docker-compose.yml` ya monta el volumen `uploads` en `/app/almacenamiento` y
 declara `UPLOADS_DIR`.
 
 ## 4. Mover los archivos al nuevo directorio
@@ -77,11 +94,11 @@ Si el respaldo del paso 2 trajo archivos, cargarlos en el nuevo directorio
 conservando la estructura `documentos/<usuario_id>/<archivo>`:
 
 ```bash
-docker compose cp ./respaldo-uploads/documentos app:/app/data/uploads/documentos
-docker compose exec -u root app sh -c 'chown -R nextjs:nodejs /app/data/uploads'
+docker compose cp ./respaldo-uploads/documentos app:/app/almacenamiento/documentos
+docker compose exec -u root app sh -c 'chown -R nextjs:nodejs /app/almacenamiento'
 
 # Verificar
-docker compose exec app sh -c 'find /app/data/uploads -type f | wc -l'
+docker compose exec app sh -c 'find /app/almacenamiento -type f | wc -l'
 ```
 
 ## 5. Normalizar las referencias en la base

@@ -10,8 +10,9 @@ dump-railway.sql
 *.md
 saasly-nextjs-1.0.0
 public/uploads/documentos
-# Archivos subidos en local: nunca deben viajar dentro de la imagen
-data
+# Archivos subidos en local: nunca deben viajar dentro de la imagen.
+# OJO: NO excluir `data/`, que son módulos del sitio público (navLinks, etc.)
+/almacenamiento
 # 32 MB que ningún componente referencia; sólo engordaban la imagen
 video1.mp4
 # Planeación y config de herramientas: no hacen falta en runtime

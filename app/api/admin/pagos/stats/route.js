@@ -1,13 +1,18 @@
 // app/api/admin/pagos/stats/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 async function safe(sql, params = []) {
   try { const [r] = await dbAupair.query(sql, params); return r; }
   catch { return null; }
 }
 
-export async function GET() {
+export async function GET(req) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   try {
     // ── Stats principales ────────────────────────────────────────────────
     const [[s]] = await dbAupair.query(`

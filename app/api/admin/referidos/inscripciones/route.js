@@ -1,8 +1,13 @@
 // app/api/admin/referidos/inscripciones/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 export async function GET(req) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   const { searchParams } = new URL(req.url);
   const page  = parseInt(searchParams.get("page")  || "1");
   const limit = parseInt(searchParams.get("limit") || "10");

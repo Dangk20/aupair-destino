@@ -31,9 +31,9 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
       # Documentos fuera de public/: se sirven autenticados por /api/documentos
-      UPLOADS_DIR: /app/data/uploads
+      UPLOADS_DIR: /app/almacenamiento
     volumes:
-      - uploads:/app/data/uploads
+      - uploads:/app/almacenamiento
     ports:
       - "127.0.0.1:3000:3000"   # solo localhost → nginx del host hace de proxy
     depends_on:

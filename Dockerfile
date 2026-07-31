@@ -31,8 +31,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Bajo public/ los documentos quedaban accesibles sin sesión y, además, el
 # servidor standalone resuelve los estáticos de public/ desde el build, así que
 # los archivos subidos en runtime devolvían 404. Se sirven por /api/documentos.
-ENV UPLOADS_DIR=/app/data/uploads
-RUN mkdir -p /app/data/uploads && chown -R nextjs:nodejs /app/data
+ENV UPLOADS_DIR=/app/almacenamiento
+RUN mkdir -p /app/almacenamiento && chown -R nextjs:nodejs /app/almacenamiento
 
 USER nextjs
 EXPOSE 3000

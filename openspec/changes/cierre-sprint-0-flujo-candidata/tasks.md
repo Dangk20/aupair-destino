@@ -13,7 +13,7 @@
 ## 2. Documentos: almacenamiento fuera de `public/` y acceso autenticado
 
 - [ ] 2.1 (requiere acceso al VPS — procedimiento listo en `deploy/MIGRAR-DOCUMENTOS.md`) Inventariar en el VPS qué archivos existen bajo el volumen `uploads` y dejar constancia del resultado en las notas técnicas privadas
-- [x] 2.2 `lib/almacenamiento-documentos.js`: resolver `UPLOADS_DIR` (por defecto `<cwd>/data/uploads`), guardar archivos, resolver referencias y verificar que la ruta resuelta no escape del directorio
+- [x] 2.2 `lib/almacenamiento-archivos.js`: resolver `UPLOADS_DIR` (por defecto `<cwd>/almacenamiento`), guardar archivos, resolver referencias y verificar que la ruta resuelta no escape del directorio
 - [x] 2.3 `app/api/dashboard/documentos/route.js`: escribir mediante el nuevo módulo y guardar en `documentos_usuario.url` la referencia relativa
 - [x] 2.4 `app/api/documentos/[id]/route.js`: descarga autenticada — 401 sin sesión, 403 si no es la dueña ni rol administrativo, 404 con cuerpo identificable si el archivo no está en el almacenamiento
 - [x] 2.5 Endpoints de listado (dashboard y admin): incluir por documento si su archivo está disponible

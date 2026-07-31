@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 export async function PUT(req, { params }) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   const { id } = await params;
   try {
     const { nombre, email, codigo, porcentaje } = await req.json();
@@ -17,7 +22,11 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_, { params }) {
+export async function DELETE(req, { params }) {
+  // Ruta de administración: exige sesión con rol admin.
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+
   const { id } = await params;
   try {
     await dbAupair.query("DELETE FROM referidos WHERE id=?", [id]);
