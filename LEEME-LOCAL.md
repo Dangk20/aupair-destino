@@ -38,7 +38,20 @@ cp .env.example .env.local
 
 Los valores por defecto ya apuntan al MySQL local del paso 1. No hace falta tocar nada para desarrollo.
 
-## 3. Correr la app
+## 3. Migraciones
+
+Las migraciones son idempotentes: se pueden correr varias veces. Aplicarlas en orden sobre la BD local recién cargada:
+
+```bash
+for f in migrations/*.sql; do
+  echo "→ $f"
+  docker exec -i dap-mysql mysql -uroot -proot destino_aupair < "$f"
+done
+```
+
+> `004` normaliza las rutas de documentos y recursos al nuevo almacenamiento. Si el dump trae documentos, sus archivos deben estar en `data/uploads/documentos/<usuario_id>/`; los que falten aparecerán en la app como "archivo no disponible", que es el comportamiento esperado.
+
+## 4. Correr la app
 
 ```bash
 npm install
@@ -71,6 +84,14 @@ docker start dap-mysql   # arranca la BD si estaba detenida
 npm run dev
 ```
 
+## Archivos subidos
+
+Documentos de las candidatas y recursos del curso se guardan en `data/uploads/`
+(fuera de `public/`, sin versionar) y se sirven autenticados por
+`/api/documentos/<id>` y `/api/sesion-recursos/<id>/archivo`. Configurable con
+`UPLOADS_DIR`.
+
 ## Notas
 - Los correos (recuperar contraseña, notificaciones de reunión) **no se envían** en local porque `RESEND_API_KEY` va vacío. Es esperado.
-- Fotos y documentos se guardan como base64 dentro de MySQL (deuda técnica conocida, ver auditoría).
+- Las **fotos de perfil** siguen guardándose como base64 dentro de MySQL (deuda técnica conocida, ver auditoría). Los documentos ya no: viven en `data/uploads/`.
+- `npm run lint` está roto de antes (llama a `next lint`, retirado en Next 16). Usar `npm run build` para verificar.
