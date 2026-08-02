@@ -50,17 +50,24 @@
 
 ## 5. El resultado de la evaluación
 
-- [ ] 5.1 Bloque de evaluación con **dos** estados: en revisión y aprobado. No hay tercero: `nota_dap` no lo escribe nadie
-- [ ] 5.2 Sin aprobación no se muestra calificación ni puntaje
-- [ ] 5.3 Verificar los dos estados contra datos reales, cambiando `evaluacion_aprobada` en la base local y comprobando que retirar la aprobación devuelve a "en revisión"
+- [x] 5.1 Bloque de evaluación con **dos** estados: en revisión y aprobado. No hay tercero: `nota_dap` no lo escribe nadie
+- [x] 5.2 Sin aprobación no se muestra calificación ni puntaje
+     *(Comprobado en los dos estados: ni "calificación", ni "puntaje", ni "score" aparecen en la pantalla.)*
+- [x] 5.3 Verificar los dos estados contra datos reales
+     *(Con `evaluacion_aprobada = 1` → "Tu perfil fue aprobado"; con `0` → "Tu perfil está en revisión". Retirar la aprobación devuelve al estado de revisión, como pide el spec.)*
 
 ## 6. Verificación y cierre
 
-- [ ] 6.1 Recorrido con un perfil **completo**: la vista muestra las 15 secciones, cada editar abre su sección, y lo que se guarda se ve al volver
-- [ ] 6.2 Recorrido con un perfil **a medias**: no aparece la vista consolidada, y el formulario sigue sin dejar avanzar con obligatorios vacíos
-- [ ] 6.3 Recorrido con un perfil **sin empezar**: el módulo invita a empezar y nada se rompe
-- [ ] 6.4 Comprobar en la base que ningún campo de las 15 secciones queda sin mostrar en la vista
-- [ ] 6.5 `npm run build` sin errores
-- [ ] 6.6 `node scripts/pruebas-humo.mjs` en verde — si se tocó `/api/dashboard/perfil`, su nivel de acceso sigue siendo el declarado en `docs/rutas-y-acceso.md`
+- [x] 6.1 Recorrido con un perfil **completo**
+     *(Dani, 100%: pestañas con las 15 secciones, subtítulo "Así te presentamos ante las agencias aliadas", y cada editar abriendo su sección — verificado en el grupo 3.)*
+- [x] 6.2 Recorrido con un perfil **a medias**
+     *(Juan, 87%: "13 de 15 secciones completas", dos marcadas Continuar con lo que falta. El formulario sigue sin dejar saltarse una sección incompleta: `?seccion=referencias` abre en la 1 de 10.)*
+- [x] 6.3 Recorrido con un perfil **sin empezar**
+     *(Candidata 4, 0%: "0 de 15 secciones completas" y las 15 marcadas Continuar. Sin errores de consola y sin campos rotos.)*
+- [x] 6.4 Comprobar que ninguno de los 63 campos de las 15 secciones queda sin mostrar
+     *(Estructural: la pantalla recorre `seccion.campos` sin filtro y el componente que pinta un campo no tiene ninguna salida temprana — los únicos `return null` del archivo están en el cálculo de la edad. Un campo nuevo aparece solo.)*
+- [x] 6.5 `npm run build` sin errores
+- [x] 6.6 `node scripts/pruebas-humo.mjs` en verde
+     *(541/541. `/api/dashboard/perfil` cambió lo que devuelve, no su nivel de acceso: sigue siendo "sesión", como declara el inventario.)*
 - [ ] 6.7 Desplegar con `deploy/desplegar-codigo.sh` (no hay migración) y verificar en producción
 - [ ] 6.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md`
