@@ -1,8 +1,11 @@
 ## 1. Preparar la fuente de datos
 
-- [ ] 1.1 `lib/campos-perfil.js`: comprobar que las 14 secciones y todos sus campos tienen `label`; añadir el que falte
+- [ ] 1.1 `lib/campos-perfil.js`: comprobar que las 15 secciones y todos sus campos tienen `label`; añadir el que falte
 - [ ] 1.2 Añadir una función que, dado un campo y el perfil, devuelva su valor listo para mostrar y distinga explícitamente "sin diligenciar" de un valor vacío legítimo
-- [ ] 1.3 Comprobar que `/api/dashboard/perfil` devuelve todas las columnas que las 14 secciones necesitan — hoy devuelve una lista fija; contrastarla contra `campos-perfil.js` y completar lo que falte
+- [x] 1.3 Comprobar que `/api/dashboard/perfil` devuelve todas las columnas que las 15 secciones necesitan
+     *(Sí llegan los 63. Pero hace `SELECT *` y devuelve **119 columnas**, incluidas `password`, `reset_token` y `reset_token_expiry` — de ahí sale la 1.4.)*
+- [ ] 1.4 `GET /api/dashboard/perfil`: dejar de devolver `SELECT *`. Excluir `password`, los tokens de recuperación y las columnas de valoración interna
+- [ ] 1.5 Verificar que ninguna pantalla del dashboard dependía de una columna que deje de llegar
 
 ## 2. La vista consolidada
 
@@ -34,10 +37,10 @@
 
 ## 6. Verificación y cierre
 
-- [ ] 6.1 Recorrido con un perfil **completo**: la vista muestra las 14 secciones, cada editar abre su sección, y lo que se guarda se ve al volver
+- [ ] 6.1 Recorrido con un perfil **completo**: la vista muestra las 15 secciones, cada editar abre su sección, y lo que se guarda se ve al volver
 - [ ] 6.2 Recorrido con un perfil **a medias**: no aparece la vista consolidada, y el formulario sigue sin dejar avanzar con obligatorios vacíos
 - [ ] 6.3 Recorrido con un perfil **sin empezar**: el módulo invita a empezar y nada se rompe
-- [ ] 6.4 Comprobar en la base que ningún campo de las 14 secciones queda sin mostrar en la vista
+- [ ] 6.4 Comprobar en la base que ningún campo de las 15 secciones queda sin mostrar en la vista
 - [ ] 6.5 `npm run build` sin errores
 - [ ] 6.6 `node scripts/pruebas-humo.mjs` en verde — si se tocó `/api/dashboard/perfil`, su nivel de acceso sigue siendo el declarado en `docs/rutas-y-acceso.md`
 - [ ] 6.7 Desplegar con `deploy/desplegar-codigo.sh` (no hay migración) y verificar en producción

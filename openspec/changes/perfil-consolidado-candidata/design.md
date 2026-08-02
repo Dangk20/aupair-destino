@@ -2,10 +2,10 @@
 
 Verificado sobre el código el 2 de agosto de 2026:
 
-- **`lib/campos-perfil.js`** ya declara las 14 secciones (`PARTE1` con 6, `PARTE2` con 8) y, por cada campo, su `name` —la columna en `usuarios`— y su `label`, la etiqueta que la candidata reconoce. Ese archivo es desde el Sprint 0.0 la fuente única de la validación y del progreso.
+- **`lib/campos-perfil.js`** ya declara las 15 secciones (`PARTE1` con 6, `PARTE2` con 9) y sus 63 campos sobre 60 columnas distintas y, por cada campo, su `name` —la columna en `usuarios`— y su `label`, la etiqueta que la candidata reconoce. Ese archivo es desde el Sprint 0.0 la fuente única de la validación y del progreso.
 - **Los dos formularios son asistentes por pasos** con el paso en estado interno (`paso` en el de evaluación, `seccion` en el de agencia), siempre inicializado en `0`. **Ninguno lee la URL.**
 - Ambos validan al avanzar: retroceder a una sección anterior es libre, saltar hacia adelante exige que la actual esté completa (`validarSeccion`).
-- **`/api/dashboard/perfil`** ya devuelve el perfil entero más `evaluacion_aprobada`, `score_dap`, `calificacion_dap` y `nota_dap`.
+- **`/api/dashboard/perfil`** hace `SELECT *`: devuelve **119 columnas**, así que los 63 campos llegan todos — pero también el hash de la contraseña y los tokens de recuperación. La lista de columnas que nunca deben salir ya existe en ese archivo (`BLOQUEADAS`), pero sólo la usa el `PUT`.
 - **No existe ninguna vista de lectura** del perfil para la candidata. La única consolidación que existe en el repositorio está dentro de `exportPDF()` en `app/admin/perfiles/[id]/agencia/page.jsx`: una plantilla HTML con `campo` / `lbl` / `val` que se abre en una ventana nueva para imprimir.
 
 Restricción: 10–15 h/semana. La plataforma está viva y la candidata la usa mientras se trabaja.
@@ -58,7 +58,7 @@ Si el `id` no existe o no viene, se arranca en cero, como hoy.
 
 ### 5. El estado de la evaluación se dice tal cual es
 
-Tres estados y ninguno inventado: **sin evaluar** ("tu perfil está en revisión"), **aprobada** (con calificación y nota si existen) y **con observaciones** (la nota del equipo). Se derivan de `evaluacion_aprobada` y `nota_dap`, que ya llegan del API.
+Tres estados y ninguno inventado: **sin evaluar** ("tu perfil está en revisión"), **aprobada** (con la observación del equipo si la hay) y **con observaciones** (la nota del equipo). Se derivan de `evaluacion_aprobada` y `nota_dap`, que ya llegan del API.
 
 *Alternativa descartada:* mostrar siempre una calificación, con un valor por defecto cuando no hay evaluación. Es la clase de dato inventado que este equipo acaba de retirar del panel de la clienta. Si no hay evaluación, se dice.
 
@@ -81,5 +81,7 @@ Reversión: cada bloque es un commit y ninguno toca datos. La vista es una ruta 
 
 ## Open Questions
 
-- ¿La candidata debería poder ver la vista consolidada **con el perfil a medias**, como forma de saber qué le falta? Se asume que no —el índice de `/dashboard/perfil` ya cumple esa función con su progreso por secciones— pero es una decisión de producto que conviene confirmar con la clienta.
-- ¿Qué se hace con `score_dap` y `calificacion_dap`? Se asume mostrarlos cuando existan. Si la clienta prefiere que la candidata no vea una calificación numérica, se muestra sólo el estado y la nota.
+Resueltas antes de implementar (2026-08-02):
+
+- **¿La vista consolidada con el perfil a medias?** No. Mientras diligencia, la candidata sigue en el índice de `/dashboard/perfil`, que ya muestra el progreso por secciones. La consolidada aparece al completar. Así cada pantalla tiene un solo trabajo, y el salto directo a una sección sólo se ofrece cuando todas están validadas.
+- **¿La candidata ve `score_dap` / `calificacion_dap`?** No. Ve el estado —en revisión, aprobado, con observaciones— y la nota del equipo, que es lo accionable. La calificación numérica queda como herramienta interna: hoy no hay definición escrita de sobre cuánto es ni de qué significa cada valor, y un número sin explicación genera preguntas que nadie puede responder.

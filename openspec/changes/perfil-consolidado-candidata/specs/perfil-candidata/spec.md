@@ -84,3 +84,19 @@ Cuando el equipo ha evaluado el perfil, el sistema SHALL mostrárselo a la candi
 - **WHEN** la candidata completó su perfil y el equipo todavía no lo ha revisado
 - **THEN** ve que está en revisión
 - **AND** no ve ninguna calificación
+
+### Requirement: El perfil que se entrega al navegador no incluye credenciales
+
+La consulta del perfil SHALL devolver únicamente los campos que la candidata necesita ver o editar. NO SHALL incluir la contraseña —ni siquiera cifrada—, los tokens de recuperación, ni la valoración interna que el equipo registra sobre ella.
+
+#### Scenario: Consulta del perfil propio
+
+- **WHEN** una candidata consulta su perfil
+- **THEN** recibe los campos de todas las secciones del perfil
+- **AND** no recibe su contraseña ni sus tokens de recuperación
+
+#### Scenario: Candidata con recuperación de contraseña en curso
+
+- **WHEN** una candidata ha solicitado recuperar su contraseña y tiene un token vigente
+- **AND** consulta su perfil
+- **THEN** ese token no viaja en la respuesta

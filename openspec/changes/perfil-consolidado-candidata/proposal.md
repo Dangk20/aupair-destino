@@ -1,6 +1,6 @@
 ## Why
 
-Una candidata termina de diligenciar su perfil —catorce secciones entre las dos partes— y **no tiene dónde verlo**. Las dos únicas pantallas que existen son formularios de edición: `/dashboard/perfil/evaluacion` (489 líneas) y `/dashboard/perfil/agencia` (454 líneas). No hay ninguna vista de lectura.
+Una candidata termina de diligenciar su perfil —quince secciones entre las dos partes— y **no tiene dónde verlo**. Las dos únicas pantallas que existen son formularios de edición: `/dashboard/perfil/evaluacion` (489 líneas) y `/dashboard/perfil/agencia` (454 líneas). No hay ninguna vista de lectura.
 
 La pantalla que las reúne, `/dashboard/perfil`, ofrece tres caminos y los tres engañan:
 
@@ -16,7 +16,7 @@ Hay además una pieza construida que nadie ve. `/api/dashboard/perfil` ya devuel
 
 ### Una vista consolidada del perfil
 
-Cuando el perfil está diligenciado, `/dashboard/perfil` deja de ser la única entrada y **"Revisar mi perfil" abre una vista de lectura con todo el perfil junto**: foto y datos principales arriba, y debajo las catorce secciones de las dos partes, cada una con sus campos y su botón de editar.
+Cuando el perfil está diligenciado, `/dashboard/perfil` deja de ser la única entrada y **"Revisar mi perfil" abre una vista de lectura con todo el perfil junto**: foto y datos principales arriba, y debajo las quince secciones de las dos partes, cada una con sus campos y su botón de editar.
 
 - **La vista se deriva de `lib/campos-perfil.js`**, que ya declara las secciones y el `label` de cada campo. No se escribe a mano ninguna etiqueta: si mañana se añade un campo al formulario, aparece solo en la vista consolidada. No pueden desincronizarse.
 - Un campo sin diligenciar se muestra como vacío de forma explícita, no se omite: la candidata tiene que poder ver qué le falta.
@@ -31,9 +31,19 @@ Cuando el perfil está diligenciado, `/dashboard/perfil` deja de ser la única e
 
 Las seis tarjetas de sección de `/dashboard/perfil` llevan cada una a su sección. La Parte 2 deja de ser una tarjeta suelta al final y se integra con el resto.
 
+### La API del perfil deja de devolver lo que no debe
+
+`GET /api/dashboard/perfil` hace `SELECT *` y entrega **119 columnas** al navegador de la candidata, entre ellas **el hash de su contraseña** y sus `reset_token` / `reset_token_expiry`. Hoy los tokens van vacíos, pero una candidata que pida recuperar su contraseña y abra su perfil los enviaría a su navegador: quien pudiera leer esa respuesta podría cambiarle la contraseña.
+
+El barrido del Sprint 1 no lo vio porque miraba **quién** puede llamar cada ruta, no **qué** devuelve.
+
+La ruta pasa a entregar sólo lo que el perfil necesita. La lista de columnas prohibidas ya existe en ese mismo archivo (`BLOQUEADAS`, que usa el `PUT`); el `GET` simplemente no la estaba usando.
+
 ### El resultado de la evaluación, visible
 
-Cuando el equipo ha evaluado el perfil, la candidata ve el resultado en su vista consolidada: si está aprobado, la calificación y la nota que le hayan dejado. Mientras no haya evaluación, se dice que está en revisión — no se inventa un estado.
+Cuando el equipo ha evaluado el perfil, la candidata ve el resultado en su vista consolidada: si está aprobado y la observación que le hayan dejado, que es lo accionable. Mientras no haya evaluación, se dice que está en revisión — no se inventa un estado.
+
+**La calificación numérica no se le muestra.** `score_dap` y `calificacion_dap` no tienen definición escrita en ninguna parte —ni sobre cuánto van, ni qué significa cada valor— y un número sin explicación genera preguntas que nadie puede responder. Quedan como herramienta interna del equipo.
 
 ## Capabilities
 
@@ -53,7 +63,7 @@ Ninguna.
 - `lib/campos-perfil.js` — se añade lo que falte para poder rotular un valor (los `label` ya están; hace falta cómo se presenta un valor vacío o de lista).
 - `app/dashboard/perfil/page.jsx` — los tres caminos pasan a apuntar a donde dicen.
 - `app/dashboard/perfil/evaluacion/page.jsx` y `app/dashboard/perfil/agencia/page.jsx` — leer la sección inicial de la URL.
-- `app/api/dashboard/perfil/route.js` — sólo si falta algún campo por devolver; ya entrega el perfil y la evaluación.
+- `app/api/dashboard/perfil/route.js` — dejar de devolver `SELECT *`: entregar el perfil sin las columnas de autenticación. Los 63 campos de las 15 secciones ya llegan todos.
 
 **Datos**
 
@@ -69,6 +79,7 @@ Ninguna.
 |---|---|---|
 | El botón "Revisar" suelto de la Parte 2 | `app/dashboard/perfil/page.jsx` | La Parte 2 deja de tener su propia entrada: se llega a ella desde la vista consolidada, como a cualquier otra sección |
 | El destino único de las seis tarjetas de sección | `app/dashboard/perfil/page.jsx` | Cada una pasa a llevar a su sección |
+| El `SELECT *` del perfil | `app/api/dashboard/perfil/route.js` | Devolvía 119 columnas, incluido el hash de la contraseña |
 
 **Deuda nueva que sí se produce:** la vista consolidada renderiza los valores tal como están en la base. Los campos que guardan listas o textos largos van a verse crudos hasta que se defina cómo presentarlos; se anota y se resuelve cuando haya un caso real que lo pida, no antes.
 
