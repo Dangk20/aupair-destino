@@ -1,7 +1,7 @@
 # Inventario de rutas y control de acceso
 
 **Levantado:** 2026-08-02 · Sprint 1 (`sprint-1-operacion-segura`, tarea 1.1)
-**Alcance:** 82 rutas en `app/api/**`, 127 handlers (método × ruta).
+**Alcance:** 84 rutas en `app/api/**`, 129 handlers (método × ruta).
 
 Este documento es la **fuente de verdad** del control de acceso de la API.
 `scripts/pruebas-humo.mjs` deriva sus aserciones de estas tablas: una ruta
@@ -80,7 +80,7 @@ lo haga es un defecto.
 | `/api/codigos-promo/validar` | POST | La candidata valida su código antes de pagar, en el flujo público. |
 | `/api/sesiones-public` | GET | Alimenta la landing (`sections/HeroSection1.jsx`). |
 
-## `/api/admin/**` — 36 rutas, 66 handlers
+## `/api/admin/**` — 38 rutas, 68 handlers
 
 Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 
@@ -93,11 +93,12 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/asociadas/asignar` | GET, POST | ✅ | `/admin/asociadas/[id]` |
 | `/admin/bd-estructura` | GET | ✅ | `/admin/bd-verificar` |
 | `/admin/codigos-promo` | GET, POST, PUT, DELETE | ✅ | `/admin/codigos-promo` |
+| `/admin/comisiones` | GET | ✅ | `/admin/comisiones` |
+| `/admin/comisiones/[id]/pagar` | POST | ✅ | `/admin/comisiones` |
 | `/admin/configuracion` | GET, PUT | ✅ | `/admin/configuracion` |
 | `/admin/confirmar-pago` | POST | ✅ | `/admin/pagos` |
 | `/admin/disponibilidad` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones` |
-| `/admin/eventos` | POST, PUT, DELETE | ✅ excepción | `/admin/reuniones` |
-| `/admin/eventos` | **GET** | 🔴 **sin verificación de rol** | `/admin/reuniones`, `/dashboard/reuniones` |
+| `/admin/eventos` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones`, `/dashboard/reuniones` |
 | `/admin/mensajes` | GET, POST | ✅ | `/admin/mensajes` |
 | `/admin/pagos/movimientos` | GET | ✅ | `/admin/pagos` |
 | `/admin/pagos/stats` | GET | ✅ | `/admin`, `/admin/pagos` |
@@ -124,12 +125,13 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/ventas/[id]/anular` | POST | ✅ | `/admin/ventas` |
 | `/admin/ventas/[id]/confirmar` | POST | ✅ | `/admin/ventas` |
 
-**Un solo hueco:** `GET /api/admin/eventos` no verifica rol alguno — cualquier
-sesión válida, incluida la de una candidata, lee la agenda de la clienta y sus
-asesoras. Quedó así porque lo consume el calendario de la candidata
+**Hueco cerrado en el barrido:** `GET /api/admin/eventos` no verificaba rol
+alguno — cualquier sesión válida, incluida la de una candidata, leía la agenda
+de la clienta y sus asesoras. Quedó así porque lo consume el calendario de la
+candidata
 (`app/dashboard/reuniones/page.jsx`), que hoy devuelve `<ComingSoon/>` de
 forma incondicional en la línea 307 — pero su `useEffect` corre igual, así que
-el navegador de la candidata sigue llamando la ruta. Cerrarla no rompe nada
+el navegador de la candidata seguía llamando la ruta. Cerrarla no rompió nada
 visible.
 
 ## `/api/asociada/**` — 6 rutas, 6 handlers

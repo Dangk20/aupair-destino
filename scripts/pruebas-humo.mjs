@@ -70,6 +70,8 @@ const INVENTARIO = [
   ["GET", "/admin/configuracion", "rol:admin"],
   ["PUT", "/admin/configuracion", "rol:admin"],
   ["POST", "/admin/confirmar-pago", "rol:admin"],
+  ["GET", "/admin/comisiones", "rol:admin"],
+  ["POST", "/admin/comisiones/[id]/pagar", "rol:admin"],
   ["DELETE", "/admin/disponibilidad", "rol:admin,asociada"],
   ["GET", "/admin/disponibilidad", "rol:admin,asociada"],
   ["POST", "/admin/disponibilidad", "rol:admin,asociada"],

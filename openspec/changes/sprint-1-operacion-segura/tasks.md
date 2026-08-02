@@ -37,11 +37,13 @@
 
 ## 4. Comisiones
 
-- [ ] 4.1 `app/api/admin/comisiones/route.js`: listado con asociada, candidata, código, montos, porcentaje, estado y fecha; filtros por asociada y estado; totales excluyendo las anuladas
-- [ ] 4.2 `app/api/admin/comisiones/[id]/pagar/route.js`: marcar como pagada con fecha; idempotente; rechazar si la comisión está anulada
-- [ ] 4.3 `app/admin/comisiones/page.jsx`: vista siguiendo el patrón de `/admin/ventas`, con estado vacío explicativo
-- [ ] 4.4 Añadir "Comisiones" al menú del panel
-- [ ] 4.5 Verificar que los totales cuadran con las ventas confirmadas del módulo de ventas
+- [x] 4.1 `app/api/admin/comisiones/route.js`: listado con asociada, candidata, código, montos, porcentaje, estado y fecha; filtros por asociada y estado; totales excluyendo las anuladas
+- [x] 4.2 `app/api/admin/comisiones/[id]/pagar/route.js`: marcar como pagada con fecha; idempotente; rechazar si la comisión está anulada
+     *(Verificado: pagar responde 200 con fecha; volver a pagarla devuelve `yaPagada` sin mover la fecha original; una comisión anulada responde 409.)*
+- [x] 4.3 `app/admin/comisiones/page.jsx`: vista siguiendo el patrón de `/admin/ventas`, con estado vacío explicativo
+- [x] 4.4 Añadir "Comisiones" al menú del panel
+- [x] 4.5 Verificar que los totales cuadran con las ventas confirmadas del módulo de ventas
+     *(Recorrido completo contra la base local: 2 ventas confirmadas con código × 20% = 11.60, y el histórico de comisiones da 11.60. Anular la venta 1 dejó su comisión en `anulada`, la sacó de los totales y su pago pasó a rechazarse con 409; reconfirmarla la devolvió a `pendiente` y a los totales. La base quedó como estaba.)*
 
 ## 5. Resumen del panel
 
@@ -49,7 +51,8 @@
 
 - [ ] 5.1 `app/admin/page.jsx`: retirar la tabla "Referidos y comisiones", el modal "Nuevo referente", las gráficas decorativas y los controles que no responden ("Rango de fechas", "Comparar con: mes anterior", "Exportar reporte"); la página deja de llamar a `/api/admin/referidos`
 - [ ] 5.2 Poner el aviso de rediseño y las tarjetas de acceso a Ventas, Comisiones, Códigos promo, Usuarios, Perfiles y Sesiones
-- [ ] 5.3 El saludo lee el nombre de la sesión (`/api/auth/me`), en vez del `¡Bienvenida, Jenni!` quemado
+- [ ] 5.3 El saludo lee el nombre de la sesión (`/api/auth/me`), en vez del `¡Bienvenida, Jenni!` quemado (`app/admin/page.jsx:271`)
+- [ ] 5.3b **También el pie de la barra lateral**: `app/admin/layout.jsx:104` muestra `Jenni Salgado` / `Admin CEO` quemados, y eso se ve en TODAS las pantallas del panel, no sólo en el Resumen
 - [ ] 5.4 Comprobar que `/admin/referidos`, `/admin/pagos` y `/admin/sesiones` siguen funcionando: comparten las rutas que el Resumen deja de usar
 
 ## 6. Saneamiento de la arquitectura heredada
