@@ -25,8 +25,10 @@ La vista SHALL construirse a partir de la misma declaración de secciones y camp
 
 #### Scenario: Perfil sin completar
 
-- **WHEN** una candidata que aún no ha completado su perfil entra a su perfil
-- **THEN** el sistema la lleva a continuar diligenciándolo, no a la vista consolidada
+- **WHEN** una candidata que aún no ha completado su perfil abre la vista de su perfil
+- **THEN** ve sus datos principales igualmente
+- **AND** ve el recorrido de todas las secciones, cuáles están completas y **qué campos le faltan** en las que no
+- **AND** cada sección pendiente le ofrece continuar por ella
 
 ### Requirement: Cada acción del perfil lleva a donde dice que lleva
 
@@ -51,18 +53,23 @@ Ningún control del módulo de perfil SHALL prometer un destino y abrir otro. En
 
 ### Requirement: El salto directo a una sección no evade la validación por pasos
 
-El sistema SHALL admitir abrir un formulario del perfil directamente en una sección determinada, y esa entrada NO SHALL permitir dejar atrás secciones incompletas. El acceso directo SHALL ofrecerse únicamente cuando el perfil está completo, es decir, cuando todas las secciones ya cumplen sus obligatorios.
+El sistema SHALL admitir abrir un formulario del perfil directamente en una sección determinada, y esa entrada NO SHALL permitir dejar atrás secciones incompletas. Si alguna sección anterior a la solicitada tiene obligatorios sin diligenciar, el formulario SHALL abrir en la primera que falte, no en la pedida.
 
 #### Scenario: Sección solicitada que no existe
 
 - **WHEN** se pide una sección con un identificador que no corresponde a ninguna
 - **THEN** el formulario abre en su primera sección, sin error
 
-#### Scenario: Perfil incompleto
+#### Scenario: Se pide una sección con anteriores incompletas
 
-- **WHEN** el perfil todavía tiene secciones sin completar
-- **THEN** la candidata entra al formulario por el recorrido normal
-- **AND** sigue sin poder avanzar dejando obligatorios sin diligenciar
+- **WHEN** se pide abrir una sección y alguna anterior tiene obligatorios sin diligenciar
+- **THEN** el formulario abre en la primera sección incompleta
+- **AND** la candidata sigue sin poder avanzar dejando obligatorios vacíos
+
+#### Scenario: Se pide una sección alcanzable
+
+- **WHEN** se pide una sección cuyas anteriores están todas completas
+- **THEN** el formulario abre en la sección pedida
 
 ### Requirement: La candidata ve si su perfil fue aprobado
 

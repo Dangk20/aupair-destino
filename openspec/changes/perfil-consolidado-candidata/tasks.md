@@ -17,14 +17,15 @@
      *(Foto, nombre, ciudad/país, edad calculada y correo.)*
 - [x] 2.2 Recorrer `PARTE1` y `PARTE2` pintando cada sección con sus campos como etiqueta → valor; **generado, no escrito a mano**
      *(Las 15 secciones salen del recorrido; ni una etiqueta escrita a mano.)*
-- [x] 2.2b **Las secciones son pestañas**, a petición del cliente: en una columna la vista medía 4.167 px —casi cinco pantallas—; con pestañas mide 885 px. Agrupadas por parte.
+- [x] 2.2b **Las secciones son pestañas**, a petición del cliente: en una columna la vista medía 4.167 px —casi cinco pantallas—; con pestañas mide 783 px. Fila horizontal con icono por sección, la activa contorneada en borgoña sobre blanco, separador entre partes.
 - [x] 2.3 Cada sección con su acción de editar, que lleva a su formulario y a su sección
      *(Verificado en el navegador: Salud → `/perfil/evaluacion?seccion=salud`, Fotos → `/perfil/agencia?seccion=fotos`, Referencias → `/perfil/agencia?seccion=referencias`. Cada parte a su formulario.)*
 - [x] 2.4 Los campos sin diligenciar se muestran señalados como vacíos, no se omiten
      *(10 campos como "Sin diligenciar" en el perfil de prueba, en gris e itálica.)*
 - [x] 2.5 Proteger la ruta con `useAccessGate("perfil")`, igual que el resto del módulo
-- [x] 2.6 Si el perfil no está completo, la vista redirige a `/dashboard/perfil` en vez de mostrarse a medias
-     *(Verificado con la candidata 6, que tiene `perfil_completo = 1` en la base pero al calcularlo real le faltan 4 campos: la vista la devolvió al índice. Ver la nota del grupo 6 sobre la bandera obsoleta.)*
+- [x] 2.6 ~~Si el perfil no está completo, la vista redirige~~ → **La vista tiene dos estados**, revisado con el cliente
+     *(Con el perfil a medias ya no redirige: muestra la tarjeta de perfil y el recorrido de las 15 secciones con qué falta en cada una. Verificado con la candidata 6 (87%): dos secciones marcadas "Continuar" con "Te falta: Estatura, Peso" y "Te falta: Nombre de tu primera referencia, Email de tu primera referencia". El motivo del cambio importa: ninguna candidata de producción tiene hoy el perfil completo, así que la versión con redirección habría sido inalcanzable para todas.)*
+- [ ] 2.7 El enlace de una sección pendiente lleva a su sección — depende de que el grupo 3 valide el salto (ver 3.3)
 
 ## 3. Abrir un formulario en una sección
 

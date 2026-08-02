@@ -42,15 +42,26 @@ Un campo sin diligenciar aparece con su etiqueta y una marca de vacío.
 
 *Alternativa descartada:* omitir los campos vacíos para que la vista se vea limpia. Se ve mejor y engaña: la candidata cree que su perfil está completo porque no ve huecos. La vista existe justamente para que sepa qué le falta.
 
-### 3. La sección inicial viaja por la URL, y sólo con el perfil completo
+### 3. La sección inicial viaja por la URL, y el formulario decide si la honra
 
 Los formularios aceptan `?seccion=<id>` y arrancan ahí. El identificador es el `id` que ya tiene cada sección en `campos-perfil.js` (`personal`, `salud`, `visas`…), no un número: un índice se rompe en cuanto se reordena una sección.
 
+**El formulario sólo honra el salto si todas las secciones anteriores están completas.** Si no lo están, abre en la primera que falte. Así el enlace profundo funciona siempre que sea seguro y nunca evade la validación por pasos del Sprint 0.0, que existe para que nadie llegue al final con secciones a medias.
+
 Si el `id` no existe o no viene, se arranca en cero, como hoy.
 
-*Alternativa descartada:* permitir el salto siempre. Rompería la validación por pasos del Sprint 0.0, que existe para que nadie llegue al final con secciones a medias. El enlace profundo sólo se ofrece desde la vista consolidada, y la vista consolidada sólo aparece con el perfil completo — momento en el que todas las secciones ya están validadas y saltar no se salta nada.
+*Alternativa descartada:* ofrecer el salto sólo con el perfil completo. Era la decisión inicial, y se cayó al añadir el estado incompleto de la vista (decisión 4): ahí el enlace de "Continuar" apunta justo a la sección que falta, que es cuando más falta hace. Validar en el formulario cubre los dos casos con una sola regla.
 
-### 4. Las 15 secciones son pestañas, no una columna
+### 4. La vista tiene dos estados, y ninguno es esconderla
+
+**Perfil completo:** pestañas con los datos de cada sección.
+**Perfil a medias:** la misma tarjeta de perfil arriba, y debajo el recorrido de las 15 secciones con su estado y **qué falta exactamente en cada una** ("Te falta: Estatura, Peso"), cada una enlazando a su sección.
+
+*Alternativa descartada:* redirigir al índice de `/dashboard/perfil` mientras el perfil esté incompleto. Era la decisión inicial. Se cayó por dos motivos. Uno de producto: la tarjeta de perfil —foto, nombre, datos— es lo que la candidata quiere ver desde el primer día, no una recompensa por terminar. Y uno de realidad: **ninguna candidata de producción tiene hoy el perfil completo** —las tres que figuran como completas están al 87–95%—, así que la vista habría sido inalcanzable para todas.
+
+*Consecuencia:* el índice de `/dashboard/perfil` y el estado incompleto de la vista se solapan. Se resuelve al reapuntar los caminos (grupo 4): el índice queda para empezar y la vista para consultar.
+
+### 5. Las 15 secciones son pestañas, no una columna
 
 Sólo se pinta la sección activa. En una sola columna la vista medía **4.167 px** de alto —casi cinco pantallas— y había que recorrerla entera para llegar a Referencias o a Fotos. Con pestañas mide **885 px**.
 
@@ -60,13 +71,13 @@ Las pestañas van agrupadas por parte, con su etiqueta encima, para que no se pi
 
 *Alternativa descartada:* pestañas de primer nivel para las partes y de segundo para las secciones. Más ordenado sobre el papel, pero son dos clics para llegar a cualquier sección de la Parte 2 y esconde nueve de las quince.
 
-### 5. La vista vive en su propia ruta, no reemplaza a `/dashboard/perfil`
+### 6. La vista vive en su propia ruta, no reemplaza a `/dashboard/perfil`
 
 `/dashboard/perfil` sigue siendo el índice con el progreso; la consolidada es `/dashboard/perfil/vista`.
 
 *Alternativa descartada:* convertir `/dashboard/perfil` en la vista consolidada cuando el perfil esté completo. Menos rutas, pero la misma dirección mostraría dos cosas muy distintas según el estado, y el índice con su progreso sigue siendo útil mientras se diligencia. Separadas, cada una tiene un solo trabajo.
 
-### 6. La evaluación sólo puede decir lo que el sistema registra
+### 7. La evaluación sólo puede decir lo que el sistema registra
 
 Al investigar apareció que **`score_dap`, `calificacion_dap` y `nota_dap` no los escribe nadie** en todo el repositorio: los lee el panel de la agencia, pero ninguna pantalla los graba, así que están siempre en `null`. Lo único que sí se escribe es `evaluacion_aprobada`, un booleano, desde `/api/admin/aprobar-evaluacion`.
 
@@ -97,7 +108,7 @@ Reversión: cada bloque es un commit y ninguno toca datos. La vista es una ruta 
 
 Resueltas antes de implementar (2026-08-02):
 
-- **¿La vista consolidada con el perfil a medias?** No. Mientras diligencia, la candidata sigue en el índice de `/dashboard/perfil`, que ya muestra el progreso por secciones. La consolidada aparece al completar. Así cada pantalla tiene un solo trabajo, y el salto directo a una sección sólo se ofrece cuando todas están validadas.
+- **¿La vista consolidada con el perfil a medias?** **Sí** — revisado el 2026-08-02 con el cliente, después de verla funcionando. La vista no se esconde: cambia de forma. Ver decisión 4.
 - **¿La candidata ve `score_dap` / `calificacion_dap`?** No. Y además resultó que **nadie los escribe**: están siempre vacíos.
 - **Pendiente con la clienta:** hoy no hay dónde escribirle una observación a la candidata cuando su perfil no se aprueba. Si lo quiere, es funcionalidad nueva (un campo, y dónde lo llena el equipo), no parte de esta vista.
 
