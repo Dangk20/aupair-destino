@@ -30,30 +30,40 @@
 - [ ] 4.4 Añadir "Comisiones" al menú del panel
 - [ ] 4.5 Verificar que los totales cuadran con las ventas confirmadas del módulo de ventas
 
-## 5. Saneamiento de la arquitectura heredada
+## 5. Resumen del panel
 
-- [ ] 5.1 Comprobar que ninguna pantalla viva importa `lib/db.js`, `lib/session.js` ni nada bajo `/app/app/` o `/app/api/app/`
-- [ ] 5.2 Eliminar `/app/app/*`, `/app/api/app/*` (10 rutas), `lib/db.js` y `lib/session.js`
-- [ ] 5.3 `middleware.js`: retirar la rama de Project Center (segundo JWT, mapa de roles y prefijos protegidos), dejando sólo la lógica de Destino Au Pair — commit aislado
-- [ ] 5.4 Eliminar `saasly-nextjs-1.0.0/` y reemplazar el `README.md` de la raíz (hoy es el de la plantilla)
-- [ ] 5.5 Migración: eliminar de `usuarios` las columnas `experiencia_ninos`, `fecha_salida`, `estado_proceso`, `tiene_visa`, `fotos_perfil`
-- [ ] 5.6 Actualizar `CLAUDE.md`: ya no conviven dos aplicaciones; documentar las familias de columnas de `usuarios`
+> Va después del grupo 4: los accesos directos deben incluir ya la pantalla de comisiones.
 
-## 6. Respaldo de archivos
+- [ ] 5.1 `app/admin/page.jsx`: retirar la tabla "Referidos y comisiones", el modal "Nuevo referente", las gráficas decorativas y los controles que no responden ("Rango de fechas", "Comparar con: mes anterior", "Exportar reporte"); la página deja de llamar a `/api/admin/referidos`
+- [ ] 5.2 Poner el aviso de rediseño y las tarjetas de acceso a Ventas, Comisiones, Códigos promo, Usuarios, Perfiles y Sesiones
+- [ ] 5.3 El saludo lee el nombre de la sesión (`/api/auth/me`), en vez del `¡Bienvenida, Jenni!` quemado
+- [ ] 5.4 Comprobar que `/admin/referidos`, `/admin/pagos` y `/admin/sesiones` siguen funcionando: comparten las rutas que el Resumen deja de usar
 
-- [ ] 6.1 Script de respaldo en el VPS: empaqueta el volumen, rota con retención de 14 días, fuera del árbol público y con permisos restringidos
-- [ ] 6.2 Programarlo en cron a diario y verificar que deja registro de éxito o fallo
-- [ ] 6.3 **Probar una restauración real** sobre un respaldo y dejar constancia de la prueba con su fecha
-- [ ] 6.4 Documentar el procedimiento de restauración en `deploy/`
-- [ ] 6.5 Comprobar que los archivos de respaldo no se sirven por web
+## 6. Saneamiento de la arquitectura heredada
 
-## 7. Verificación y cierre
+- [ ] 6.1 Comprobar que ninguna pantalla viva importa `lib/db.js`, `lib/session.js` ni nada bajo `/app/app/` o `/app/api/app/`
+- [ ] 6.2 Eliminar `/app/app/*`, `/app/api/app/*` (10 rutas), `lib/db.js` y `lib/session.js`
+- [ ] 6.3 `middleware.js`: retirar la rama de Project Center (segundo JWT, mapa de roles y prefijos protegidos), dejando sólo la lógica de Destino Au Pair — commit aislado
+- [ ] 6.4 Eliminar `saasly-nextjs-1.0.0/` y reemplazar el `README.md` de la raíz (hoy es el de la plantilla)
+- [ ] 6.5 Migración: eliminar de `usuarios` las columnas `experiencia_ninos`, `fecha_salida`, `estado_proceso`, `tiene_visa`, `fotos_perfil`
+- [ ] 6.6 Actualizar `CLAUDE.md`: ya no conviven dos aplicaciones; documentar las familias de columnas de `usuarios`
 
-- [ ] 7.1 Pruebas de humo en verde contra el entorno local
-- [ ] 7.2 Recorrido manual por rol: admin, candidata, asociada y agencia entran y usan su área sin bloqueos indebidos
-- [ ] 7.3 Recorrido de permisos: confirmar un pago con la sesión de la candidata abierta y comprobar que la sección se habilita sin volver a ingresar; anular y comprobar lo inverso
-- [ ] 7.4 Recorrido de comisiones: venta con código → comisión pendiente → marcarla pagada → anular otra venta y comprobar que su comisión queda anulada y fuera de los totales
-- [ ] 7.5 `npm run build` sin errores
-- [ ] 7.6 Desplegar con `deploy/desplegar.sh` (hay migración) y verificar en producción con las pruebas de humo
-- [ ] 7.7 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md` y la auditoría de arquitectura con lo retirado
-- [ ] 7.8 Reporte de avance para la clienta (compromiso contractual del viernes)
+## 7. Respaldo de archivos
+
+- [ ] 7.1 Script de respaldo en el VPS: empaqueta el volumen, rota con retención de 14 días, fuera del árbol público y con permisos restringidos
+- [ ] 7.2 Programarlo en cron a diario y verificar que deja registro de éxito o fallo
+- [ ] 7.3 **Probar una restauración real** sobre un respaldo y dejar constancia de la prueba con su fecha
+- [ ] 7.4 Documentar el procedimiento de restauración en `deploy/`
+- [ ] 7.5 Comprobar que los archivos de respaldo no se sirven por web
+
+## 8. Verificación y cierre
+
+- [ ] 8.1 Pruebas de humo en verde contra el entorno local
+- [ ] 8.2 Recorrido manual por rol: admin, candidata, asociada y agencia entran y usan su área sin bloqueos indebidos
+- [ ] 8.3 Recorrido de permisos: confirmar un pago con la sesión de la candidata abierta y comprobar que la sección se habilita sin volver a ingresar; anular y comprobar lo inverso
+- [ ] 8.4 Recorrido de comisiones: venta con código → comisión pendiente → marcarla pagada → anular otra venta y comprobar que su comisión queda anulada y fuera de los totales
+- [ ] 8.5 Entrar como admin y comprobar que el Resumen saluda con el nombre real y que cada acceso directo lleva a su módulo
+- [ ] 8.6 `npm run build` sin errores
+- [ ] 8.7 Desplegar con `deploy/desplegar.sh` (hay migración) y verificar en producción con las pruebas de humo
+- [ ] 8.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md` y la auditoría de arquitectura con lo retirado
+- [ ] 8.9 Reporte de avance para la clienta (compromiso contractual del viernes)

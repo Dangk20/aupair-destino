@@ -25,7 +25,8 @@ Restricción: 10–15 h/semana, sprint de 2 semanas, sobre una plataforma con us
 - Normalizar `usuarios` — deuda consciente.
 - Almacenamiento de objetos para archivos y fotos (post-MVP).
 - Suites unitarias y funcionales completas: aquí sólo las pruebas de humo de permisos.
-- Rediseñar la interfaz del panel; la vista de comisiones sigue el estilo del módulo de ventas.
+- Rediseñar la interfaz del panel: la vista de comisiones sigue el estilo del módulo de ventas, y el Resumen se vacía sin proponer un diseño nuevo. Retirar interfaz que miente no cuenta como rediseño.
+- Construir el resumen real de `/admin` con datos verdaderos (ver decisión 9).
 
 ## Decisions
 
@@ -88,6 +89,16 @@ Un script en el VPS, ejecutado por cron, que empaqueta el volumen y rota copias 
 
 *Alternativa descartada:* Vitest o Jest. Aportan estructura y buenos mensajes, pero suman dependencias y configuración a un repositorio sin ninguna prueba y con dos meses de plazo. Un script de Node se entiende sin aprender nada y corre en cualquier lado. Cuando existan pruebas unitarias de verdad (Sprint 2), se evalúa mover todo a un framework.
 
+### 9. El Resumen del panel se vacía, no se rehace
+
+`/admin` queda con un aviso de rediseño y accesos directos a los módulos que funcionan. El saludo pasa a leerse de la sesión. Sale todo lo que se alimenta de `referidos`, incluido el modal "Nuevo referente".
+
+*Alternativa descartada A:* construir el resumen real ahora. Es lo que la clienta quiere a la larga, pero hoy sólo podría alimentarse de `referidos` —el sistema que el Sprint 3 retira—, y las cifras verdaderas viven en `ventas` y `comisiones`, cuya pantalla nace en este mismo sprint. Construirlo antes sería levantar la pantalla de inicio sobre lo que la auditoría marcó como muerto, y rehacerla dos veces.
+
+*Alternativa descartada B:* redirigir `/admin` → `/admin/ventas` y sacar "Resumen" del menú. Es lo más barato, pero deja el panel sin punto de entrada propio y hay que reponerlo igual en el Sprint 3.
+
+*Consecuencia:* la clienta pierde unas cifras en la pantalla de inicio. No pierde información: eran falsas o contradictorias, y las verdaderas están en Ventas y —desde este sprint— en Comisiones.
+
 ## Risks / Trade-offs
 
 - **Cerrar rutas puede romper pantallas que las llamaban sin sesión** → El inventario se arma leyendo qué página consume cada ruta antes de tocarla, y las pruebas de humo cubren el camino feliz de cada rol. Aun así, el recorrido manual de las cuatro áreas es obligatorio antes de desplegar.
@@ -100,7 +111,7 @@ Un script en el VPS, ejecutado por cron, que empaqueta el volumen y rota copias 
 
 1. Guards y barrido de rutas, por áreas y en commits separados (admin → asociada → agencia → dashboard).
 2. Pruebas de humo, en cuanto exista el inventario: sirven de red para todo lo demás.
-3. `register`, comisiones y errores de sesión.
+3. `register`, comisiones y errores de sesión. El Resumen se vacía **después** de que exista la pantalla de comisiones, para que sus accesos directos ya la incluyan.
 4. Eliminación de Project Center, en su propio commit.
 5. Migración de columnas muertas.
 6. Respaldo y prueba de restauración en el VPS.

@@ -27,6 +27,20 @@ Y hay una deuda que agrava lo anterior: dentro del repositorio vive **una segund
 - Pantalla de comisiones en el panel: por asociada, con su estado, y la acción de marcarlas como pagadas. El backend ya existe desde el Sprint 0.0.
 - Con esto, las tres cosas que la clienta necesita para operar —revisar perfiles, rastrear pagos, rastrear comisiones— quedan completas.
 
+### El Resumen del panel deja de mentir
+
+`/admin` es la primera pantalla que ve la clienta cada vez que entra, y hoy está construida sobre el sistema viejo de referidos que el Sprint 3 va a retirar. Lo que muestra:
+
+- La tabla "Referidos y comisiones", alimentada por `/api/admin/referidos`.
+- Gráficas de línea decorativas, sin datos detrás.
+- Métricas que se contradicen entre sí: `Total referidos registrados: 0` junto a `Referidos que pagaron: 5`.
+- Tres controles que no responden: "Rango de fechas", "Comparar con: mes anterior" y "Exportar reporte".
+- El saludo `¡Bienvenida, Jenni!` escrito en el código, en vez de leerse de la sesión.
+
+Se reemplaza por un aviso de rediseño con accesos directos a los módulos que sí funcionan (Ventas, Códigos promo, Usuarios, Perfiles, Sesiones), y el saludo leído de la sesión.
+
+**El resumen real no se construye en este sprint.** Se alimentará de ventas y comisiones —y la pantalla de comisiones nace aquí—, así que construirlo hoy significaría levantarlo sobre `referidos`. Queda para el Sprint 3, cuando se retire ese sistema y exista de qué alimentarlo.
+
 ### Que los archivos no se puedan perder
 
 - Respaldo diario automático del volumen de documentos en el servidor, con rotación y una restauración probada.
@@ -53,6 +67,7 @@ Y hay una deuda que agrava lo anterior: dentro del repositorio vive **una segund
 - `control-de-acceso`: quién puede llamar cada ruta de la API y con qué condiciones — sesión, rol, propiedad del recurso y permiso de sección pagado.
 - `comisiones`: consulta y gestión de las comisiones generadas por las ventas con código de asociada.
 - `respaldo-archivos`: resguardo periódico y restauración del almacenamiento de documentos y recursos.
+- `panel-admin`: qué encuentra la clienta al entrar al panel — su punto de entrada y el acceso a los módulos operativos.
 
 ### Modified Capabilities
 
@@ -67,6 +82,7 @@ Ninguna. Las reglas de acceso a documentos que fijó el Sprint 0.0 siguen vigent
 - `app/api/auth/register/route.js` — dejar de emitir cookie en creación administrativa.
 - `middleware.js` — retirar la rama de Project Center.
 - `app/admin/comisiones/` y `app/api/admin/comisiones/` (nuevos).
+- `app/admin/page.jsx` — se vacía de la interfaz falsa y deja de consumir `/api/admin/referidos`.
 - `app/login/page.jsx` y el flujo de cierre de sesión.
 - `scripts/pruebas-humo.mjs` (nuevo) y `deploy/desplegar-codigo.sh`.
 
@@ -90,6 +106,9 @@ Este change **retira** deuda en lugar de producirla:
 | Rama de Project Center en el middleware | `middleware.js` | Segundo JWT y segundo mapa de roles en el archivo de seguridad |
 | Columnas abandonadas | `usuarios`: `experiencia_ninos`, `fecha_salida`, `estado_proceso`, `tiene_visa`, `fotos_perfil` | Versiones viejas de columnas vivas; ninguna línea las menciona |
 | Plantilla original | `saasly-nextjs-1.0.0/`, `README.md` de la raíz | Nadie la importa; el README es el de la plantilla |
+| Interfaz falsa del Resumen | `app/admin/page.jsx`: tabla de referidos, modal "Nuevo referente", gráficas decorativas, filtros y "Exportar reporte" que no responden, saludo quemado | Muestra datos contradictorios y promete acciones que no existen, en la pantalla que la clienta abre primero |
+
+Las rutas `/api/admin/referidos*` **no** quedan muertas con esto: `/admin/referidos` las sigue usando hasta que el Sprint 3 retire el sistema. Lo mismo con `/api/admin/stats` (la usa `/admin/sesiones`) y `/api/admin/pagos/stats` (la usa `/admin/pagos`).
 
 **Deuda nueva que sí se produce:** la pantalla de comisiones se construye sobre el modelo actual (`comisiones` ligada a `ventas`). Cuando en el Sprint 3 se retire el sistema viejo de referidos, habrá que unificar ahí lo que quede de `referido_registros`. Queda anotado.
 

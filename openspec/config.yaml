@@ -4,8 +4,14 @@ context: |
   Producto: Destino Au Pair — plataforma que prepara, evalúa y conecta candidatas
   au pair colombianas con agencias aliadas. Está en producción y fue dejada a
   medias por un proveedor anterior; el encargo actual es estabilizarla y
-  terminarla (MVP a 2 meses, prioridad estricta: 1) Admin, 2) Candidatas,
-  3) Agencias).
+  terminarla (MVP a 2 meses).
+
+  Prioridad del MVP, en este orden: 1) Candidatas, 2) Agencias, 3) Aliados
+  (asociadas). El admin puede esperar, con una condición: que revisión de
+  perfiles, rastreo de pagos y rastreo de comisiones estén funcionando, porque
+  son lo que la clienta necesita para operar el día a día. El criterio que
+  manda es que la clienta pueda usar la plataforma mientras se sigue
+  trabajando: está viva y con tráfico real.
 
   Idioma: todo se escribe en español (es_CO) — proposals, specs, tasks, código,
   comentarios, UI y nombres de tabla. Es la convención del proyecto y de la
