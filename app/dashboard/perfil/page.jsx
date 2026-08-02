@@ -52,7 +52,7 @@ export default function CuentanosDeTiPage() {
   const pctAgencia = progresoAgencia(perfil);           // parte 2
   const overall = Math.round((pct + pctAgencia) / 2);   // progreso TOTAL (ambas partes)
   const perfilTotalCompleto = listo && pctAgencia === 100;
-  const boton = perfilTotalCompleto ? "Revisar mi perfil" : (completas>0||pctAgencia>0) ? "Continuar mi perfil" : "Empezar a contarte";
+  const boton = perfilTotalCompleto ? "Revisar mi perfil" : (completas>0||pctAgencia>0) ? "Ver qué me falta" : "Empezar a contarte";
 
   return (
     <div style={{ fontFamily:T.font, color:T.text, padding:isMobile?"16px 16px 90px":"28px 30px", maxWidth:860, margin:"0 auto", width:"100%", display:"flex", flexDirection:"column", gap:18 }}>
@@ -87,7 +87,10 @@ export default function CuentanosDeTiPage() {
         <div style={{ height:9, background:"rgba(255,255,255,.25)", borderRadius:20, overflow:"hidden", marginTop:16 }}>
           <div style={{ height:"100%", width:`${overall}%`, background:"#fff", borderRadius:20, transition:"width .5s" }}/>
         </div>
-        <button onClick={()=>router.push(listo && pctAgencia<100 ? "/dashboard/perfil/agencia" : "/dashboard/perfil/evaluacion")} style={{ marginTop:16, background:"#fff", color:T.primary, border:"none", borderRadius:13, padding:"13px 22px", fontFamily:T.font, fontWeight:700, fontSize:14, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:8 }}>
+        {/* La vista consolidada sirve para los dos estados: con el perfil
+            completo muestra los datos, y a medias muestra qué falta en cada
+            sección. Por eso el botón principal siempre lleva allí. */}
+        <button onClick={()=>router.push("/dashboard/perfil/vista")} style={{ marginTop:16, background:"#fff", color:T.primary, border:"none", borderRadius:13, padding:"13px 22px", fontFamily:T.font, fontWeight:700, fontSize:14, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:8 }}>
           {boton} <ArrowRight size={17}/>
         </button>
       </div>
@@ -101,7 +104,7 @@ export default function CuentanosDeTiPage() {
         {SECCIONES.map(s => {
           const ok = seccionCompleta(perfil, s), Ic = s.icon;
           return (
-            <button key={s.id} onClick={()=>router.push("/dashboard/perfil/evaluacion")}
+            <button key={s.id} onClick={()=>router.push(`/dashboard/perfil/evaluacion?seccion=${s.id}`)}
               style={{ background:"#fff", borderRadius:16, padding:14, display:"flex", alignItems:"center", gap:12, boxShadow:T.shadow, border:`1.5px solid ${ok?T.primary3:"transparent"}`, cursor:"pointer", fontFamily:T.font, textAlign:"left" }}>
               <div style={{ width:42, height:42, borderRadius:12, background:ok?T.primary:T.lilac, color:ok?"#fff":T.primary, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 {ok ? <Check size={20}/> : <Ic size={19}/>}
@@ -135,7 +138,9 @@ export default function CuentanosDeTiPage() {
         </div>
         <button onClick={()=> listo ? router.push("/dashboard/perfil/agencia") : router.push("/dashboard/perfil/evaluacion")}
           style={{ background: listo?T.primary:"#fff", color: listo?"#fff":T.primary, border: listo?"none":`1.5px solid ${T.border}`, borderRadius:12, padding:"11px 20px", fontFamily:T.font, fontWeight:700, fontSize:13.5, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:8, flexShrink:0 }}>
-          {listo ? <>{pctAgencia===100?"Revisar":pctAgencia>0?"Continuar":"Empezar"} <ArrowRight size={16}/></> : <>Completa la Parte 1 primero</>}
+          {/* Ya no dice "Revisar": revisar es lo que hace la vista consolidada.
+              Este botón sólo edita, como las tarjetas de la Parte 1. */}
+          {listo ? <>{pctAgencia===100?"Editar":pctAgencia>0?"Continuar":"Empezar"} <ArrowRight size={16}/></> : <>Completa la Parte 1 primero</>}
         </button>
       </div>
 

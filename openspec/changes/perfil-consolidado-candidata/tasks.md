@@ -35,10 +35,14 @@
 
 ## 4. Reapuntar los caminos que engañan
 
-- [ ] 4.1 `app/dashboard/perfil/page.jsx`: con el perfil completo, "Revisar mi perfil" abre la vista consolidada
-- [ ] 4.2 Las seis tarjetas de sección de la Parte 1 llevan cada una a su sección
-- [ ] 4.3 Retirar el botón "Revisar" suelto de la Parte 2; se llega desde la vista consolidada
-- [ ] 4.4 Comprobar que con el perfil a medias los textos y destinos siguen siendo los de "continuar", no los de "revisar"
+- [x] 4.1 `app/dashboard/perfil/page.jsx`: "Revisar mi perfil" abre la vista consolidada
+     *(Lleva **siempre** a la vista, no sólo con el perfil completo: desde que la vista tiene estado incompleto sirve para los dos casos. Con el perfil a medias el botón dice "Ver qué me falta", que es lo que muestra.)*
+- [x] 4.2 Las seis tarjetas de sección de la Parte 1 llevan cada una a su sección
+     *(Verificado: la tarjeta "Salud" lleva a `/dashboard/perfil/evaluacion?seccion=salud`. Antes las seis iban al mismo sitio sin anclar.)*
+- [x] 4.3 Retirar el botón "Revisar" suelto de la Parte 2; se llega desde la vista consolidada
+     *(La tarjeta se queda, pero su botón deja de decir "Revisar" y pasa a "Editar": revisar es lo que hace la vista. Así el índice sólo tiene acciones de edición y no compite con ella.)*
+- [x] 4.4 Comprobar que con el perfil a medias los textos y destinos siguen siendo los de "continuar", no los de "revisar"
+     *(Sin empezar → "Empezar a contarte". A medias → "Ver qué me falta". Completo → "Revisar mi perfil". Los tres llevan a la vista, que se adapta.)*
 
 ## 5. El resultado de la evaluación
 
