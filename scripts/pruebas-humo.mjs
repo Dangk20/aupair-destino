@@ -19,9 +19,25 @@
 // un usuario INEXISTENTE que *declara* tener todos los permisos. Si una ruta
 // con permiso lo deja pasar, es que confió en el token. Debe responder 403.
 //
-// Sin dependencias nuevas: sólo jsonwebtoken, que ya usa la aplicación.
+// SIN NINGUNA dependencia, ni siquiera jsonwebtoken. El despliegue ejecuta
+// este script DENTRO del contenedor, y allí no existe: Next empaqueta
+// jsonwebtoken dentro del build standalone en vez de dejarlo en node_modules.
+// Un JWT HS256 son tres trozos en base64url y un HMAC, así que se firma con el
+// `crypto` que Node ya trae.
 
-import jwt from "jsonwebtoken";
+import { createHmac } from "node:crypto";
+
+const b64url = (buf) =>
+  Buffer.from(buf).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+/** Firma un JWT HS256 equivalente al que emite lib/session-aupair.js. */
+function firmar(payload, secreto, segundos = 300) {
+  const ahora = Math.floor(Date.now() / 1000);
+  const cabecera = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const cuerpo   = b64url(JSON.stringify({ ...payload, iat: ahora, exp: ahora + segundos }));
+  const firma    = b64url(createHmac("sha256", secreto).update(`${cabecera}.${cuerpo}`).digest());
+  return `${cabecera}.${cuerpo}.${firma}`;
+}
 
 const BASE   = (process.argv.find(a => a.startsWith("http")) || "http://localhost:3000").replace(/\/$/, "");
 const SOLO_SIN_SESION = process.argv.includes("--sin-sesion");
@@ -173,12 +189,12 @@ const ROLES = ["admin", "asociada", "agencia", "usuaria"];
 
 /** Token de un usuario inexistente, que declara todos los permisos. */
 function token(rol) {
-  return jwt.sign({
+  return firmar({
     id: ID_FANTASMA, email: `humo-${rol}@ejemplo.invalid`, nombre: "Humo", apellido: rol, rol,
     // Miente a propósito: si una ruta con permiso deja pasar esto, leyó el JWT.
     tiene_acceso: true, acceso_documentos: 1, acceso_mensajes: 1,
     acceso_recursos: 1, acceso_reuniones: 1, acceso_comunidad: 1,
-  }, SECRETO, { expiresIn: "5m" });
+  }, SECRETO);
 }
 const COOKIE = Object.fromEntries(ROLES.map(r => [r, `dap_token=${token(r)}`]));
 

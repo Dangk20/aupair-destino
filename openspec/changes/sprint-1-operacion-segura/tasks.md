@@ -75,11 +75,16 @@
 
 ## 7. Respaldo de archivos
 
-- [ ] 7.1 Script de respaldo en el VPS: empaqueta el volumen, rota con retención de 14 días, fuera del árbol público y con permisos restringidos
-- [ ] 7.2 Programarlo en cron a diario y verificar que deja registro de éxito o fallo
-- [ ] 7.3 **Probar una restauración real** sobre un respaldo y dejar constancia de la prueba con su fecha
-- [ ] 7.4 Documentar el procedimiento de restauración en `deploy/`
-- [ ] 7.5 Comprobar que los archivos de respaldo no se sirven por web
+- [x] 7.1 Script de respaldo en el VPS: empaqueta el volumen, rota con retención de 14 días, fuera del árbol público y con permisos restringidos
+     *(`deploy/respaldar.sh`, instalado en `/opt/dap/deploy/`. Respalda **volumen y base juntos**: un archivo sin su fila es un huérfano y una fila sin su archivo es el "archivo no disponible" del Sprint 0.0. Destino `/var/respaldos-dap`, permisos 700. La rotación nunca borra el último que quede.)*
+- [x] 7.2 Programarlo en cron a diario y verificar que deja registro de éxito o fallo
+     *(`15 3 * * *`. Servicio cron activo. Primer respaldo real: 5.6 MB, anotado en `respaldo.log`. Probado el camino de fallo con el volumen inaccesible: sale con código 1, anota `✗ FALLO`, no deja respaldo a medias y no toca los anteriores.)*
+- [x] 7.3 **Probar una restauración real** sobre un respaldo y dejar constancia de la prueba con su fecha
+     *(2026-08-02, sobre `20260802-2117` en producción. Tres niveles: `diff -rq` del tar contra el volumen vivo sin una sola diferencia; base restaurada a un esquema de prueba con conteos idénticos en 5 tablas; y el **ciclo completo de un documento** — `/api/documentos/15` da 200, se aparta el archivo y da 404, se restaura del respaldo y vuelve a dar 200, idéntico byte a byte.)*
+- [x] 7.4 Documentar el procedimiento de restauración en `deploy/`
+     *(`deploy/RESTAURAR.md`: tres casos —documento suelto, volumen entero, base—, cómo verificar un respaldo sin tocar producción, y la constancia fechada de la prueba.)*
+- [x] 7.5 Comprobar que los archivos de respaldo no se sirven por web
+     *(404 en los cuatro intentos, incluido uno con `../`. Están en `/var/respaldos-dap`, fuera de `/opt/dap`.)*
 
 ## 8. Verificación y cierre
 
