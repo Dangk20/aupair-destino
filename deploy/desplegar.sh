@@ -89,6 +89,15 @@ done
 
 # ── 6. Verificación ──────────────────────────────────────────────────────
 paso "6/6  Verificación"
+
+# Pruebas de humo del control de acceso, dentro del contenedor (ahí está
+# JWT_AUPAIR_SECRET). Si alguna regla falla, el despliegue no se da por bueno.
+if ! ssh "$VPS" "cd $REMOTO && docker compose exec -T app node scripts/pruebas-humo.mjs http://127.0.0.1:3000"; then
+  printf "\n\033[1;31m✗ Las pruebas de humo fallaron. El despliegue NO se da por bueno.\033[0m\n"
+  printf "  Los respaldos del paso 1 están en: %s\n" "$RESPALDOS"
+  exit 1
+fi
+
 viejo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 \
   "https://destino-aupair.com/uploads/documentos/18/certificado_idioma_1784850061544.png" || echo "---")
 nuevo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 \

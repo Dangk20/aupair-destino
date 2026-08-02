@@ -27,6 +27,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Pruebas de humo del control de acceso. Viajan en la imagen para que el
+# despliegue las corra DENTRO del contenedor, donde JWT_AUPAIR_SECRET ya está
+# en el entorno: así se verifican rol y permiso sin sacar el secreto del VPS.
+COPY --from=builder /app/scripts ./scripts
+
 # Almacenamiento de documentos: FUERA de public/.
 # Bajo public/ los documentos quedaban accesibles sin sesión y, además, el
 # servidor standalone resuelve los estáticos de public/ desde el build, así que

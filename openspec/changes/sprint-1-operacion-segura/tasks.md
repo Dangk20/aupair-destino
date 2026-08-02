@@ -3,8 +3,10 @@
 - [x] 1.1 Levantar el inventario de las 82 rutas de `app/api/**` con su nivel de acceso (pública / con sesión / por rol / por permiso) y la página que consume cada una; dejarlo en `docs/rutas-y-acceso.md`
 - [x] 1.2 `lib/session-aupair.js`: añadir `requiereRol(req, rol)`, `requierePermiso(req, seccion)` — leyendo el permiso de la base, no del JWT — y `requiereDueño(req, usuarioId)`
       *(compilan; la verificación en ejecución llega con las pruebas de humo de 1.3)*
-- [ ] 1.3 `scripts/pruebas-humo.mjs`: Node puro, sin dependencias; sesiones de prueba por rol y una aserción por regla del inventario; sale distinto de cero si algo falla
-- [ ] 1.4 Integrar las pruebas de humo en `deploy/desplegar-codigo.sh` y `deploy/desplegar.sh`, de modo que un fallo detenga el despliegue
+- [x] 1.3 `scripts/pruebas-humo.mjs`: Node puro, sin dependencias; sesiones de prueba por rol y una aserción por regla del inventario; sale distinto de cero si algo falla
+      *(528 aserciones. Verificado en local: la línea base es 323 en verde y 205 en rojo, y los rojos son exactamente el trabajo de los grupos 2 y 3.)*
+- [x] 1.4 Integrar las pruebas de humo en `deploy/desplegar-codigo.sh` y `deploy/desplegar.sh`, de modo que un fallo detenga el despliegue
+      *(Corren dentro del contenedor, donde `JWT_AUPAIR_SECRET` ya vive, así que verifican rol y permiso sin sacar el secreto del VPS. El `Dockerfile` copia `scripts/` a la imagen. Pendiente de ejecutarse contra producción en la tarea 8.7.)*
 
 ## 2. Barrido de control de acceso
 

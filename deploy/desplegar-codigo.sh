@@ -37,24 +37,20 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
-paso "3/3  Verificación: ninguna ruta de admin debe responder sin sesión"
-fallos=0
-for p in /api/admin/pagos/movimientos /api/admin/pagos/stats /api/admin/referidos \
-         /api/admin/referidos/inscripciones /api/admin/usuarios/actividad \
-         /api/admin/usuarios/top-referentes /api/admin/stats; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://destino-aupair.com$p" || echo "---")
-  if [ "$code" = "401" ] || [ "$code" = "403" ]; then
-    printf "   ✓ %-44s %s\n" "$p" "$code"
-  else
-    printf "   ✗ %-44s %s  ← SIGUE ABIERTA\n" "$p" "$code"; fallos=$((fallos+1))
-  fi
-done
+paso "3/3  Pruebas de humo del control de acceso"
+
+# Corren DENTRO del contenedor: ahí JWT_AUPAIR_SECRET ya está en el entorno,
+# así que se verifican también rol y permiso sin sacar el secreto del VPS.
+# El script sale distinto de cero si alguna regla falla y `set -e` corta aquí.
+if ! ssh "$VPS" "cd $REMOTO && docker compose exec -T app node scripts/pruebas-humo.mjs http://127.0.0.1:3000"; then
+  printf "\n\033[1;31m✗ Las pruebas de humo fallaron. El despliegue NO se da por bueno.\033[0m\n"
+  printf "  El código ya está arriba: revisa lo que reportaron y corrige, o revierte.\n"
+  exit 1
+fi
 
 # La app pública debe seguir viva
 home=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://destino-aupair.com/")
-printf "   %s home pública                                 %s\n" "$([ "$home" = 200 ] && echo ✓ || echo ✗)" "$home"
+printf "   %s home pública → %s\n" "$([ "$home" = 200 ] && echo ✓ || echo ✗)" "$home"
+[ "$home" = 200 ] || { printf "\n\033[1;31m✗ La home pública no responde 200.\033[0m\n"; exit 1; }
 
-if [ "$fallos" -gt 0 ]; then
-  printf "\n\033[1;31m✗ Quedan %s ruta(s) abiertas.\033[0m\n" "$fallos"; exit 1
-fi
 printf "\n\033[1;32m✓ Desplegado y verificado.\033[0m\n"
