@@ -1,7 +1,8 @@
 ## 1. Inventario y guards
 
-- [ ] 1.1 Levantar el inventario de las 82 rutas de `app/api/**` con su nivel de acceso (pública / con sesión / por rol / por permiso) y la página que consume cada una; dejarlo en `docs/rutas-y-acceso.md`
-- [ ] 1.2 `lib/session-aupair.js`: añadir `requiereRol(req, rol)`, `requierePermiso(req, seccion)` — leyendo el permiso de la base, no del JWT — y `requiereDueño(req, usuarioId)`
+- [x] 1.1 Levantar el inventario de las 82 rutas de `app/api/**` con su nivel de acceso (pública / con sesión / por rol / por permiso) y la página que consume cada una; dejarlo en `docs/rutas-y-acceso.md`
+- [x] 1.2 `lib/session-aupair.js`: añadir `requiereRol(req, rol)`, `requierePermiso(req, seccion)` — leyendo el permiso de la base, no del JWT — y `requiereDueño(req, usuarioId)`
+      *(compilan; la verificación en ejecución llega con las pruebas de humo de 1.3)*
 - [ ] 1.3 `scripts/pruebas-humo.mjs`: Node puro, sin dependencias; sesiones de prueba por rol y una aserción por regla del inventario; sale distinto de cero si algo falla
 - [ ] 1.4 Integrar las pruebas de humo en `deploy/desplegar-codigo.sh` y `deploy/desplegar.sh`, de modo que un fallo detenga el despliegue
 

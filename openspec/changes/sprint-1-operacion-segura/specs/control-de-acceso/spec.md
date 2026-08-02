@@ -31,6 +31,18 @@ No SHALL quedar ninguna ruta sin nivel declarado.
 
 El sistema SHALL rechazar toda llamada a una ruta de un área cuyo rol no corresponda a la sesión, independientemente de que el middleware ya proteja las páginas. `/api/admin/**` SHALL exigir rol `admin`; `/api/asociada/**`, rol `asociada`; `/api/agencia/**`, rol `agencia`.
 
+Una ruta SHALL poder admitir más de un rol únicamente si figura como **excepción declarada** en el inventario, con su motivo escrito. Una excepción no declarada en el inventario es un defecto, no una decisión. Las pruebas de humo SHALL comprobar tanto la regla general como cada excepción: que la excepción acepte los roles que declara y siga rechazando a los demás.
+
+#### Scenario: Excepción declarada
+
+- **WHEN** una sesión llama una ruta que el inventario declara compartida entre dos roles, con uno de esos roles
+- **THEN** la ruta se ejecuta normalmente
+
+#### Scenario: Excepción declarada, rol ajeno
+
+- **WHEN** una sesión con un rol que la excepción no menciona llama esa misma ruta
+- **THEN** el sistema responde 403
+
 #### Scenario: Candidata llamando una ruta de administración
 
 - **WHEN** una sesión con rol `usuaria` llama directamente una ruta bajo `/api/admin/`
