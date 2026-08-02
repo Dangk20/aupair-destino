@@ -1,73 +1,48 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-// ── Secrets ────────────────────────────────────────────
-const JWT_SECRET_PC = new TextEncoder().encode(
-  process.env.JWT_SECRET || "proyecto_center_secreto_2024"
-);
+// ════════════════════════════════════════════════════════════════════════
+// Control de acceso a las PÁGINAS. El de la API vive en cada handler, con
+// los guards de lib/session-aupair.js — ver docs/rutas-y-acceso.md.
+//
+// Hasta el Sprint 1 este archivo servía a dos aplicaciones: Destino Au Pair y
+// "Project Center", una app ajena del proveedor anterior con su propio
+// secreto JWT, su propio mapa de roles y su propia cookie. Se retiró: su base
+// de datos no existía en el servidor. Aquí queda sólo Destino Au Pair.
+// ════════════════════════════════════════════════════════════════════════
+
 const JWT_SECRET_DAP = new TextEncoder().encode(
   process.env.JWT_AUPAIR_SECRET || "destino_aupair_secreto_2025"
 );
 
-// ── Project Center config ───────────────────────────────
-const ROLE_ROUTES = {
-  "Super Admin":      ["/dashboard"],
-  "Admin Empresa":    ["/app/dashboard"],
-  "Gerente Proyecto": ["/app/dashboard"],
-  "Contratista":      ["/app/dashboard"],
-  "Contador":         ["/app/dashboard"],
-  "Cliente":          ["/app/cliente"],
-};
-
-const ROLE_HOME = {
-  "Super Admin":      "/dashboard",
-  "Admin Empresa":    "/company",
-  "Gerente Proyecto": "/company",
-  "Contratista":      "/dashboard",
-  "Contador":         "/company/projects",
-  "Cliente":          "/client",
-};
-
-const PC_PROTECTED_PREFIXES = [
-  "/app/dashboard",
-  "/app/cliente",
-  "/editor-planos",
+// Prefijos que exigen sesión, y el rol que puede entrar a cada uno.
+// `null` = cualquier rol con sesión válida.
+const RUTAS_PROTEGIDAS = [
+  { prefijo: "/admin",     rol: "admin"    },
+  { prefijo: "/asociada",  rol: "asociada" },
+  { prefijo: "/agencia",   rol: "agencia"  },
+  { prefijo: "/dashboard", rol: null       },
 ];
 
-// ── Destino Au Pair config ──────────────────────────────
-const DAP_PROTECTED_PREFIXES = [
-  "/dashboard",
-  "/admin",
-  "/asociada",
-  "/agencia",
-];
-
-const DAP_PUBLIC_PATHS = [
+// Páginas y rutas que responden sin sesión.
+const PUBLICAS = [
+  "/",
   "/login",
   "/register",
-  "/",
+  "/forgot-password",
+  "/reset-password",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/me",
 ];
 
-// ── Paths siempre públicos ──────────────────────────────
-const ALWAYS_PUBLIC = [
-  "/login",
-  "/register",
-  "/",
-  "/api/auth/login",
-  "/api/auth/register",
-  "/api/auth/register-cliente",
-  "/api/auth/logout",
-  "/api/auth/me",
-];
+const empieza = (pathname, p) => pathname === p || pathname.startsWith(p + "/");
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Skip assets y Next internals
+  // Assets y archivos internos de Next
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/assets") ||
@@ -77,103 +52,44 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Siempre públicos
-  if (ALWAYS_PUBLIC.some(p => pathname === p || pathname.startsWith(p + "/"))) {
-    return NextResponse.next();
-  }
+  if (PUBLICAS.some((p) => empieza(pathname, p))) return NextResponse.next();
 
-  // ── ¿Es ruta de Destino Au Pair? ──────────────────────
-  const isDapRoute = DAP_PROTECTED_PREFIXES.some(p =>
-    pathname === p || pathname.startsWith(p + "/")
-  );
+  const regla = RUTAS_PROTEGIDAS.find((r) => empieza(pathname, r.prefijo));
+  if (!regla) return NextResponse.next();
 
-  if (isDapRoute) {
-    const dapToken = request.cookies.get("dap_token")?.value;
-
-    if (!dapToken) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    let payload;
-    try {
-      const { payload: decoded } = await jwtVerify(dapToken, JWT_SECRET_DAP);
-      payload = decoded;
-    } catch {
-      const loginUrl = new URL("/login", request.url);
-      const res = NextResponse.redirect(loginUrl);
-      res.cookies.set("dap_token", "", { maxAge: 0, path: "/" });
-      return res;
-    }
-
-    // Validar rutas por rol
-    if (pathname.startsWith("/admin") && payload.rol !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-    if (pathname.startsWith("/asociada") && payload.rol !== "asociada") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-    if (pathname.startsWith("/agencia") && payload.rol !== "agencia") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    // Adjunta info del usuario a los headers
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-dap-user-id",     String(payload.id      || ""));
-    requestHeaders.set("x-dap-user-email",  String(payload.email   || ""));
-    requestHeaders.set("x-dap-user-nombre", String(payload.nombre  || ""));
-    requestHeaders.set("x-dap-user-rol",    String(payload.rol     || ""));
-    requestHeaders.set("x-dap-acceso",      String(payload.tiene_acceso || "false"));
-
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
-
-  // ── ¿Es ruta de Project Center? ───────────────────────
-  const isPcRoute = PC_PROTECTED_PREFIXES.some(p =>
-    pathname === p || pathname.startsWith(p + "/")
-  );
-
-  if (!isPcRoute) return NextResponse.next();
-
-  const token = request.cookies.get("token")?.value;
-
+  const token = request.cookies.get("dap_token")?.value;
   if (!token) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname);
-    return NextResponse.redirect(loginUrl);
+    const login = new URL("/login", request.url);
+    login.searchParams.set("from", pathname);
+    return NextResponse.redirect(login);
   }
 
   let payload;
   try {
-    const { payload: decoded } = await jwtVerify(token, JWT_SECRET_PC);
-    payload = decoded;
+    ({ payload } = await jwtVerify(token, JWT_SECRET_DAP));
   } catch {
-    const loginUrl = new URL("/login", request.url);
-    const res = NextResponse.redirect(loginUrl);
-    res.cookies.set("token", "", { maxAge: 0, path: "/" });
+    // Token inválido o vencido: se borra para no dejar al usuario en un
+    // bucle de redirecciones con una cookie que nunca se va a verificar.
+    const res = NextResponse.redirect(new URL("/login", request.url));
+    res.cookies.set("dap_token", "", { maxAge: 0, path: "/" });
     return res;
   }
 
-  const rol = payload.rol;
-  const allowedPrefixes = ROLE_ROUTES[rol] || [];
-  const isAllowed = allowedPrefixes.some(p =>
-    pathname === p || pathname.startsWith(p + "/")
-  );
-
-  if (!isAllowed) {
-    const home = ROLE_HOME[rol] || "/login";
-    return NextResponse.redirect(new URL(home, request.url));
+  // El rol manda sobre el prefijo. Quien no corresponde va a su propio panel.
+  if (regla.rol && payload.rol !== regla.rol) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-user-id",      String(payload.id        || ""));
-  requestHeaders.set("x-user-email",   String(payload.email     || ""));
-  requestHeaders.set("x-user-rol",     String(payload.rol       || ""));
-  requestHeaders.set("x-user-empresa", String(payload.id_empresa || ""));
-  requestHeaders.set("x-user-nombre",  String(payload.nombre    || ""));
+  // Identidad para los handlers. NO es autorización: cada ruta de la API
+  // verifica la sesión por su cuenta con los guards de lib/session-aupair.js.
+  const cabeceras = new Headers(request.headers);
+  cabeceras.set("x-dap-user-id",     String(payload.id     || ""));
+  cabeceras.set("x-dap-user-email",  String(payload.email  || ""));
+  cabeceras.set("x-dap-user-nombre", String(payload.nombre || ""));
+  cabeceras.set("x-dap-user-rol",    String(payload.rol    || ""));
+  cabeceras.set("x-dap-acceso",      String(payload.tiene_acceso || "false"));
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return NextResponse.next({ request: { headers: cabeceras } });
 }
 
 export const config = {
