@@ -223,11 +223,47 @@ el rechazo: la usuaria 6 —que tiene `acceso_documentos = 1` y
 token que declara ambos permisos. El guard lee la columna correcta de la
 base y manda sobre el token en las dos direcciones.
 
-### Lo que queda
+### Verificación de propiedad
 
-| Grupo | Qué falta |
+Revisadas las 5 rutas que reciben un identificador por parámetro:
+
+| Ruta | Resultado |
 |---|---|
-| 2.5 propiedad | 5 rutas reciben un id por parámetro sin comprobar de quién es: `/asociada/reuniones/[id]/confirmar`, `/asociada/usuarias/[id]`, `/agencia/[id]`, `/agencia/perfiles/[id]`, `/ventas` |
+| `/asociada/usuarias/[id]` | ✅ Ya acotada: el `WHERE` incluye `asesora_asignada_id = session.id` y responde 404 si la usuaria no es suya |
+| `/asociada/reuniones/[id]/confirmar` | ✅ Ya acotada: comprueba que la reunión sea de una de sus referidas antes de confirmarla |
+| `/ventas` | ✅ No recibe id: opera siempre sobre `session.id` |
+| `/agencia/[id]` | 🔴 **Sin acotar — no hay modelo de datos que lo permita** |
+| `/agencia/perfiles/[id]` | 🔴 **Sin acotar — mismo motivo** |
+
+Tres de las cinco ya estaban correctas: la verificación vivía en el `WHERE`
+de la consulta, no en un guard, y por eso no se veía en el barrido.
+
+#### La agencia no tiene modelo de asignación
+
+`/api/agencia/candidatas` entrega **todas** las candidatas con
+`perfil_completo = 1` a **cualquier** cuenta con rol agencia. No existe
+columna ni tabla que diga qué candidata corresponde a qué agencia:
+`usuarios` sólo tiene `estado_agencia`, `progreso_agencia` y `notas_agencia`,
+que son globales de la candidata, no por agencia.
+
+No se puede añadir `requiereDueño` aquí: no hay dueño que consultar. Definir
+ese modelo es exactamente el **ítem 7 del alcance** ("Usuarios por agencia"),
+que depende de los talleres de descubrimiento y está planificado para el
+Sprint 3.
+
+Hay algo peor que la lectura: `PUT /api/agencia/perfiles/[id]` con
+`accion=evaluar` guarda la evaluación en `agencia_evaluaciones` —que sí tiene
+`agencia_id`, así que queda bien separada— pero además escribe
+`usuarios.estado_agencia`, que es **una sola columna compartida**. Con dos
+agencias, la evaluación de la segunda pisaría el estado que fijó la primera.
+
+**Alcance real hoy:** existe **una** cuenta con rol agencia
+(`operaciones@uno800.com`) y `agencia_evaluaciones` está vacía. No hay
+exposición entre agencias porque no hay una segunda agencia. El día que se
+cree la segunda, sin haber definido antes el modelo, cada una vería y
+evaluaría a las candidatas de la otra.
+
+**No abrir una segunda cuenta de agencia hasta cerrar el ítem 7.**
 
 **Consistencia pendiente, sin efecto en el comportamiento:** 49 handlers de
 nivel *sesión* siguen con `getSessionFromRequest` + `if (!session)` a mano en

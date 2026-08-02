@@ -12,11 +12,14 @@
 
 - [x] 2.1 Rutas `/api/admin/**` (30): guard de rol admin en todas; verificar que ninguna quede sin él
      *(67 handlers pasaron de resolver el rol a mano a `requiereAdmin`/`requiereRol`; se cerró `GET /admin/eventos`, que no verificaba rol alguno. Pruebas de humo: 226/226.)*
-- [ ] 2.2 Rutas `/api/asociada/**`: guard de rol asociada y verificación de propiedad donde se reciba un id
+- [x] 2.2 Rutas `/api/asociada/**`: guard de rol asociada y verificación de propiedad donde se reciba un id
+     *(6/6 con `requiereRol`. La propiedad ya estaba resuelta dentro del `WHERE` de cada consulta —`asesora_asignada_id = session.id` y la cadena de referidas—, por eso no se veía en el barrido.)*
 - [ ] 2.3 Rutas `/api/agencia/**`: guard de rol agencia y verificación de propiedad donde se reciba un id
+     *(Rol: 5/5 hecho. **Propiedad: no se puede hacer** — no existe modelo de asignación agencia↔candidata, así que `/agencia/candidatas` entrega todas las candidatas a cualquier agencia. Definirlo es el ítem 7 del alcance, que depende de los talleres y va en el Sprint 3. Hoy hay una sola cuenta de agencia, así que no hay exposición real. Detalle en `docs/rutas-y-acceso.md`.)*
 - [x] 2.4 Rutas `/api/dashboard/**`: sesión + permiso de sección leído de la base (documentos, mensajes, recursos, reuniones, comunidad)
      *(10 handlers con `requierePermiso`, que lee la columna de la base. Comprobado en ambas direcciones con usuarias reales: la 6 recibe 200 en documentos y 403 en recursos con un token que declara ambos.)*
-- [ ] 2.5 Revisar las rutas que reciben id por parámetro y añadir `requiereDueño` donde falte
+- [x] 2.5 Revisar las rutas que reciben id por parámetro y añadir `requiereDueño` donde falte
+     *(5 revisadas. 3 ya estaban acotadas en el `WHERE` — `/asociada/usuarias/[id]`, `/asociada/reuniones/[id]/confirmar` y `/ventas`, que ni siquiera recibe id. Las 2 de agencia quedan bloqueadas por la falta de modelo de asignación; ver 2.3. `requiereDueño` queda disponible en la librería para cuando el Sprint 3 defina ese modelo.)*
 - [x] 2.6 Confirmar que las únicas rutas sin sesión son las públicas declaradas en el inventario
      *(112/112 sin sesión → 401; las 7 públicas responden. Verificado por las pruebas de humo.)*
 
