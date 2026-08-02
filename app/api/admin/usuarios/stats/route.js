@@ -1,7 +1,7 @@
 // app/api/admin/stats/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 async function q(db, sql, params = []) {
   try {
@@ -17,8 +17,9 @@ async function q1(db, sql, params = []) {
 }
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const r1  = await q1(dbAupair, "SELECT COUNT(*) AS n FROM usuarios WHERE rol NOT IN ('admin')");

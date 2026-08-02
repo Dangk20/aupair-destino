@@ -1,10 +1,14 @@
 // app/api/admin/eventos/route.js
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 import db from "@/lib/db-aupair";
 
 export async function GET(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  // Antes sólo exigía sesión: cualquier usuaria autenticada, incluida una
+  // candidata, leía la agenda de la clienta y sus asesoras. Excepción de rol
+  // declarada en docs/rutas-y-acceso.md — la agenda es compartida.
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const mes   = searchParams.get("mes");
@@ -24,9 +28,9 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { titulo, descripcion, tipo, fecha, hora_inicio, hora_fin, url_meet, color, visible } = await req.json();
   if (!titulo || !fecha) return Response.json({ error: "Faltan campos" }, { status: 400 });
@@ -40,9 +44,9 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { id, titulo, descripcion, tipo, fecha, hora_inicio, hora_fin, url_meet, color, visible } = await req.json();
   if (!id) return Response.json({ error: "Falta id" }, { status: 400 });
@@ -66,9 +70,9 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

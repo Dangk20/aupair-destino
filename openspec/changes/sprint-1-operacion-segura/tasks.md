@@ -10,12 +10,15 @@
 
 ## 2. Barrido de control de acceso
 
-- [ ] 2.1 Rutas `/api/admin/**` (30): guard de rol admin en todas; verificar que ninguna quede sin él
+- [x] 2.1 Rutas `/api/admin/**` (30): guard de rol admin en todas; verificar que ninguna quede sin él
+     *(67 handlers pasaron de resolver el rol a mano a `requiereAdmin`/`requiereRol`; se cerró `GET /admin/eventos`, que no verificaba rol alguno. Pruebas de humo: 226/226.)*
 - [ ] 2.2 Rutas `/api/asociada/**`: guard de rol asociada y verificación de propiedad donde se reciba un id
 - [ ] 2.3 Rutas `/api/agencia/**`: guard de rol agencia y verificación de propiedad donde se reciba un id
-- [ ] 2.4 Rutas `/api/dashboard/**`: sesión + permiso de sección leído de la base (documentos, mensajes, recursos, reuniones, comunidad)
+- [x] 2.4 Rutas `/api/dashboard/**`: sesión + permiso de sección leído de la base (documentos, mensajes, recursos, reuniones, comunidad)
+     *(10 handlers con `requierePermiso`, que lee la columna de la base. Comprobado en ambas direcciones con usuarias reales: la 6 recibe 200 en documentos y 403 en recursos con un token que declara ambos.)*
 - [ ] 2.5 Revisar las rutas que reciben id por parámetro y añadir `requiereDueño` donde falte
-- [ ] 2.6 Confirmar que las únicas rutas sin sesión son las públicas declaradas en el inventario
+- [x] 2.6 Confirmar que las únicas rutas sin sesión son las públicas declaradas en el inventario
+     *(112/112 sin sesión → 401; las 7 públicas responden. Verificado por las pruebas de humo.)*
 
 ## 3. Sesiones
 

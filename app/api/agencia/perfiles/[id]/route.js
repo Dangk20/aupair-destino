@@ -1,7 +1,7 @@
 // app/api/agencia/perfiles/[id]/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 
 async function upsertEval(agencia_id, candidata_id, campos) {
   const [[existing]] = await dbAupair.query(
@@ -23,8 +23,9 @@ async function upsertEval(agencia_id, candidata_id, campos) {
 }
 
 export async function GET(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "agencia") return unauthorized();
+  const guard = requiereRol(req, "agencia");
+  if (guard.error) return guard.error;
+  const session = guard.session;
   const { id } = await params;
 
   try {
@@ -61,8 +62,9 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "agencia") return unauthorized();
+  const guard = requiereRol(req, "agencia");
+  if (guard.error) return guard.error;
+  const session = guard.session;
   const { id } = await params;
 
   try {

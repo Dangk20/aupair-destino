@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import { confirmarAccesoUsuario, retirarAccesoUsuario } from "@/lib/ventas-aupair";
 
 const SECCIONES = [
@@ -56,8 +56,9 @@ async function registrarPagoReferido(usuarioId, monto) {
 }
 
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id, tiene_acceso, monto = 35, seccion, valor } = await req.json();
@@ -107,8 +108,9 @@ export async function POST(req) {
 
 /* ── PUT: ajustar el monto pagado del registro legacy de referidos ───────── */
 export async function PUT(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { usuario_id, monto } = await req.json();

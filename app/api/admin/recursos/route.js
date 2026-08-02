@@ -1,14 +1,15 @@
 // app/api/admin/recursos/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import { guardarArchivo, borrarArchivo, archivoDisponible } from "@/lib/almacenamiento-archivos";
 import path from "path";
 
 // ── GET /api/admin/recursos?sesion_id=X ──────────────────────────────────────
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const sesion_id = searchParams.get("sesion_id");
@@ -36,8 +37,9 @@ export async function GET(req) {
 // ── POST /api/admin/recursos  (multipart/form-data) ──────────────────────────
 // Body: sesion_id, nombre (opcional), file
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const formData  = await req.formData();
   const sesion_id = formData.get("sesion_id");
@@ -82,8 +84,9 @@ export async function POST(req) {
 
 // ── DELETE /api/admin/recursos?id=X ──────────────────────────────────────────
 export async function DELETE(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

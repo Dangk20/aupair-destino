@@ -1,12 +1,13 @@
 // app/api/admin/perfiles/[id]/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 /* ── GET: obtener perfil completo desde usuarios ── */
 export async function GET(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id } = await params;
@@ -30,8 +31,9 @@ export async function GET(req, { params }) {
 
 /* ── PUT: actualizar perfil en usuarios ── */
 export async function PUT(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id } = await params;

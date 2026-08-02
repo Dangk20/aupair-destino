@@ -1,12 +1,13 @@
 // app/api/admin/configuracion/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 // GET — obtener toda la configuración
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [rows] = await dbAupair.query("SELECT clave, valor FROM configuracion");
@@ -20,8 +21,9 @@ export async function GET(req) {
 
 // PUT — actualizar uno o varios campos
 export async function PUT(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const body = await req.json();

@@ -1,13 +1,14 @@
 // app/api/admin/perfiles/[id]/documentos/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import { archivoDisponible, borrarDocumento } from "@/lib/almacenamiento-archivos";
 
 /* ── GET: traer todos los documentos del usuario ── */
 export async function GET(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id } = await params;
@@ -34,8 +35,9 @@ export async function GET(req, { params }) {
 
 /* ── PUT: actualizar estado y nota_admin de un documento ── */
 export async function PUT(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id } = await params;
@@ -68,8 +70,9 @@ export async function PUT(req, { params }) {
 
 /* ── DELETE: eliminar un documento ── */
 export async function DELETE(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id } = await params;

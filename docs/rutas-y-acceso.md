@@ -197,17 +197,44 @@ ruta que proteger.
 | `/sesion-recursos/[id]/archivo` | GET | sesión + admin o `acceso_recursos` | ✅ — cerrado en el Sprint 0.0 |
 | `/ventas` | POST, GET | sesión + propiedad | 🟡 revisar en 2.5 |
 
-## Resumen del trabajo pendiente
+## Estado del barrido
+
+Medido por `scripts/pruebas-humo.mjs` contra el entorno local.
+
+| Comprobación | Antes del barrido | Ahora |
+|---|---|---|
+| Cobertura del inventario | 144/144 | **144/144** |
+| Sin sesión → 401 | 112/112 | **112/112** |
+| Rol ajeno → 403 | 30/226 | **226/226** |
+| Rol declarado → no 403 | 36/36 | **36/36** |
+| Permiso leído de la base | 1/10 | **10/10** |
+
+**528 aserciones, 0 en rojo.**
+
+Qué cambió: 67 handlers pasaron de resolver el rol a mano
+(`if (!session || session.rol !== "x") return unauthorized()`, que devolvía
+401 donde corresponde 403) a usar `requiereAdmin` / `requiereRol`. Se cerró
+`GET /api/admin/eventos`. Y 10 handlers de `/api/dashboard/**` pasaron a
+verificar el permiso de sección con `requierePermiso`, que lo lee de la base.
+
+Comprobado además con usuarias reales, porque las pruebas de humo sólo miden
+el rechazo: la usuaria 6 —que tiene `acceso_documentos = 1` y
+`acceso_recursos = 0`— recibe 200 en documentos y 403 en recursos con un
+token que declara ambos permisos. El guard lee la columna correcta de la
+base y manda sobre el token en las dos direcciones.
+
+### Lo que queda
 
 | Grupo | Qué falta |
 |---|---|
-| 2.1 `/api/admin/**` | 1 handler: `GET /admin/eventos` |
-| 2.2 `/api/asociada/**` | 0 de rol · 2 de propiedad |
-| 2.3 `/api/agencia/**` | 0 de rol · 2 de propiedad |
-| 2.4 `/api/dashboard/**` | **8 handlers sin permiso de sección** |
-| 2.5 propiedad | 5 rutas por revisar |
+| 2.5 propiedad | 5 rutas reciben un id por parámetro sin comprobar de quién es: `/asociada/reuniones/[id]/confirmar`, `/asociada/usuarias/[id]`, `/agencia/[id]`, `/agencia/perfiles/[id]`, `/ventas` |
+
+**Consistencia pendiente, sin efecto en el comportamiento:** 49 handlers de
+nivel *sesión* siguen con `getSessionFromRequest` + `if (!session)` a mano en
+vez de `requiereSesion`. Verifican lo correcto y responden 401 como deben; es
+uniformidad de estilo, no un defecto. No entra en este sprint para no
+engordar el diff de un sprint de seguridad.
 
 El barrido de rol resultó mucho menor de lo que estimó el `design.md` (que
 contaba por archivo, no por handler, y no incorporaba los guards del commit
-`834ef03`). El trabajo real del sprint está en **los permisos de sección** y
-en la **verificación de propiedad**, no en los roles.
+`834ef03`). El trabajo real estaba en **los permisos de sección**.

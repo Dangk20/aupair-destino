@@ -1,7 +1,7 @@
 // app/api/admin/perfiles/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 /* ── Campos para calcular progreso evaluación ── */
 const CAMPOS_EVAL = [
@@ -67,8 +67,9 @@ function tiempoRelativo(fecha) {
 }
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { searchParams } = new URL(req.url);

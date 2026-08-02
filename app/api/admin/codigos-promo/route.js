@@ -1,12 +1,13 @@
 // app/api/admin/codigos-promo/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 // GET — listar todos los códigos con stats y asociada dueña
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   // usos_confirmados = ventas pagadas (consumen cupo)
   // aplicaciones_pendientes = candidatas que aplicaron el código y aún no
@@ -35,8 +36,9 @@ export async function GET(req) {
 
 // POST — crear código (opcionalmente anclado a una asociada con % de comisión)
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { codigo, precio_final, usos_max, fecha_expiracion, descripcion, asociada_id, comision_porcentaje } = await req.json();
   if (!codigo || !precio_final)
@@ -61,8 +63,9 @@ export async function POST(req) {
 
 // PUT — activar/desactivar o editar (sólo actualiza los campos enviados)
 export async function PUT(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const body = await req.json();
   const { id } = body;
@@ -91,8 +94,9 @@ export async function PUT(req) {
 
 // DELETE — eliminar código
 export async function DELETE(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

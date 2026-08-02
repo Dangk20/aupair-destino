@@ -1,11 +1,12 @@
 // app/api/asociada/reuniones/[id]/confirmar/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 
 export async function POST(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "asociada") return unauthorized();
+  const guard = requiereRol(req, "asociada");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { id: reunionId } = await params;
 

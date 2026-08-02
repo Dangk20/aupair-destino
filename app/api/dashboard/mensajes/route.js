@@ -3,11 +3,12 @@
 // ═══════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requierePermiso } from "@/lib/session-aupair";
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "mensajes");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const limit      = parseInt(searchParams.get("limit") || "100");
@@ -42,8 +43,9 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "mensajes");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { contenido } = await req.json();

@@ -1,12 +1,13 @@
 // app/api/dashboard/recursos/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requierePermiso } from "@/lib/session-aupair";
 
 /* ── GET: recursos disponibles para la estudiante ────────────────────────── */
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "recursos");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const categoria = searchParams.get("categoria") || "todos";

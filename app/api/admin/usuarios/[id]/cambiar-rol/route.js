@@ -1,7 +1,7 @@
 // app/api/admin/usuarios/[id]/cambiar-rol/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 const ROLES_VALIDOS = ["usuario", "usuaria", "asociada", "agencia", "admin"];
 
@@ -35,8 +35,9 @@ async function asegurarReferido({ nombre, apellido, email }) {
 }
 
 export async function PUT(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { id } = await params;
 

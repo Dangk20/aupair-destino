@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requierePermiso } from "@/lib/session-aupair";
 
 function cleanFecha(f) {
   if (!f) return "";
@@ -44,8 +44,9 @@ async function notificarAdmins({ subject, html }) {
 
 // GET — historial de reuniones del cliente
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "reuniones");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [rows] = await dbAupair.query(`
@@ -68,8 +69,9 @@ export async function GET(req) {
 
 // POST — cliente reserva un slot
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "reuniones");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { disponibilidad_id, notas_cliente } = await req.json();
@@ -163,8 +165,9 @@ export async function POST(req) {
 
 // DELETE — cliente cancela su reunión
 export async function DELETE(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "reuniones");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { searchParams } = new URL(req.url);

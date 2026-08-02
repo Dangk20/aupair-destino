@@ -8,12 +8,13 @@
 // Toda la lógica vive en lib/ventas-aupair.js (confirmarVenta).
 // ════════════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import { confirmarVenta } from "@/lib/ventas-aupair";
 
 export async function POST(req, { params }) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { id } = await params;
   const ventaId = Number(id);

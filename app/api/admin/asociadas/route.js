@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
 
 // Comisión y precio por defecto del código que nace con cada asociada.
@@ -49,8 +49,9 @@ async function asegurarCodigoPromo({ asociadaId, nombre, apellido }) {
 }
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [asociadas] = await dbAupair.query(`
@@ -90,8 +91,9 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { nombre, apellido, email, password, telefono, ciudad, pais } = await req.json();

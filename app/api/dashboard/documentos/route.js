@@ -1,7 +1,7 @@
 // app/api/dashboard/documentos/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized, forbidden } from "@/lib/session-aupair";
+import { requierePermiso } from "@/lib/session-aupair";
 import {
   guardarDocumento, borrarDocumento, archivoDisponible,
 } from "@/lib/almacenamiento-archivos";
@@ -24,8 +24,9 @@ export const DOCS_REQUERIDOS = [
 
 /* ── GET: documentos subidos por la usuaria ──────────────────────────────── */
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "documentos");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [filas] = await dbAupair.query(
@@ -49,17 +50,12 @@ export async function GET(req) {
 
 /* ── POST: subir un documento ────────────────────────────────────────────── */
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
-
-  // Sprint 0.0: cargar documentación es lo que se paga. Se valida el permiso
-  // LEYÉNDOLO DE LA BD (no del JWT), para que la confirmación del pago surta
-  // efecto de inmediato sin necesidad de que la candidata cierre sesión.
-  const [[perm]] = await dbAupair.query(
-    "SELECT acceso_documentos FROM usuarios WHERE id = ?",
-    [session.id]
-  );
-  if (!perm || perm.acceso_documentos !== 1) return forbidden();
+  // Cargar documentación es lo que se paga. El permiso lo verifica el guard
+  // leyéndolo de la BASE, no del JWT, para que confirmar o anular un pago
+  // surta efecto sin que la candidata tenga que volver a ingresar.
+  const guard = await requierePermiso(req, "documentos");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const formData = await req.formData();
@@ -121,8 +117,9 @@ export async function POST(req) {
 
 /* ── DELETE: eliminar un documento ──────────────────────────────────────── */
 export async function DELETE(req) {
-  const session = getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "documentos");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

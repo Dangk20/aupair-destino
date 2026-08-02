@@ -6,12 +6,13 @@
 // comisión de la asociada.
 // ════════════════════════════════════════════════════════════════════════
 import { NextResponse } from "next/server";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 import { confirmarAccesoUsuario } from "@/lib/ventas-aupair";
 
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { usuarioId, monto } = await req.json();

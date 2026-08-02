@@ -1,11 +1,12 @@
 // app/api/dashboard/disponibilidad/route.js
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requierePermiso } from "@/lib/session-aupair";
 import db from "@/lib/db-aupair";
 
 // GET — cliente ve todos los slots disponibles (admin + todas las asociadas)
 export async function GET(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
+  const guard = await requierePermiso(req, "reuniones");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const mes   = searchParams.get("mes");

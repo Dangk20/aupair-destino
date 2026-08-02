@@ -1,7 +1,7 @@
 // app/api/agencia/perfiles/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 
 const CAMPOS_EVAL = [
   "cedula","telefono","fecha_nacimiento","ciudad","pais",
@@ -39,8 +39,9 @@ function calcProgresoAgencia(u) {
 }
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "agencia") return unauthorized();
+  const guard = requiereRol(req, "agencia");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [rows] = await dbAupair.query(`

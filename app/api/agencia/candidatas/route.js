@@ -1,11 +1,12 @@
 // app/api/agencia/candidatas/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "agencia") return unauthorized();
+  const guard = requiereRol(req, "agencia");
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [candidatas] = await dbAupair.query(`

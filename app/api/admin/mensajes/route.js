@@ -1,13 +1,14 @@
 // app/api/admin/mensajes/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 // GET /api/admin/mensajes?usuario_id=X  → mensajes de una usuaria
 // GET /api/admin/mensajes               → lista de conversaciones
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const usuario_id = searchParams.get("usuario_id");
@@ -46,8 +47,9 @@ export async function GET(req) {
 
 // POST /api/admin/mensajes  → admin responde
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { usuario_id, contenido } = await req.json();

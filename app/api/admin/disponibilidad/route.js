@@ -1,12 +1,12 @@
 // app/api/admin/disponibilidad/route.js
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereRol } from "@/lib/session-aupair";
 import db from "@/lib/db-aupair";
 
 // GET — listar slots (admin ve todos, asociada solo los suyos)
 export async function GET(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const mes  = searchParams.get("mes");  // YYYY-MM
@@ -43,9 +43,9 @@ export async function GET(req) {
 
 // POST — crear slot(s)
 export async function POST(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const body = await req.json();
   const { fecha, hora_inicio, hora_fin, url_meet, notas, repetir_semanas = 0 } = body;
@@ -74,9 +74,9 @@ export async function POST(req) {
 
 // PUT — editar slot
 export async function PUT(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { id, fecha, hora_inicio, hora_fin, url_meet, notas, estado } = await req.json();
   if (!id) return Response.json({ error: "Falta id" }, { status: 400 });
@@ -99,9 +99,9 @@ export async function PUT(req) {
 
 // DELETE — eliminar slot (solo si no está reservado, o admin fuerza)
 export async function DELETE(req) {
-  const session = await getSessionFromRequest(req);
-  if (!session) return unauthorized();
-  if (!["admin","asociada"].includes(session.rol)) return unauthorized();
+  const guard = requiereRol(req, ["admin", "asociada"]);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

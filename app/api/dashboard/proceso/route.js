@@ -1,7 +1,7 @@
 // app/api/dashboard/proceso/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { getSessionFromRequest, unauthorized, requiereAdmin } from "@/lib/session-aupair";
 
 const DEFINICION = [
   { id:"curso",             label:"Curso",                 sublabel_base:"Educación y preparación" },
@@ -174,8 +174,9 @@ export async function GET(req) {
 }
 
 export async function PUT(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { usuario_id, paso, status, nota } = await req.json();
   if (!usuario_id || !paso || !status)

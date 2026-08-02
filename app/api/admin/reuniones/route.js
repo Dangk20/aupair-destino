@@ -1,11 +1,12 @@
 // app/api/admin/reuniones/route.js
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
-import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { requiereAdmin } from "@/lib/session-aupair";
 
 export async function GET(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const [reuniones] = await dbAupair.query(`
@@ -23,8 +24,9 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { usuario_id, titulo, descripcion, fecha, hora_inicio, hora_fin, meet_url, asesora, asesora_foto } = await req.json();
@@ -42,8 +44,9 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   try {
     const { id, estado, titulo, descripcion, fecha, hora_inicio, hora_fin, meet_url, asesora } = await req.json();
@@ -58,8 +61,9 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
-  const session = getSessionFromRequest(req);
-  if (!session || session.rol !== "admin") return unauthorized();
+  const guard = requiereAdmin(req);
+  if (guard.error) return guard.error;
+  const session = guard.session;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
