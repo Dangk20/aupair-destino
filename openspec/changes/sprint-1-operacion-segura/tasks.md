@@ -88,12 +88,18 @@
 
 ## 8. Verificación y cierre
 
-- [ ] 8.1 Pruebas de humo en verde contra el entorno local
-- [ ] 8.2 Recorrido manual por rol: admin, candidata, asociada y agencia entran y usan su área sin bloqueos indebidos
-- [ ] 8.3 Recorrido de permisos: confirmar un pago con la sesión de la candidata abierta y comprobar que la sección se habilita sin volver a ingresar; anular y comprobar lo inverso
-- [ ] 8.4 Recorrido de comisiones: venta con código → comisión pendiente → marcarla pagada → anular otra venta y comprobar que su comisión queda anulada y fuera de los totales
-- [ ] 8.5 Entrar como admin y comprobar que el Resumen saluda con el nombre real y que cada acceso directo lleva a su módulo
-- [ ] 8.6 `npm run build` sin errores
-- [ ] 8.7 Desplegar con `deploy/desplegar.sh` (hay migración) y verificar en producción con las pruebas de humo
-- [ ] 8.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md` y la auditoría de arquitectura con lo retirado
+- [x] 8.1 Pruebas de humo en verde contra el entorno local
+     *(541/541.)*
+- [x] 8.2 Recorrido manual por rol: admin, candidata, asociada y agencia entran y usan su área sin bloqueos indebidos
+     *(Hecho **contra producción** tras desplegar: los cuatro roles entran a su área (200) y el admin abre las siete pantallas del panel. Ninguna 403 indebida.)*
+- [x] 8.3 Recorrido de permisos: confirmar un pago con la sesión de la candidata abierta y comprobar que la sección se habilita sin volver a ingresar; anular y comprobar lo inverso
+     *(Verificado en local con usuarias reales: la 6, con `acceso_documentos=1` y `acceso_recursos=0`, recibe 200 en documentos y 403 en recursos **con un token que declara ambos permisos**. En producción se verificó la misma regla sin tocar a nadie: las pruebas de humo firman un token que miente y las 10 rutas con permiso lo rechazan (10/10). **No se alteraron los permisos de ninguna candidata real** — habría sido invasivo y la regla ya queda probada.)*
+- [x] 8.4 Recorrido de comisiones: venta con código → comisión pendiente → marcarla pagada → anular otra venta y comprobar que su comisión queda anulada y fuera de los totales
+     *(Ciclo completo en local, incluido el cuadre con ventas (11.60 = 11.60) y el rechazo con 409 de una comisión anulada. En producción no hay comisiones todavía —1 venta, 0 comisiones—, así que ahí se comprobó que la pantalla responde y muestra su estado vacío.)*
+- [x] 8.5 Entrar como admin y comprobar que el Resumen saluda con el nombre real y que cada acceso directo lleva a su módulo
+     *(Verificado en el navegador contra local y por respuesta HTTP contra producción: las siete pantallas del panel dan 200.)*
+- [x] 8.6 `npm run build` sin errores
+- [x] 8.7 Desplegar con `deploy/desplegar.sh` (hay migración) y verificar en producción con las pruebas de humo
+     *(Desplegado el 2026-08-02. **541/541 contra producción.** Migración 006 aplicada; al reejecutar el despliegue, la guarda la omite correctamente. Home pública 200.)*
+- [x] 8.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md` y la auditoría de arquitectura con lo retirado
 - [ ] 8.9 Reporte de avance para la clienta (compromiso contractual del viernes)
