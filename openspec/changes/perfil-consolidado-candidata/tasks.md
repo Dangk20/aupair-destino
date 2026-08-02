@@ -13,12 +13,18 @@
 
 ## 2. La vista consolidada
 
-- [ ] 2.1 `app/dashboard/perfil/vista/page.jsx`: cabecera con foto, nombre y datos principales, siguiendo el estilo de `lib/tema-candidata.js`
-- [ ] 2.2 Recorrer `PARTE1` y `PARTE2` pintando cada sección con sus campos como etiqueta → valor; **generado, no escrito a mano**
-- [ ] 2.3 Cada sección con su acción de editar, que lleva a su formulario y a su sección
-- [ ] 2.4 Los campos sin diligenciar se muestran señalados como vacíos, no se omiten
-- [ ] 2.5 Proteger la ruta con `useAccessGate("perfil")`, igual que el resto del módulo
-- [ ] 2.6 Si el perfil no está completo, la vista redirige a `/dashboard/perfil` en vez de mostrarse a medias
+- [x] 2.1 `app/dashboard/perfil/vista/page.jsx`: cabecera con foto, nombre y datos principales, siguiendo el estilo de `lib/tema-candidata.js`
+     *(Foto, nombre, ciudad/país, edad calculada y correo.)*
+- [x] 2.2 Recorrer `PARTE1` y `PARTE2` pintando cada sección con sus campos como etiqueta → valor; **generado, no escrito a mano**
+     *(Las 15 secciones salen del recorrido; ni una etiqueta escrita a mano.)*
+- [x] 2.2b **Las secciones son pestañas**, a petición del cliente: en una columna la vista medía 4.167 px —casi cinco pantallas—; con pestañas mide 885 px. Agrupadas por parte.
+- [x] 2.3 Cada sección con su acción de editar, que lleva a su formulario y a su sección
+     *(Verificado en el navegador: Salud → `/perfil/evaluacion?seccion=salud`, Fotos → `/perfil/agencia?seccion=fotos`, Referencias → `/perfil/agencia?seccion=referencias`. Cada parte a su formulario.)*
+- [x] 2.4 Los campos sin diligenciar se muestran señalados como vacíos, no se omiten
+     *(10 campos como "Sin diligenciar" en el perfil de prueba, en gris e itálica.)*
+- [x] 2.5 Proteger la ruta con `useAccessGate("perfil")`, igual que el resto del módulo
+- [x] 2.6 Si el perfil no está completo, la vista redirige a `/dashboard/perfil` en vez de mostrarse a medias
+     *(Verificado con la candidata 6, que tiene `perfil_completo = 1` en la base pero al calcularlo real le faltan 4 campos: la vista la devolvió al índice. Ver la nota del grupo 6 sobre la bandera obsoleta.)*
 
 ## 3. Abrir un formulario en una sección
 

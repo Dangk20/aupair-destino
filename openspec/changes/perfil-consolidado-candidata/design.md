@@ -50,13 +50,23 @@ Si el `id` no existe o no viene, se arranca en cero, como hoy.
 
 *Alternativa descartada:* permitir el salto siempre. Rompería la validación por pasos del Sprint 0.0, que existe para que nadie llegue al final con secciones a medias. El enlace profundo sólo se ofrece desde la vista consolidada, y la vista consolidada sólo aparece con el perfil completo — momento en el que todas las secciones ya están validadas y saltar no se salta nada.
 
-### 4. La vista vive en su propia ruta, no reemplaza a `/dashboard/perfil`
+### 4. Las 15 secciones son pestañas, no una columna
+
+Sólo se pinta la sección activa. En una sola columna la vista medía **4.167 px** de alto —casi cinco pantallas— y había que recorrerla entera para llegar a Referencias o a Fotos. Con pestañas mide **885 px**.
+
+Las pestañas van agrupadas por parte, con su etiqueta encima, para que no se pierda de vista que el perfil tiene dos mitades con formularios distintos.
+
+*Alternativa descartada:* secciones plegables (acordeón). Deja ver el índice completo y abrir varias a la vez, pero devuelve el problema del alto en cuanto se abren dos o tres, y en móvil obliga a plegar antes de bajar.
+
+*Alternativa descartada:* pestañas de primer nivel para las partes y de segundo para las secciones. Más ordenado sobre el papel, pero son dos clics para llegar a cualquier sección de la Parte 2 y esconde nueve de las quince.
+
+### 5. La vista vive en su propia ruta, no reemplaza a `/dashboard/perfil`
 
 `/dashboard/perfil` sigue siendo el índice con el progreso; la consolidada es `/dashboard/perfil/vista`.
 
 *Alternativa descartada:* convertir `/dashboard/perfil` en la vista consolidada cuando el perfil esté completo. Menos rutas, pero la misma dirección mostraría dos cosas muy distintas según el estado, y el índice con su progreso sigue siendo útil mientras se diligencia. Separadas, cada una tiene un solo trabajo.
 
-### 5. La evaluación sólo puede decir lo que el sistema registra
+### 6. La evaluación sólo puede decir lo que el sistema registra
 
 Al investigar apareció que **`score_dap`, `calificacion_dap` y `nota_dap` no los escribe nadie** en todo el repositorio: los lee el panel de la agencia, pero ninguna pantalla los graba, así que están siempre en `null`. Lo único que sí se escribe es `evaluacion_aprobada`, un booleano, desde `/api/admin/aprobar-evaluacion`.
 
