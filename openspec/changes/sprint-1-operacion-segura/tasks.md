@@ -49,11 +49,14 @@
 
 > Va después del grupo 4: los accesos directos deben incluir ya la pantalla de comisiones.
 
-- [ ] 5.1 `app/admin/page.jsx`: retirar la tabla "Referidos y comisiones", el modal "Nuevo referente", las gráficas decorativas y los controles que no responden ("Rango de fechas", "Comparar con: mes anterior", "Exportar reporte"); la página deja de llamar a `/api/admin/referidos`
-- [ ] 5.2 Poner el aviso de rediseño y las tarjetas de acceso a Ventas, Comisiones, Códigos promo, Usuarios, Perfiles y Sesiones
-- [ ] 5.3 El saludo lee el nombre de la sesión (`/api/auth/me`), en vez del `¡Bienvenida, Jenni!` quemado (`app/admin/page.jsx:271`)
-- [ ] 5.3b **También el pie de la barra lateral**: `app/admin/layout.jsx:104` muestra `Jenni Salgado` / `Admin CEO` quemados, y eso se ve en TODAS las pantallas del panel, no sólo en el Resumen
-- [ ] 5.4 Comprobar que `/admin/referidos`, `/admin/pagos` y `/admin/sesiones` siguen funcionando: comparten las rutas que el Resumen deja de usar
+- [x] 5.1 `app/admin/page.jsx`: retirar la tabla "Referidos y comisiones", el modal "Nuevo referente", las gráficas decorativas y los controles que no responden ("Rango de fechas", "Comparar con: mes anterior", "Exportar reporte"); la página deja de llamar a `/api/admin/referidos`
+     *(La pantalla pasó de 548 líneas a 97.)*
+- [x] 5.2 Poner el aviso de rediseño y las tarjetas de acceso a Ventas, Comisiones, Códigos promo, Usuarios, Perfiles y Sesiones
+- [x] 5.3 El saludo lee el nombre de la sesión (`/api/auth/me`), en vez del `¡Bienvenida, Jenni!` quemado (`app/admin/page.jsx:271`)
+- [x] 5.3b **También el pie de la barra lateral**: `app/admin/layout.jsx:104` muestra `Jenni Salgado` / `Admin CEO` quemados, y eso se ve en TODAS las pantallas del panel, no sólo en el Resumen
+     *(Verificado en el navegador: entrando con `admin@destinoaupair.com` el panel saluda "¡Hola, Admin!" y el pie muestra "Admin Destino · admin@destinoaupair.com". Antes decía "Jenni Salgado" a los tres admins por igual.)*
+- [x] 5.4 Comprobar que `/admin/referidos`, `/admin/pagos` y `/admin/sesiones` siguen funcionando: comparten las rutas que el Resumen deja de usar
+     *(Las seis rutas implicadas responden 200 con sesión de admin: `/auth/me`, `/admin/referidos`, `/admin/stats`, `/admin/pagos/stats`, `/admin/pagos/movimientos` y `/admin/comisiones`.)*
 
 ## 6. Saneamiento de la arquitectura heredada
 

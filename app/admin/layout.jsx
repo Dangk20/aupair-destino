@@ -1,7 +1,7 @@
 "use client";
 // app/admin/layout.jsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,6 +39,13 @@ const navItems = [
 function AdminLayoutInner({ children }) {
   const pathname    = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // El pie de la barra mostraba "Jenni Salgado / Admin CEO" escrito en el
+  // código, en todas las pantallas del panel. Se lee de la sesión.
+  const [usuario, setUsuario] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me").then(r => r.json()).then(d => setUsuario(d?.user || null)).catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method:"POST" });
@@ -98,11 +105,13 @@ function AdminLayoutInner({ children }) {
         <div className="relative z-10 px-4 py-4 border-t border-white/10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#a0435f] flex items-center justify-center shrink-0">
-              <span className="text-white text-[12px] font-bold">J</span>
+              <span className="text-white text-[12px] font-bold">{(usuario?.nombre || "?").charAt(0).toUpperCase()}</span>
             </div>
             <div className="min-w-0">
-              <p className="text-white text-[11px] font-semibold truncate leading-snug">Jenni Salgado</p>
-              <p className="text-white/40 text-[9px] truncate">Admin CEO</p>
+              <p className="text-white text-[11px] font-semibold truncate leading-snug">
+                {usuario ? `${usuario.nombre} ${usuario.apellido || ""}`.trim() : "…"}
+              </p>
+              <p className="text-white/40 text-[9px] truncate">{usuario?.email || "Administración"}</p>
             </div>
           </div>
           <button onClick={handleLogout}
