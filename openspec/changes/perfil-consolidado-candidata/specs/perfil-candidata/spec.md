@@ -64,26 +64,28 @@ El sistema SHALL admitir abrir un formulario del perfil directamente en una secc
 - **THEN** la candidata entra al formulario por el recorrido normal
 - **AND** sigue sin poder avanzar dejando obligatorios sin diligenciar
 
-### Requirement: La candidata ve el resultado de la evaluación de su perfil
+### Requirement: La candidata ve si su perfil fue aprobado
 
-Cuando el equipo ha evaluado el perfil, el sistema SHALL mostrárselo a la candidata: si quedó aprobado y la observación que se le haya dejado. Mientras no exista evaluación, el sistema SHALL decir que está en revisión y NO SHALL mostrar una calificación inventada ni un estado por defecto.
+El sistema SHALL mostrar a la candidata si el equipo ya aprobó su perfil. Mientras no lo haya hecho, SHALL decir que está en revisión, y NO SHALL mostrar calificación, puntaje ni ningún estado que el sistema no tenga registrado de verdad.
 
-#### Scenario: Perfil evaluado y aprobado
+Hoy lo único que el sistema registra sobre la evaluación es si está aprobada o no: no existe ningún lugar donde el equipo escriba una observación dirigida a la candidata.
+
+#### Scenario: Perfil aprobado
 
 - **WHEN** el equipo aprueba el perfil de una candidata
 - **AND** la candidata abre su perfil
-- **THEN** ve que fue aprobado, junto con la observación registrada si la hay
+- **THEN** ve que quedó aprobado
 
-#### Scenario: Perfil con observaciones
+#### Scenario: Perfil aún sin aprobar
 
-- **WHEN** el equipo deja una observación sin aprobar el perfil
-- **THEN** la candidata ve esa observación, para saber qué corregir
-
-#### Scenario: Perfil aún sin evaluar
-
-- **WHEN** la candidata completó su perfil y el equipo todavía no lo ha revisado
+- **WHEN** la candidata completó su perfil y el equipo todavía no lo ha aprobado
 - **THEN** ve que está en revisión
-- **AND** no ve ninguna calificación
+- **AND** no ve calificación ni puntaje alguno
+
+#### Scenario: Aprobación retirada
+
+- **WHEN** el equipo retira la aprobación de un perfil
+- **THEN** la candidata vuelve a ver que está en revisión
 
 ### Requirement: El perfil que se entrega al navegador no incluye credenciales
 

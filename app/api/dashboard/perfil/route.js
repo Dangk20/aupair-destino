@@ -5,6 +5,25 @@ import {
   parteCompleta, faltantesDeParte, progresoParte,
 } from "@/lib/campos-perfil";
 
+// Columnas que NUNCA salen hacia el navegador, ni siquiera al dueño del
+// perfil. Esta ruta hacía `SELECT *` y devolvía 119 columnas, incluido el
+// hash de la contraseña: bastaba abrir el perfil con la consola abierta para
+// verlo. Y una candidata con recuperación de contraseña en curso enviaba su
+// `reset_token` al navegador, donde cualquiera que leyera la respuesta habría
+// podido cambiarle la contraseña.
+//
+// Se excluye por lista negra y no por lista blanca a propósito: el perfil
+// tiene 63 campos declarados en campos-perfil.js y crecen; una lista blanca
+// obligaría a acordarse de añadirlos aquí también, que es la desincronización
+// que este proyecto ya arrastraba. Añadir una columna sensible a `usuarios`
+// sí exige acordarse de meterla aquí, y son muchas menos.
+const NUNCA_SE_DEVUELVEN = new Set([
+  "password", "reset_token", "reset_token_expiry",
+  // Valoración interna: la lee el panel de la agencia, no le corresponde a
+  // la candidata. `evaluacion_aprobada` sí se devuelve — es lo que ella ve.
+  "score_dap", "calificacion_dap", "nota_dap", "notas_agencia",
+]);
+
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session) return unauthorized();
@@ -14,7 +33,11 @@ export async function GET(req) {
       "SELECT * FROM usuarios WHERE id = ?", [session.id]
     );
     if (rows.length === 0) return NextResponse.json({ error: "No encontrado." }, { status: 404 });
-    return NextResponse.json({ perfil: rows[0] });
+
+    const perfil = Object.fromEntries(
+      Object.entries(rows[0]).filter(([col]) => !NUNCA_SE_DEVUELVEN.has(col))
+    );
+    return NextResponse.json({ perfil });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Error al obtener el perfil." }, { status: 500 });

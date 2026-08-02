@@ -1,11 +1,15 @@
 ## 1. Preparar la fuente de datos
 
-- [ ] 1.1 `lib/campos-perfil.js`: comprobar que las 15 secciones y todos sus campos tienen `label`; añadir el que falte
-- [ ] 1.2 Añadir una función que, dado un campo y el perfil, devuelva su valor listo para mostrar y distinga explícitamente "sin diligenciar" de un valor vacío legítimo
+- [x] 1.1 `lib/campos-perfil.js`: comprobar que las 15 secciones y todos sus campos tienen `label`; añadir el que falte
+     *(63 campos sobre 60 columnas distintas. **Ninguno sin `label`** — no hubo que añadir nada.)*
+- [x] 1.2 Añadir una función que, dado un campo y el perfil, devuelva su valor listo para mostrar y distinga explícitamente "sin diligenciar" de un valor vacío legítimo
+     *(`valorParaMostrar()`. Devuelve `{tipo, texto}` con la clase deducida **del valor**, no declarada campo por campo: vacio · imagen · fecha · bloque · dato. Clave: `foto_url` es un campo de la sección "Fotos y videos" y guarda un data-URI base64 de hasta 42 KB — sin esto, la vista volcaría 42.000 caracteres en pantalla. Probado contra la candidata 6: 51 dato, 10 vacío, 1 fecha, 1 imagen.)*
 - [x] 1.3 Comprobar que `/api/dashboard/perfil` devuelve todas las columnas que las 15 secciones necesitan
      *(Sí llegan los 63. Pero hace `SELECT *` y devuelve **119 columnas**, incluidas `password`, `reset_token` y `reset_token_expiry` — de ahí sale la 1.4.)*
-- [ ] 1.4 `GET /api/dashboard/perfil`: dejar de devolver `SELECT *`. Excluir `password`, los tokens de recuperación y las columnas de valoración interna
-- [ ] 1.5 Verificar que ninguna pantalla del dashboard dependía de una columna que deje de llegar
+- [x] 1.4 `GET /api/dashboard/perfil`: dejar de devolver `SELECT *`. Excluir `password`, los tokens de recuperación y las columnas de valoración interna
+     *(De 119 columnas a 112. Fuera `password`, `reset_token`, `reset_token_expiry`, `score_dap`, `calificacion_dap`, `nota_dap` y `notas_agencia`. Verificado que los 63 campos de las secciones siguen llegando, y también `evaluacion_aprobada`, `perfil_completo` y `foto_url`, que la vista necesita.)*
+- [x] 1.5 Verificar que ninguna pantalla del dashboard dependía de una columna que deje de llegar
+     *(Ninguna. Las 4 apariciones de "password" en el dashboard son `type="password"` del formulario de configuración, que usa otra ruta. Los tres consumidores de `/api/dashboard/perfil` son las tres pantallas del módulo de perfil.)*
 
 ## 2. La vista consolidada
 
@@ -31,9 +35,9 @@
 
 ## 5. El resultado de la evaluación
 
-- [ ] 5.1 Bloque de evaluación en la vista consolidada, con los tres estados: en revisión, aprobado, con observaciones
-- [ ] 5.2 Sin evaluación no se muestra calificación alguna
-- [ ] 5.3 Verificar los tres estados contra datos reales, cambiando `evaluacion_aprobada` y `nota_dap` en la base local
+- [ ] 5.1 Bloque de evaluación con **dos** estados: en revisión y aprobado. No hay tercero: `nota_dap` no lo escribe nadie
+- [ ] 5.2 Sin aprobación no se muestra calificación ni puntaje
+- [ ] 5.3 Verificar los dos estados contra datos reales, cambiando `evaluacion_aprobada` en la base local y comprobando que retirar la aprobación devuelve a "en revisión"
 
 ## 6. Verificación y cierre
 

@@ -56,11 +56,15 @@ Si el `id` no existe o no viene, se arranca en cero, como hoy.
 
 *Alternativa descartada:* convertir `/dashboard/perfil` en la vista consolidada cuando el perfil esté completo. Menos rutas, pero la misma dirección mostraría dos cosas muy distintas según el estado, y el índice con su progreso sigue siendo útil mientras se diligencia. Separadas, cada una tiene un solo trabajo.
 
-### 5. El estado de la evaluación se dice tal cual es
+### 5. La evaluación sólo puede decir lo que el sistema registra
 
-Tres estados y ninguno inventado: **sin evaluar** ("tu perfil está en revisión"), **aprobada** (con la observación del equipo si la hay) y **con observaciones** (la nota del equipo). Se derivan de `evaluacion_aprobada` y `nota_dap`, que ya llegan del API.
+Al investigar apareció que **`score_dap`, `calificacion_dap` y `nota_dap` no los escribe nadie** en todo el repositorio: los lee el panel de la agencia, pero ninguna pantalla los graba, así que están siempre en `null`. Lo único que sí se escribe es `evaluacion_aprobada`, un booleano, desde `/api/admin/aprobar-evaluacion`.
 
-*Alternativa descartada:* mostrar siempre una calificación, con un valor por defecto cuando no hay evaluación. Es la clase de dato inventado que este equipo acaba de retirar del panel de la clienta. Si no hay evaluación, se dice.
+Por tanto el bloque tiene **dos** estados, no tres: **en revisión** y **aprobado**.
+
+*Alternativa descartada:* usar `notas_agencia` como la observación para la candidata. Se escribe de verdad desde el panel del admin, así que habría contenido — pero es la nota **interna** sobre el proceso con la agencia, no un mensaje dirigido a ella. Mostrarla filtraría comentarios internos a la persona sobre la que se escriben.
+
+*Consecuencia:* el ítem 11 del alcance ("detalle de evaluación de perfil funcional") queda cubierto en lo que el sistema sabe hoy. Si la clienta quiere que la candidata reciba una observación al no ser aprobada, hay que **crear dónde escribirla** — no existe. Queda como pregunta para ella.
 
 ## Risks / Trade-offs
 
@@ -84,4 +88,7 @@ Reversión: cada bloque es un commit y ninguno toca datos. La vista es una ruta 
 Resueltas antes de implementar (2026-08-02):
 
 - **¿La vista consolidada con el perfil a medias?** No. Mientras diligencia, la candidata sigue en el índice de `/dashboard/perfil`, que ya muestra el progreso por secciones. La consolidada aparece al completar. Así cada pantalla tiene un solo trabajo, y el salto directo a una sección sólo se ofrece cuando todas están validadas.
-- **¿La candidata ve `score_dap` / `calificacion_dap`?** No. Ve el estado —en revisión, aprobado, con observaciones— y la nota del equipo, que es lo accionable. La calificación numérica queda como herramienta interna: hoy no hay definición escrita de sobre cuánto es ni de qué significa cada valor, y un número sin explicación genera preguntas que nadie puede responder.
+- **¿La candidata ve `score_dap` / `calificacion_dap`?** No. Y además resultó que **nadie los escribe**: están siempre vacíos.
+- **Pendiente con la clienta:** hoy no hay dónde escribirle una observación a la candidata cuando su perfil no se aprueba. Si lo quiere, es funcionalidad nueva (un campo, y dónde lo llena el equipo), no parte de esta vista.
+
+
