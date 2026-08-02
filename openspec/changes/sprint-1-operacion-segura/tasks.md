@@ -60,12 +60,18 @@
 
 ## 6. Saneamiento de la arquitectura heredada
 
-- [ ] 6.1 Comprobar que ninguna pantalla viva importa `lib/db.js`, `lib/session.js` ni nada bajo `/app/app/` o `/app/api/app/`
-- [ ] 6.2 Eliminar `/app/app/*`, `/app/api/app/*` (10 rutas), `lib/db.js` y `lib/session.js`
-- [ ] 6.3 `middleware.js`: retirar la rama de Project Center (segundo JWT, mapa de roles y prefijos protegidos), dejando sólo la lógica de Destino Au Pair — commit aislado
-- [ ] 6.4 Eliminar `saasly-nextjs-1.0.0/` y reemplazar el `README.md` de la raíz (hoy es el de la plantilla)
-- [ ] 6.5 Migración: eliminar de `usuarios` las columnas `experiencia_ninos`, `fecha_salida`, `estado_proceso`, `tiene_visa`, `fotos_perfil`
-- [ ] 6.6 Actualizar `CLAUDE.md`: ya no conviven dos aplicaciones; documentar las familias de columnas de `usuarios`
+- [x] 6.1 Comprobar que ninguna pantalla viva importa `lib/db.js`, `lib/session.js` ni nada bajo `/app/app/` o `/app/api/app/`
+     *(Sólo se importaban entre ellas. Ninguna pantalla enlaza a `/app/*` ni a `/api/app/*`.)*
+- [x] 6.2 Eliminar `/app/app/*`, `/app/api/app/*` (10 rutas), `lib/db.js` y `lib/session.js`
+     *(`app/app/*` ya no existía en el repositorio; sólo quedaban las 10 rutas de API, con 15 handlers.)*
+- [x] 6.3 `middleware.js`: retirar la rama de Project Center (segundo JWT, mapa de roles y prefijos protegidos), dejando sólo la lógica de Destino Au Pair — commit aislado
+     *(Commit `536ca06`, aislado. De 182 a 98 líneas. Verificados los 14 casos: sin sesión → `/login?from=…`; rol ajeno → `/dashboard`; rol correcto → 200; públicas → 200; `/app/dashboard` → 404.)*
+- [x] 6.4 Eliminar `saasly-nextjs-1.0.0/` y reemplazar el `README.md` de la raíz (hoy es el de la plantilla)
+     *(La carpeta no era la plantilla: contenía **un solo archivo**, `app/client/quotes/page.jsx`, otra página suelta de Project Center. README nuevo, y `package.json` deja de llamarse "saasly".)*
+- [x] 6.5 Migración: eliminar de `usuarios` las columnas `experiencia_ninos`, `fecha_salida`, `estado_proceso`, `tiene_visa`, `fotos_perfil`
+     *(`migrations/006`. Comprobado antes de borrar: 0 referencias con delimitador de palabra y ningún dato introducido por una usuaria —`estado_proceso` y `tiene_visa` sólo tenían su valor por defecto en las 13 filas—. Ojo: buscar `tiene_visa` a secas da 4 falsos positivos porque casa con `tiene_visa_j1`, que sí se usa. Aplicada en local; las columnas vivas siguen intactas. Reversión documentada en el propio archivo.)*
+- [x] 6.6 Actualizar `CLAUDE.md`: ya no conviven dos aplicaciones; documentar las familias de columnas de `usuarios`
+     *(También se corrigió la nota de la puerta de pago, que decía que un cambio de permiso surte efecto "en el siguiente ingreso" — ya no es cierto.)*
 
 ## 7. Respaldo de archivos
 

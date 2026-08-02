@@ -36,20 +36,45 @@ Reglas de uso:
 El contexto del proyecto y las reglas por artefacto están en
 `openspec/config.yaml` — se cargan solas al generar artefactos.
 
-## Dos aplicaciones en un mismo repositorio
+## Una sola aplicación (desde el Sprint 1)
 
 El proveedor anterior construyó Destino Au Pair encima de una app ajena
-("Project Center") y de la plantilla Saasly. Al tocar funcionalidad de Au Pair,
-usar **sólo** la capa DAP:
+("Project Center") y de la plantilla Saasly. **Ambas se retiraron en el
+Sprint 1**: `app/api/app/**`, `lib/db.js`, `lib/session.js`, la rama de
+Project Center en `middleware.js` y `saasly-nextjs-1.0.0/`. La base
+`project_center` no existía en el servidor, así que esas 10 rutas fallaban al
+conectarse.
 
-| | Destino Au Pair (producto real) | Project Center (herencia — no extender) |
+Hoy queda una sola capa:
+
+| | Destino Au Pair |
+|---|---|
+| Pool BD | `lib/db-aupair.js` → `destino_aupair` |
+| Sesión | `lib/session-aupair.js`, cookie `dap_token`, `JWT_AUPAIR_SECRET` |
+| Rutas | `/dashboard`, `/admin`, `/asociada`, `/agencia`, `/api/{auth,dashboard,admin,asociada,agencia,pago,codigos-promo,ventas,documentos,sesion-recursos}` |
+
+Si encuentras una referencia a `lib/db.js`, `lib/session.js`, `JWT_SECRET`,
+la cookie `token` o `/app/*`, es documentación vieja: ya no existe.
+
+### Familias de columnas de `usuarios`
+
+`usuarios` es una tabla ancha que acumuló varias versiones del formulario de
+perfil. Antes de usar una columna, comprueba que sea la viva:
+
+| Tema | Columna viva | Retiradas (migración 006) |
 |---|---|---|
-| Pool BD | `lib/db-aupair.js` → `destino_aupair` | `lib/db.js` → `project_center` |
-| Sesión | `lib/session-aupair.js`, cookie `dap_token`, `JWT_AUPAIR_SECRET` | `lib/session.js`, cookie `token`, `JWT_SECRET` |
-| Rutas | `/dashboard`, `/admin`, `/asociada`, `/agencia`, `/api/{auth,dashboard,admin,asociada,agencia,pago,codigos-promo}` | `/app/*`, `/api/app/*` |
+| Foto de perfil | `foto_url` | `fotos_perfil` |
+| Experiencia con niños | `exp_ninos_externos`, `horas_exp_ninos`, `horas_childcare` | `experiencia_ninos` |
+| Visa | `tiene_visa_j1`, `visa_negada` | `tiene_visa` |
+| Avance del proceso | tabla `proceso_usuario` | `estado_proceso` |
+| Fecha de viaje | — | `fecha_salida` |
 
-`saasly-nextjs-1.0.0/` es la plantilla original intacta y el `README.md` de la
-raíz es el de la plantilla, no el de este proyecto.
+Cuidado al buscar: `tiene_visa` casa como subcadena con `tiene_visa_j1`, que
+sí se usa. Busca con delimitador de palabra.
+
+Los permisos por sección son `acceso_documentos`, `acceso_mensajes`,
+`acceso_recursos`, `acceso_reuniones` y `acceso_comunidad`; el acceso general
+es `tiene_acceso` y el del perfil, `perfil_habilitado`.
 
 ## Comandos
 
@@ -80,15 +105,30 @@ consultas listas.
   `dap_token`, aplica el mapeo rol↔prefijo de ruta y pasa la identidad a los
   handlers por cabeceras `x-dap-user-*`.
 - **Puerta de pago**: `usuarios.tiene_acceso` más los permisos por sección
-  (`acceso_documentos`, `acceso_mensajes`, …). El JWT los lleva embebidos desde
-  el login, así que un cambio de permiso surte efecto en el siguiente ingreso —
-  cuando eso importa, leer el permiso de la base y no del token.
+  (`acceso_documentos`, `acceso_mensajes`, …). El JWT los lleva embebidos, pero
+  **son sólo una pista para pintar la interfaz, nunca la autorización**:
+  `requierePermiso()` los lee de la base en cada petición, para que confirmar o
+  anular un pago surta efecto sin que la candidata vuelva a ingresar.
 - **Ventas y comisiones**: `lib/ventas-aupair.js` es el dueño único de la
   confirmación y anulación de una venta: permisos, consumo del código y comisión.
   Ninguna ruta debe encender permisos ni contar usos por su cuenta.
-- **Patrón de ruta API**: cada handler en `app/api/**/route.js` empieza con
-  `getSessionFromRequest(req)` → `unauthorized()`, y luego SQL parametrizado
-  contra el pool. Las rutas de admin además verifican `session.rol === "admin"`.
+- **Patrón de ruta API**: cada handler empieza con su guard de
+  `lib/session-aupair.js` y luego SQL parametrizado contra el pool:
+
+  ```js
+  const guard = requiereAdmin(req);          // o requiereRol(req, "asociada")
+  if (guard.error) return guard.error;       // o await requierePermiso(req, "documentos")
+  const session = guard.session;
+  ```
+
+  **El nivel que exige cada una de las 84 rutas está en `docs/rutas-y-acceso.md`.**
+  Si añades una ruta, decláralo ahí *antes* de escribir el handler: las
+  pruebas de humo fallan si encuentran una ruta sin nivel declarado.
+
+- **Pruebas de humo**: `node scripts/pruebas-humo.mjs` — 541 aserciones de
+  control de acceso contra un entorno corriendo. No escribe en la base, así
+  que es segura contra producción. El despliegue la ejecuta dentro del
+  contenedor y se detiene si falla.
 - **Documentos**: archivos en el directorio de datos (`UPLOADS_DIR`, fuera de
   `public/`), servidos por ruta API autenticada. Las fotos de perfil siguen como
   data-URI base64 en columnas de MySQL — deuda técnica conocida.
@@ -104,4 +144,5 @@ Utilidades del admin: `/admin/bd-verificar` (inspector del esquema en vivo) y
 - JavaScript, no TypeScript. Estilos en línea en las páginas ya existentes:
   seguir el estilo del archivo que se edita.
 - SQL crudo parametrizado. Nada de concatenar valores en la consulta.
-- Antes de dar algo por terminado: `npm run build` y `npm run lint`.
+- Antes de dar algo por terminado: `npm run build` y `node scripts/pruebas-humo.mjs`.
+  (`npm run lint` está roto de antes: llama a `next lint`, retirado en Next 16.)
