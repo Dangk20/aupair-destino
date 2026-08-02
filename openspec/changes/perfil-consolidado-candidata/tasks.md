@@ -13,7 +13,7 @@
 
 ## 2. La vista consolidada
 
-- [x] 2.1 `app/dashboard/perfil/vista/page.jsx`: cabecera con foto, nombre y datos principales, siguiendo el estilo de `lib/tema-candidata.js`
+- [x] 2.1 `app/dashboard/perfil/page.jsx`: cabecera con foto, nombre y datos principales, siguiendo el estilo de `lib/tema-candidata.js`
      *(Foto, nombre, ciudad/país, edad calculada y correo.)*
 - [x] 2.2 Recorrer `PARTE1` y `PARTE2` pintando cada sección con sus campos como etiqueta → valor; **generado, no escrito a mano**
      *(Las 15 secciones salen del recorrido; ni una etiqueta escrita a mano.)*
@@ -35,12 +35,12 @@
 
 ## 4. Reapuntar los caminos que engañan
 
-- [x] 4.1 `app/dashboard/perfil/page.jsx`: "Revisar mi perfil" abre la vista consolidada
-     *(Lleva **siempre** a la vista, no sólo con el perfil completo: desde que la vista tiene estado incompleto sirve para los dos casos. Con el perfil a medias el botón dice "Ver qué me falta", que es lo que muestra.)*
+- [x] 4.1 ~~"Revisar mi perfil" abre la vista consolidada~~ → **No hay a dónde ir: la vista ES `/dashboard/perfil`**
+     *(Revisado con el cliente al verlo funcionando: el índice y la vista mostraban lo mismo con dos diseños. Se fusionaron y `/dashboard/perfil/vista` se eliminó — hoy da 404. Verificado en el navegador que la pantalla única resuelve los dos estados: 794 px con el perfil completo, 1.638 px a medias.)*
 - [x] 4.2 Las seis tarjetas de sección de la Parte 1 llevan cada una a su sección
-     *(Verificado: la tarjeta "Salud" lleva a `/dashboard/perfil/evaluacion?seccion=salud`. Antes las seis iban al mismo sitio sin anclar.)*
-- [x] 4.3 Retirar el botón "Revisar" suelto de la Parte 2; se llega desde la vista consolidada
-     *(La tarjeta se queda, pero su botón deja de decir "Revisar" y pasa a "Editar": revisar es lo que hace la vista. Así el índice sólo tiene acciones de edición y no compite con ella.)*
+     *(Ahora son las pestañas y las tarjetas del recorrido, cada una con su `?seccion=`. Antes las seis iban al mismo sitio sin anclar.)*
+- [x] 4.3 Retirar el botón "Revisar" suelto de la Parte 2
+     *(Desapareció con el índice al fusionarse las pantallas.)*
 - [x] 4.4 Comprobar que con el perfil a medias los textos y destinos siguen siendo los de "continuar", no los de "revisar"
      *(Sin empezar → "Empezar a contarte". A medias → "Ver qué me falta". Completo → "Revisar mi perfil". Los tres llevan a la vista, que se adapta.)*
 

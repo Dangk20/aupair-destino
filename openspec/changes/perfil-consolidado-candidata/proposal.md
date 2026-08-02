@@ -59,9 +59,8 @@ Ninguna.
 
 **Código afectado**
 
-- `app/dashboard/perfil/vista/page.jsx` (nuevo) — la vista consolidada de lectura.
+- `app/dashboard/perfil/page.jsx` — pasa a **ser** la vista consolidada, en sus dos estados. No hay ruta nueva: se probó con una (`/perfil/vista`) y sobraba.
 - `lib/campos-perfil.js` — se añade lo que falte para poder rotular un valor (los `label` ya están; hace falta cómo se presenta un valor vacío o de lista).
-- `app/dashboard/perfil/page.jsx` — los tres caminos pasan a apuntar a donde dicen.
 - `app/dashboard/perfil/evaluacion/page.jsx` y `app/dashboard/perfil/agencia/page.jsx` — leer la sección inicial de la URL.
 - `app/api/dashboard/perfil/route.js` — dejar de devolver `SELECT *`: entregar el perfil sin las columnas de autenticación. Los 63 campos de las 15 secciones ya llegan todos.
 
@@ -77,8 +76,9 @@ Ninguna.
 
 | Qué | Dónde | Por qué |
 |---|---|---|
-| El botón "Revisar" suelto de la Parte 2 | `app/dashboard/perfil/page.jsx` | La Parte 2 deja de tener su propia entrada: se llega a ella desde la vista consolidada, como a cualquier otra sección |
-| El destino único de las seis tarjetas de sección | `app/dashboard/perfil/page.jsx` | Cada una pasa a llevar a su sección |
+| El índice de secciones del perfil | `app/dashboard/perfil/page.jsx` | Lo reemplaza la vista consolidada, que ya muestra las secciones y su estado |
+| El botón "Revisar" suelto de la Parte 2 | `app/dashboard/perfil/page.jsx` | Revisar es lo que hace la vista; ese botón sólo edita |
+| El destino único de las seis tarjetas de sección | `app/dashboard/perfil/page.jsx` | Cada una lleva a su sección |
 | El `SELECT *` del perfil | `app/api/dashboard/perfil/route.js` | Devolvía 119 columnas, incluido el hash de la contraseña |
 
 **Deuda nueva que sí se produce:** la vista consolidada renderiza los valores tal como están en la base. Los campos que guardan listas o textos largos van a verse crudos hasta que se defina cómo presentarlos; se anota y se resuelve cuando haya un caso real que lo pida, no antes.

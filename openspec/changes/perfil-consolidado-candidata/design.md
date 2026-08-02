@@ -59,7 +59,7 @@ Si el `id` no existe o no viene, se arranca en cero, como hoy.
 
 *Alternativa descartada:* redirigir al índice de `/dashboard/perfil` mientras el perfil esté incompleto. Era la decisión inicial. Se cayó por dos motivos. Uno de producto: la tarjeta de perfil —foto, nombre, datos— es lo que la candidata quiere ver desde el primer día, no una recompensa por terminar. Y uno de realidad: **ninguna candidata de producción tiene hoy el perfil completo** —las tres que figuran como completas están al 87–95%—, así que la vista habría sido inalcanzable para todas.
 
-*Consecuencia:* el índice de `/dashboard/perfil` y el estado incompleto de la vista se solapan. Se resuelve al reapuntar los caminos (grupo 4): el índice queda para empezar y la vista para consultar.
+*Consecuencia:* el índice de `/dashboard/perfil` y el estado incompleto de la vista se solapaban — mostraban lo mismo con dos diseños distintos. Se resolvió fusionándolos (decisión 6).
 
 ### 5. Las 15 secciones son pestañas, no una columna
 
@@ -71,11 +71,13 @@ Las pestañas van agrupadas por parte, con su etiqueta encima, para que no se pi
 
 *Alternativa descartada:* pestañas de primer nivel para las partes y de segundo para las secciones. Más ordenado sobre el papel, pero son dos clics para llegar a cualquier sección de la Parte 2 y esconde nueve de las quince.
 
-### 6. La vista vive en su propia ruta, no reemplaza a `/dashboard/perfil`
+### 6. Una sola pantalla: la vista **es** `/dashboard/perfil`
 
-`/dashboard/perfil` sigue siendo el índice con el progreso; la consolidada es `/dashboard/perfil/vista`.
+No hay ruta aparte. `/dashboard/perfil/vista` se construyó, se probó y **se eliminó**: el índice y esa vista mostraban lo mismo —las secciones, su estado, cómo editarlas— con dos diseños distintos, y obligaban a un salto entre pantallas para ver el propio perfil.
 
-*Alternativa descartada:* convertir `/dashboard/perfil` en la vista consolidada cuando el perfil esté completo. Menos rutas, pero la misma dirección mostraría dos cosas muy distintas según el estado, y el índice con su progreso sigue siendo útil mientras se diligencia. Separadas, cada una tiene un solo trabajo.
+*Alternativa descartada:* mantener las dos, el índice para diligenciar y la vista para consultar. Era la decisión inicial y se cayó al verlas juntas: en cuanto la vista ganó su estado incompleto (decisión 4), la separación dejó de tener sentido. Dos pantallas que muestran lo mismo son una de más, aunque cada una esté bien resuelta.
+
+*Consecuencia:* `/dashboard/perfil` cambia de forma según el estado. Es aceptable porque el trabajo es el mismo —ver y completar tu perfil— y lo que cambia es cuánto hay que ver.
 
 ### 7. La evaluación sólo puede decir lo que el sistema registra
 
