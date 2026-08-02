@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LogOutIcon, MenuIcon, XIcon, BarChart3Icon, UsersIcon, CalendarIcon,
@@ -10,7 +10,6 @@ import {
 
 export default function AsociadaLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [userData, setUserData] = useState(null);
 
@@ -38,7 +37,7 @@ export default function AsociadaLayout({ children }) {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+    window.location.assign("/login");
   };
 
   return (

@@ -81,7 +81,17 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error || "Correo o contraseña incorrectos.");
-      else router.push(data.redirect || "/dashboard");
+      // Navegación de documento, no del router. La cookie de sesión acaba de
+      // cambiar y el destino está detrás del middleware: `router.push` puede
+      // servir un segmento de la caché del cliente anterior a la cookie, sin
+      // volver a pasar por el middleware. Es el patrón correcto para una
+      // sesión en cookie, y descarta esa clase de fallo.
+      //
+      // Nota: el "botón de ingresar no responde tras cerrar sesión" que
+      // reporta la clienta NO se pudo reproducir aquí, ni en desarrollo ni con
+      // build de producción. Este cambio es correcto de todas formas, pero no
+      // está confirmado que sea la causa de aquel síntoma.
+      else window.location.assign(data.redirect || "/dashboard");
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
     } finally {

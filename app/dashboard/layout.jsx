@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Home, Map, BookOpen, FileText, MessageCircle,
   User, Calendar, Users, FolderOpen, Settings, LogOut, Lock,
@@ -13,7 +13,6 @@ import { T, POPPINS_HREF } from "@/lib/tema-candidata";
 
 function DashboardLayoutInner({ children }) {
   const pathname = usePathname();
-  const router   = useRouter();
 
   const [user,          setUser]          = useState(null);
   const [mensajesCount, setMensajesCount] = useState(0);
@@ -33,7 +32,10 @@ function DashboardLayoutInner({ children }) {
       })).catch(()=>{});
   }, []);
 
-  const logout = async () => { await fetch("/api/auth/logout",{method:"POST"}); router.push("/"); };
+  // Sale a la pantalla de ingreso, como los otros tres paneles — antes
+  // devolvía a la landing. Navegación de documento para descartar la
+  // caché de segmentos de la sesión que se acaba de cerrar.
+  const logout = async () => { await fetch("/api/auth/logout",{method:"POST"}); window.location.assign("/login"); };
 
   // Navegación primaria (la del diseño) + secundaria (rutas que se conservan)
   const navPrim = [

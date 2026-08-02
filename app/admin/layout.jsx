@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboardIcon, UsersIcon, VideoIcon, LogOutIcon,
   MenuIcon, XIcon, UserPlusIcon, BarChart2Icon,
@@ -37,12 +37,11 @@ const navItems = [
 
 function AdminLayoutInner({ children }) {
   const pathname    = usePathname();
-  const router      = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method:"POST" });
-    router.push("/login");
+    window.location.assign("/login");
   };
 
   function SidebarContent() {

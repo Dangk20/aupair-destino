@@ -25,11 +25,15 @@
 
 ## 3. Sesiones
 
-- [ ] 3.1 `app/api/auth/register/route.js`: no emitir cookie cuando la petición trae sesión de admin; el autorregistro de candidata sigue igual
-- [ ] 3.2 Verificar que crear un usuario desde `/admin/usuarias` ya no expulsa al admin
-- [ ] 3.3 Revisar el mismo síntoma en el flujo de la candidata (el contrato dice "y de candidatas") y corregir si aparece
+- [x] 3.1 `app/api/auth/register/route.js`: no emitir cookie cuando la petición trae sesión de admin; el autorregistro de candidata sigue igual
+- [x] 3.2 Verificar que crear un usuario desde `/admin/usuarias` ya no expulsa al admin
+     *(Reproducido y corregido. El admin no se redirigía, pero la cookie ya había cambiado: su siguiente petición salía con rol usuaria y `/api/admin/**` respondía 403. Verificado que la respuesta ya no trae `Set-Cookie` y que el admin sigue entrando a `/api/admin/usuarias` (200). Regresión comprobada: el autorregistro público sigue iniciando sesión y devolviendo `/dashboard`.)*
+- [x] 3.3 Revisar el mismo síntoma en el flujo de la candidata (el contrato dice "y de candidatas") y corregir si aparece
+     *(Revisado, no aparece. `/api/auth/me` y `/api/dashboard/acceso` ya leen de la base, no del JWT, así que un cambio de permiso surte efecto sin volver a ingresar. El autorregistro es el único punto donde la candidata recibe cookie y es correcto que la reciba.)*
 - [ ] 3.4 Corregir el botón de ingresar que no responde tras cerrar sesión
-- [ ] 3.5 Cerrar sesión debe llevar a la pantalla de ingreso, no a la landing
+     *(**No reproducido.** Se intentó el ciclo completo —entrar, salir, volver a entrar— en desarrollo y con build de producción: funciona en ambos. Se cambió igual `router.push` por navegación de documento en ingreso, registro y las cuatro salidas, que es el patrón correcto con sesión en cookie y descarta esa clase de fallo, pero no está confirmado que sea la causa. **Hace falta preguntarle a la clienta los pasos exactos**: navegador, si pasa siempre, y qué hace el botón (nada, o muestra error).)*
+- [x] 3.5 Cerrar sesión debe llevar a la pantalla de ingreso, no a la landing
+     *(Reproducido y corregido. `app/dashboard/layout.jsx` era el único de los cuatro paneles que hacía `router.push("/")`. Verificado en el navegador: antes caía en la landing, ahora en `/login`.)*
 
 ## 4. Comisiones
 

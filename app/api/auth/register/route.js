@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbAupair from "@/lib/db-aupair";
-import { createToken } from "@/lib/session-aupair";
+import { createToken, getSessionFromRequest } from "@/lib/session-aupair";
 
 export async function POST(req) {
   try {
@@ -107,6 +107,22 @@ export async function POST(req) {
     // ── Vincular código referido ────────────────────────────────────────────
 
     // ── Token y cookie ──────────────────────────────────────────────────────
+    // Esta ruta sirve a dos flujos distintos:
+    //
+    //   1. Autorregistro público: la candidata se crea a sí misma y queda con
+    //      la sesión iniciada. Es lo que siempre hizo.
+    //   2. Creación administrativa: el admin crea a otra persona desde
+    //      /admin/usuarias. Aquí NO se toca la cookie.
+    //
+    // Antes escribía la cookie en los dos casos, así que al crear un usuario
+    // el admin quedaba con la sesión de esa persona: no lo redirigía, pero su
+    // siguiente petición salía con rol usuaria y /api/admin/** le respondía
+    // 403. Es el "me saca de la sesión" que reporta la clienta.
+    const creadaPorAdmin = getSessionFromRequest(req)?.rol === "admin";
+    if (creadaPorAdmin) {
+      return NextResponse.json({ ok: true, id: nuevoUsuarioId });
+    }
+
     const newUser = {
       id:           nuevoUsuarioId,
       nombre,

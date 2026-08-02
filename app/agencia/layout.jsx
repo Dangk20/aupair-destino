@@ -2,7 +2,7 @@
 // app/agencia/layout.jsx
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   UsersIcon, UserIcon, FileTextIcon, BarChart3Icon,
@@ -20,7 +20,6 @@ const NAV = [
 
 export default function AgenciaLayout({ children }) {
   const pathname = usePathname();
-  const router   = useRouter();
   const { isMobile } = useMobile();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -33,7 +32,7 @@ export default function AgenciaLayout({ children }) {
 
   const logout = async()=>{
     await fetch("/api/auth/logout",{method:"POST"});
-    router.push("/login");
+    window.location.assign("/login");
   };
 
   const Sidebar = () => (

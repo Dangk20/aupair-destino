@@ -95,7 +95,7 @@ function RegisterContent() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error || "No se pudo crear la cuenta.");
-      else router.push(data.redirect || "/dashboard");
+      else window.location.assign(data.redirect || "/dashboard");
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
     } finally {
