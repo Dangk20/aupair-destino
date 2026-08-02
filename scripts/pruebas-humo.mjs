@@ -51,7 +51,7 @@ const ID_FANTASMA = 999999999;
 /* ── El inventario, en versión legible por máquina ──────────────────────────
    Fuente: docs/rutas-y-acceso.md. Si añades una ruta y no la declaras aquí,
    la prueba de cobertura falla. Niveles: publica | sesion | rol:a,b | permiso:x
-   Las rutas de Project Center (/app/**) no figuran: se eliminan en el grupo 6. */
+   Project Center ya no existe: se retiró en el Sprint 1, grupo 6. */
 const INVENTARIO = [
   ["PUT", "/admin/aprobar-evaluacion", "rol:admin"],
   ["GET", "/admin/asesoras", "rol:admin"],
@@ -229,7 +229,6 @@ async function cobertura() {
 
   const declaradas = new Set(INVENTARIO.map(([, r]) => r));
   for (const r of encontradas) {
-    if (r.startsWith("/app/")) continue;   // Project Center, se elimina en el grupo 6
     anota(declaradas.has(r), r, "existe en app/api/** pero no está declarada en el inventario");
   }
   for (const r of declaradas) {
