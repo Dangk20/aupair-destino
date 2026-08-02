@@ -84,7 +84,10 @@ done
 
 # ── 5. Verificación ──────────────────────────────────────────────────────
 paso "5/5  Pruebas de humo del control de acceso"
-if ! ssh "$VPS" "cd $REMOTO && docker compose exec -T app node scripts/pruebas-humo.mjs http://127.0.0.1:3000"; then
+# Ojo con la URL: Next standalone se ata a \$HOSTNAME, que Docker fija al
+# nombre del contenedor, así que DENTRO del contenedor la app escucha en su
+# propia IP y NO en 127.0.0.1. Por eso se apunta a \$(hostname).
+if ! ssh "$VPS" "cd $REMOTO && docker compose exec -T app sh -c \"node scripts/pruebas-humo.mjs http://\$(hostname):3000\""; then
   printf "\n\033[1;31m✗ Las pruebas de humo fallaron. El despliegue NO se da por bueno.\033[0m\n"
   printf "  Respaldo previo a este despliegue: %s\n" "$ANTES"
   printf "  Procedimiento de vuelta atrás: deploy/RESTAURAR.md\n"
