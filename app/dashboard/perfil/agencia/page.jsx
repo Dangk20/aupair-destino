@@ -9,7 +9,7 @@ import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon } from "l
 import { useMobile } from "@/context/MobileContext";
 import {
   PARTE2, parteCompleta, validarSeccion,
-  seccionCompleta as seccionCompletaDe, progresoParte,
+  seccionCompleta as seccionCompletaDe, progresoParte, seccionInicial,
 } from "@/lib/campos-perfil";
 
 // Los títulos y el orden viven acá; QUÉ es obligatorio viene de
@@ -93,6 +93,9 @@ export default function PerfilAgenciaPage() {
       if (p.fecha_nacimiento) p.fecha_nacimiento = p.fecha_nacimiento.split?.("T")[0] || p.fecha_nacimiento;
       setForm(p);
       setEvalOk(evalCompleta(p));
+      // ?seccion=<id> — misma regla que en la Parte 1.
+      const pedida = new URLSearchParams(window.location.search).get("seccion");
+      if (pedida) setSeccion(seccionInicial(SECCIONES, p, pedida));
       setLoading(false);
     });
   }, []);

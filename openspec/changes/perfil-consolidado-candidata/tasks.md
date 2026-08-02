@@ -25,13 +25,17 @@
 - [x] 2.5 Proteger la ruta con `useAccessGate("perfil")`, igual que el resto del módulo
 - [x] 2.6 ~~Si el perfil no está completo, la vista redirige~~ → **La vista tiene dos estados**, revisado con el cliente
      *(Con el perfil a medias ya no redirige: muestra la tarjeta de perfil y el recorrido de las 15 secciones con qué falta en cada una. Verificado con la candidata 6 (87%): dos secciones marcadas "Continuar" con "Te falta: Estatura, Peso" y "Te falta: Nombre de tu primera referencia, Email de tu primera referencia". El motivo del cambio importa: ninguna candidata de producción tiene hoy el perfil completo, así que la versión con redirección habría sido inalcanzable para todas.)*
-- [ ] 2.7 El enlace de una sección pendiente lleva a su sección — depende de que el grupo 3 valide el salto (ver 3.3)
+- [x] 2.7 El enlace de una sección pendiente lleva a su sección
+     *(Resuelto con 3.3: el enlace apunta siempre a su sección y el formulario decide si puede honrarlo.)*
 
 ## 3. Abrir un formulario en una sección
 
-- [ ] 3.1 `app/dashboard/perfil/evaluacion/page.jsx`: aceptar `?seccion=<id>` y arrancar en esa sección; identificador desconocido o ausente → sección cero
-- [ ] 3.2 Lo mismo en `app/dashboard/perfil/agencia/page.jsx`
-- [ ] 3.3 Verificar que la validación por pasos sigue intacta: con el perfil a medias no se puede avanzar dejando obligatorios sin diligenciar
+- [x] 3.1 `app/dashboard/perfil/evaluacion/page.jsx`: aceptar `?seccion=<id>` y arrancar en esa sección; identificador desconocido o ausente → sección cero
+     *(El paso inicial se calcula **después** de cargar el perfil: la regla depende de qué secciones estén completas. Se lee de `window.location.search` y no con `useSearchParams`, que en el App Router exigiría un límite de Suspense.)*
+- [x] 3.2 Lo mismo en `app/dashboard/perfil/agencia/page.jsx`
+     *(Ojo: sus `SECCIONES` son **10**, no 9 — incluye "Estado del perfil", que llena el equipo y no tiene obligatorios. Los nueve primeros ids coinciden con `PARTE2`, así que el enlace por id resuelve igual en los dos sitios.)*
+- [x] 3.3 Verificar que la validación por pasos sigue intacta
+     *(La regla vive en `seccionInicial()` de `campos-perfil.js`, un solo sitio para los dos formularios: honra la sección pedida **sólo si todas las anteriores están completas**; si no, abre en la primera que falte. Probada contra perfiles reales, 8 casos en verde, y confirmada en el navegador: con Dani (completo) `?seccion=visas` abre en la 6 de 6 y `?seccion=referencias` en la 8 de 10; con Juan —a quien le falta la primera sección de la Parte 2— `?seccion=referencias` abre en la 1 de 10, no en la 8.)*
 
 ## 4. Reapuntar los caminos que engañan
 

@@ -11,7 +11,7 @@ import {
 import FotoUpload from "@/components/dashboard/FotoUpload";
 import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
 import { useMobile } from "@/context/MobileContext";
-import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe } from "@/lib/campos-perfil";
+import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe, seccionInicial } from "@/lib/campos-perfil";
 
 // La presentación vive acá; QUÉ es obligatorio vive en lib/campos-perfil.js,
 // que comparten el formulario, el servidor y el cálculo de progreso.
@@ -105,6 +105,11 @@ export default function PerfilEvaluacionPage() {
           if (p.fecha_nacimiento) u.fecha_nacimiento=p.fecha_nacimiento.split("T")[0];
           return u;
         });
+        // ?seccion=<id> — la pantalla de perfil enlaza directo a una sección.
+        // Se honra sólo si las anteriores están completas; si no, se abre en
+        // la primera que falte. Ver seccionInicial() en campos-perfil.js.
+        const pedida = new URLSearchParams(window.location.search).get("seccion");
+        if (pedida) setPaso(seccionInicial(SECCIONES, p, pedida));
       }
       setLoading(false);
     });
