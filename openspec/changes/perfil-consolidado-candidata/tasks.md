@@ -69,5 +69,6 @@
 - [x] 6.5 `npm run build` sin errores
 - [x] 6.6 `node scripts/pruebas-humo.mjs` en verde
      *(541/541. `/api/dashboard/perfil` cambió lo que devuelve, no su nivel de acceso: sigue siendo "sesión", como declara el inventario.)*
-- [ ] 6.7 Desplegar con `deploy/desplegar-codigo.sh` (no hay migración) y verificar en producción
-- [ ] 6.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md`
+- [x] 6.7 Desplegar con `deploy/desplegar-codigo.sh` (no hay migración) y verificar en producción
+     *(Desplegado el 2026-08-02. 541/541 contra producción y home pública 200. Verificado allí que el perfil pasó de 119 a 112 columnas y que ya no salen `password` ni los tokens de recuperación, con `evaluacion_aprobada` llegando como debe.)*
+- [x] 6.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md`
