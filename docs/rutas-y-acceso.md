@@ -65,6 +65,32 @@ se protegen como cualquier otra ruta de admin. No se retiran en este sprint:
 no estaban declarados en el proposal y retirarlos sin verificar producción es
 la clase de atajo que este sprint existe para evitar.
 
+## Rutas rotas conocidas
+
+Responden **500**. Es deuda heredada, no un problema de permisos, y por eso
+las pruebas de humo las declaran en `ROTAS_CONOCIDAS` en vez de fallar por
+ellas: no bloquean el despliegue, pero salen listadas en cada ejecución. Si
+una deja de estar rota, la prueba avisa para quitarla de la lista.
+
+| Ruta | Error | Alcance |
+|---|---|---|
+| `/api/asociada/stats` | `usuarios.asesora_asignada_id` no existe | Sprint 3 |
+| `/api/asociada/usuarias-asignadas` | igual | Sprint 3 |
+| `/api/asociada/usuarias/[id]` | igual | Sprint 3 |
+| `/api/admin/asociadas/asignar` | igual | Sprint 3 |
+| `/api/admin/reuniones` | `reuniones.fecha` no existe · además sin consumidor | Sprint 3 |
+
+**Seis archivos consultan `usuarios.asesora_asignada_id` y la columna no
+existe ni en local ni en producción.** El módulo de la asociada nunca
+funcionó. `/api/auth/register` también la usa para asignar asesora
+automáticamente, pero envuelto en un `try/catch` con `console.warn`: falla en
+silencio en cada registro, así que esa asignación automática jamás ocurrió.
+
+Se descubrió el 2026-08-02 al migrar el panel de la asociada a la cáscara
+compartida. Las pruebas de humo no lo habían detectado porque sólo
+comprobaban que un rol no recibiera 403 — y un 500 pasaba la aserción. Queda
+corregido: ahora un 500 falla salvo que esté declarado aquí.
+
 ## Rutas públicas
 
 Son las **únicas** siete que pueden responder sin sesión. Cualquier otra que

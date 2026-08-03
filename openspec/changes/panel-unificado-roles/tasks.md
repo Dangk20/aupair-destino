@@ -7,13 +7,17 @@
 
 ## 2. La cáscara compartida
 
-- [ ] 2.1 `components/panel/PanelLayout.jsx`: barra lateral, cabecera móvil, identidad y salida, a partir de una lista de módulos recibida
-- [ ] 2.2 Soportar módulo **no disponible**: apagado, sin enlace y con su motivo, reutilizando la idea del `locked` del panel de la candidata
-- [ ] 2.3 La identidad y la salida se leen de la sesión, nunca escritas en el código
+- [x] 2.1 `components/panel/PanelLayout.jsx`: barra lateral, cabecera móvil, identidad y salida, a partir de una lista de módulos recibida
+     *(No sabe qué es un admin ni qué es una agencia: recibe la lista y dibuja.)*
+- [x] 2.2 Soportar módulo **no disponible**: apagado, sin enlace y con su motivo
+     *(Un módulo apagado no se renderiza como enlace, así que no se puede abrir ni con el teclado. Lleva `aria-disabled` y el motivo en el `title`.)*
+- [x] 2.3 La identidad y la salida se leen de la sesión, nunca escritas en el código
+     *(Y corrige un defecto: el panel de la asociada guardaba la respuesta entera de `/api/auth/me` y luego leía `.nombre` — que vive en `.user.nombre`. **Nunca mostró el nombre de nadie.** Ahora dice "Tati Gomez · Asesora".)*
 
 ## 3. Adoptarla, panel por panel
 
-- [ ] 3.1 **Asociada** — el más pequeño, para estrenar la cáscara con poco riesgo. Recorrido manual del rol
+- [x] 3.1 **Asociada** — el más pequeño, para estrenar la cáscara con poco riesgo
+     *(De 127 líneas a 26: ahora sólo declara sus cuatro módulos. Las cuatro rutas cargan y la identidad aparece. **Su contenido sigue morado** — la cáscara no arrastra las pantallas; eso es la tarea 5.4.)*
 - [ ] 3.2 **Agencia**. Recorrido manual del rol
 - [ ] 3.3 **Admin**, con el menú reorganizado (grupo 4). Recorrido manual
 - [ ] 3.4 **Candidata** — ya usa el tema; se suma al final. Recorrido manual
@@ -28,11 +32,12 @@
 - [ ] 4.5 Retirar del código los módulos comentados en el Sprint 0.0 que ya no aplican
 - [ ] 4.6 Comprobar que ninguna ruta del panel queda inalcanzable tras la reorganización
 
-## 5. Los colores del panel de administración
+## 5. Los colores de los paneles
 
 - [ ] 5.1 Sustituir los diez colores dominantes por tokens, empezando por `#a0435f` → `T.primary` (235 apariciones)
 - [ ] 5.2 La cola de 148 colores, pantalla por pantalla, con revisión visual
 - [ ] 5.3 Comprobar que no queda ningún color de marca escrito a mano en `app/admin/`
+- [ ] 5.4 **Las pantallas de asociada y agencia**, que también tienen su propia paleta — al migrar la cáscara de asociada quedó a la vista: barra lateral borgoña, contenido morado. Migrar la cáscara sin el contenido deja el panel a medio camino
 
 ## 6. Verificación y cierre
 

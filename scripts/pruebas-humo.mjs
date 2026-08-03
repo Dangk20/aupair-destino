@@ -187,6 +187,18 @@ const INVENTARIO = [
 
 const ROLES = ["admin", "asociada", "agencia", "usuaria"];
 
+/* ── Rutas que hoy responden 500 ────────────────────────────────────────────
+   Deuda heredada, no defectos de permisos. Se declaran para que el despliegue
+   no se detenga por ellas, pero se comprueban igual: si una deja de estar
+   rota, la prueba avisa para quitarla de aquí. Nunca se borran en silencio.  */
+const ROTAS_CONOCIDAS = {
+  "/asociada/stats":              "usuarios.asesora_asignada_id no existe en la base",
+  "/asociada/usuarias-asignadas": "usuarios.asesora_asignada_id no existe en la base",
+  "/asociada/usuarias/[id]":      "usuarios.asesora_asignada_id no existe en la base",
+  "/admin/asociadas/asignar":     "usuarios.asesora_asignada_id no existe en la base",
+  "/admin/reuniones":             "reuniones.fecha no existe · ruta sin consumidor, ver docs/rutas-y-acceso.md",
+};
+
 /** Token de un usuario inexistente, que declara todos los permisos. */
 function token(rol) {
   return firmar({
@@ -275,12 +287,24 @@ async function porRol() {
     }
   }
 
-  grupo("Rol declarado → no 403");
+  grupo("Rol declarado → entra y no revienta");
   for (const [met, ruta, nivel] of INVENTARIO) {
     if (met !== "GET" || !nivel.startsWith("rol:")) continue;
     for (const rol of nivel.slice(4).split(",")) {
       const st = await llamar(met, ruta, COOKIE[rol]);
       anota(st !== 403 && st !== 401, `${met} ${ruta} como ${rol}`, `su propio rol fue rechazado con ${st}`);
+      // Un 500 no es un problema de permisos, pero pasaba desapercibido: la
+      // aserción de arriba lo daba por bueno porque "no es 403". Así estuvo
+      // oculto que el módulo de la asociada consulta una columna inexistente.
+      // Un 404 o un 400 sí son respuestas legítimas con un id de prueba.
+      const rotaConocida = ROTAS_CONOCIDAS[ruta];
+      const revienta = typeof st === "number" && st >= 500;
+      if (rotaConocida) {
+        // Se comprueba al revés: si ya no revienta, hay que quitarla de la lista.
+        anota(revienta, `${met} ${ruta}`, `ya NO está rota (${st}) — quítala de ROTAS_CONOCIDAS`);
+      } else {
+        anota(!revienta, `${met} ${ruta} como ${rol}`, `el servidor respondió ${st} — la ruta está rota, no es un problema de permisos`);
+      }
     }
   }
 }
@@ -341,6 +365,11 @@ for (const g of grupos) {
   const cuenta = g.nota ? `omitido: ${g.nota}` : `${g.total - n}/${g.total}`;
   console.log(`  ${marca} ${g.titulo.padEnd(46)} ${cuenta}`);
   if (DETALLE) for (const f of g.fallos) console.log(`      · ${f}`);
+}
+
+if (Object.keys(ROTAS_CONOCIDAS).length) {
+  console.log(`\n  ⚠ ${Object.keys(ROTAS_CONOCIDAS).length} rutas declaradas como rotas (deuda heredada, no bloquean el despliegue):`);
+  for (const [r, motivo] of Object.entries(ROTAS_CONOCIDAS)) console.log(`      · ${r} — ${motivo}`);
 }
 
 const seg = ((Date.now() - t0) / 1000).toFixed(1);
