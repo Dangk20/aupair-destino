@@ -46,7 +46,7 @@ function DashboardLayoutInner({ children }) {
     { label:"Mensajes",   href:"/dashboard/mensajes",   icon:MessageCircle, locked:!accesos.mensajes, badge:mensajesCount },
   ];
   const navSec = [
-    { label:"Perfil",        href:"/dashboard/perfil",        icon:User,       locked:!accesos.perfil },
+    { label:"Mi Perfil",     href:"/dashboard/perfil",        icon:User,       locked:!accesos.perfil },
     { label:"Calendario",    href:"/dashboard/reuniones",     icon:Calendar,   locked:!accesos.reuniones },
     { label:"Comunidad",     href:"/dashboard/comunidad",     icon:Users,      locked:!accesos.comunidad },
     { label:"Recursos",      href:"/dashboard/recursos",      icon:FolderOpen, locked:!accesos.recursos },
