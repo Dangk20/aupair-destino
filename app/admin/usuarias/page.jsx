@@ -2,24 +2,27 @@
 
 import { useEffect, useState } from "react";
 import {
+  Unlock as UnlockIcon, Gift as GiftIcon, TrendingUp as TrendingUpIcon,
+  GraduationCap as GraduationCapIcon, UserCheck as UserCheckIcon,
+  Building2 as Building2Icon, BarChart2 as BarChart2Icon, Tag as TagIcon,
   SearchIcon, UserIcon, DownloadIcon, PlusIcon, EyeIcon,
-  PencilIcon, XIcon, CheckIcon, ArrowUpIcon,
+  PencilIcon, XIcon, CheckIcon,
   BookOpenIcon, FileTextIcon, CalendarIcon,
-  MessageCircleIcon, UsersIcon, ShieldIcon,
+  MessageCircleIcon, UsersIcon, ShieldIcon, CreditCardIcon,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
 const SECCIONES = [
-  { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#5a8a3a", bg:"#e8f0e0" },
-  { key:"perfil_habilitado", label:"Perfil",     icon:UserIcon,          color:"#7c5cc4", bg:"#ede9f8" },
+  { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#12A46B", bg:"#e8f0e0" },
+  { key:"perfil_habilitado", label:"Perfil",     icon:UserIcon,          color:"#A0435F", bg:"#ede9f8" },
   { key:"acceso_documentos", label:"Documentos", icon:FileTextIcon,      color:"#2a4a7f", bg:"#e8effe" },
   { key:"acceso_recursos",   label:"Recursos",   icon:ShieldIcon,        color:"#c9973a", bg:"#fdf3e3" },
-  { key:"acceso_reuniones",  label:"Reuniones",  icon:CalendarIcon,      color:"#a0435f", bg:"#fce8ed" },
-  { key:"acceso_mensajes",   label:"Mensajes",   icon:MessageCircleIcon, color:"#059669", bg:"#d1fae5" },
+  { key:"acceso_reuniones",  label:"Reuniones",  icon:CalendarIcon,      color:"#a0435f", bg:"#FCE8EE" },
+  { key:"acceso_mensajes",   label:"Mensajes",   icon:MessageCircleIcon, color:"#12A46B", bg:"#d1fae5" },
   { key:"acceso_comunidad",  label:"Comunidad",  icon:UsersIcon,         color:"#6b4f9e", bg:"#f0eaff" },
 ];
 
-function Toggle({ active, onChange, color="#5a8a3a", disabled=false }) {
+function Toggle({ active, onChange, color="#12A46B", disabled=false }) {
   return (
     <button onClick={()=>!disabled&&onChange(!active)} disabled={disabled}
       style={{ width:36,height:20,borderRadius:99,border:"none",cursor:disabled?"not-allowed":"pointer",background:active?color:"#e0d0d8",position:"relative",transition:"background .2s",flexShrink:0,opacity:disabled?.5:1 }}>
@@ -32,20 +35,20 @@ function ModalVer({ u, onClose }) {
   if (!u) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#e8849a] to-[#a0435f]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
+        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#fce8ed] border-2 border-[#f0b8c4] overflow-hidden flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#FCE8EE] border-2 border-[#f0b8c4] overflow-hidden flex items-center justify-center">
               {u.foto_url?<img src={u.foto_url} alt="" className="w-full h-full object-cover"/>:<span className="text-[#a0435f] font-bold font-serif">{u.nombre?.[0]}</span>}
             </div>
             <div>
-              <h3 className="font-bold text-[15px] text-[#2d1a22]">{u.nombre} {u.apellido}</h3>
-              <p className="text-[11px] text-[#9a6672]">{u.email}</p>
+              <h3 className="font-bold text-[15px] text-[#4A2A38]">{u.nombre} {u.apellido}</h3>
+              <p className="text-[11px] text-[#9C8790]">{u.email}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
         </div>
         <div className="px-5 py-4 grid grid-cols-2 gap-3">
           {[
@@ -58,21 +61,21 @@ function ModalVer({ u, onClose }) {
             {label:"Comisión",        val:u.comision_generada?`$${u.comision_generada} USD`:"—"},
             {label:"Registro",        val:u.created_at?new Date(u.created_at).toLocaleDateString("es-CO"):"—"},
           ].map((s,i)=>(
-            <div key={i} className="bg-[#fff8f9] border border-[#f0dde2] rounded-xl px-3 py-2.5">
-              <p className="text-[9px] text-[#9a6672] uppercase tracking-wide mb-0.5">{s.label}</p>
-              <p className="text-[12px] font-bold text-[#2d1a22]">{s.val}</p>
+            <div key={i} className="bg-[#FBF4F6] border border-[#F5E1E7] rounded-xl px-3 py-2.5">
+              <p className="text-[9px] text-[#9C8790] uppercase tracking-wide mb-0.5">{s.label}</p>
+              <p className="text-[12px] font-bold text-[#4A2A38]">{s.val}</p>
             </div>
           ))}
         </div>
         <div className="px-5 pb-2">
-          <p className="text-[10px] font-bold text-[#9a6672] uppercase tracking-wide mb-2">Accesos activos</p>
+          <p className="text-[10px] font-bold text-[#9C8790] uppercase tracking-wide mb-2">Accesos activos</p>
           <div className="flex flex-wrap gap-2">
             {SECCIONES.map(s=>{
               const activo=u[s.key]; const Icon=s.icon;
               return (
                 <div key={s.key} style={{ display:"flex",alignItems:"center",gap:5,background:activo?s.bg:"#f5f0f0",borderRadius:99,padding:"4px 10px" }}>
-                  <Icon size={11} style={{ color:activo?s.color:"#c0909a" }}/>
-                  <span style={{ fontSize:11,fontWeight:600,color:activo?s.color:"#c0909a" }}>{s.label}</span>
+                  <Icon size={11} style={{ color:activo?s.color:"#C9A9B4" }}/>
+                  <span style={{ fontSize:11,fontWeight:600,color:activo?s.color:"#C9A9B4" }}>{s.label}</span>
                 </div>
               );
             })}
@@ -90,24 +93,24 @@ function ModalEditar({ u, onClose, onSave }) {
   const [form, setForm] = useState({ nombre:u.nombre||"", apellido:u.apellido||"", email:u.email||"" });
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#e8849a] to-[#a0435f]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
-          <h3 className="font-bold text-[16px] text-[#2d1a22]">Editar usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
+          <h3 className="font-bold text-[16px] text-[#4A2A38]">Editar usuario</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3">
           {[{label:"Nombre",key:"nombre"},{label:"Apellido",key:"apellido"},{label:"Email",key:"email"}].map(f=>(
             <div key={f.key}>
-              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#2d1a22] mb-1">{f.label}</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1">{f.label}</label>
               <input value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}
-                className="w-full border border-[#f0dde2] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#e8849a] bg-[#fff8f9]"/>
+                className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]"/>
             </div>
           ))}
         </div>
         <div className="px-5 pb-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 border-2 border-[#f0dde2] text-[#9a6672] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
+          <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
           <button onClick={()=>{onSave(u.id,form);onClose();}} className="flex-1 bg-[#a0435f] text-white font-semibold text-[13px] py-3 rounded-xl">Guardar</button>
         </div>
       </div>
@@ -119,24 +122,24 @@ function ModalNuevo({ onClose, onSave }) {
   const [form, setForm] = useState({ nombre:"",apellido:"",email:"",password:"" });
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#e8849a] to-[#a0435f]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
-          <h3 className="font-bold text-[16px] text-[#2d1a22]">Nuevo usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
+          <h3 className="font-bold text-[16px] text-[#4A2A38]">Nuevo usuario</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3">
           {[{label:"Nombre",key:"nombre",type:"text"},{label:"Apellido",key:"apellido",type:"text"},{label:"Email",key:"email",type:"email"},{label:"Contraseña",key:"password",type:"password"}].map(f=>(
             <div key={f.key}>
-              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#2d1a22] mb-1">{f.label}</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1">{f.label}</label>
               <input type={f.type} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}
-                className="w-full border border-[#f0dde2] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#e8849a] bg-[#fff8f9]"/>
+                className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]"/>
             </div>
           ))}
         </div>
         <div className="px-5 pb-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 border-2 border-[#f0dde2] text-[#9a6672] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
+          <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
           <button onClick={()=>{onSave(form);onClose();}} className="flex-1 bg-[#a0435f] text-white font-semibold text-[13px] py-3 rounded-xl">Crear</button>
         </div>
       </div>
@@ -187,17 +190,17 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={handleCerrar}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={handleCerrar}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#7c5cc4] via-[#a0435f] to-[#7c5cc4]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#a0435f] to-[#A0435F]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div>
-            <h3 className="font-bold text-[16px] text-[#2d1a22]">
+            <h3 className="font-bold text-[16px] text-[#4A2A38]">
               {paso === 1 ? "Cambiar rol de usuario" : "Configurar código de referido"}
             </h3>
-            <p className="text-[11px] text-[#9a6672]">{u.nombre} {u.apellido}</p>
+            <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
           </div>
-          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
         </div>
 
         {paso === 1 ? (
@@ -225,14 +228,14 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
           // PASO 2: Configurar código para asociada
           <div className="px-5 py-4 space-y-4">
             <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
-              <p className="text-[11px] text-purple-600 font-semibold mb-1">✨ CÓDIGO DE REFERIDO</p>
+              <p className="text-[11px] text-[#A0435F] font-semibold mb-1">CÓDIGO DE REFERIDO</p>
               <p className="text-[12px] text-purple-700">
                 Las nuevas usuarias que se registren con este código serán asignadas automáticamente a esta asesora.
               </p>
             </div>
 
             <div>
-              <label className="text-[12px] font-bold text-[#2d1a22] mb-2 block">
+              <label className="text-[12px] font-bold text-[#4A2A38] mb-2 block">
                 Código personalizado (opcional)
               </label>
               <input
@@ -240,9 +243,9 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
                 value={codigoPersonalizado}
                 onChange={(e) => setCodigoPersonalizado(e.target.value.toUpperCase())}
                 placeholder="Ej: ANA2024, PROMO001..."
-                className="w-full px-3 py-2 border border-[#e0d0d8] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c5cc4] font-mono text-[12px]"
+                className="w-full px-3 py-2 border border-[#e0d0d8] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A0435F] font-mono text-[12px]"
               />
-              <p className="text-[10px] text-[#9a6672] mt-1">
+              <p className="text-[10px] text-[#9C8790] mt-1">
                 Dejar vacío para generar uno automáticamente
               </p>
             </div>
@@ -250,14 +253,14 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setPaso(1)}
-                className="flex-1 px-3 py-2 border border-[#f0dde2] text-[#9a6672] rounded-xl font-medium text-[12px] hover:bg-[#f5f0f0]"
+                className="flex-1 px-3 py-2 border border-[#F5E1E7] text-[#9C8790] rounded-xl font-medium text-[12px] hover:bg-[#f5f0f0]"
               >
                 ← Atrás
               </button>
               <button
                 onClick={handleConfirmarCambio}
                 disabled={cargando === u.id}
-                className="flex-1 px-3 py-2 bg-[#7c5cc4] text-white rounded-xl font-medium text-[12px] hover:bg-[#6a4ab0] disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-[#A0435F] text-white rounded-xl font-medium text-[12px] hover:bg-[#6a4ab0] disabled:opacity-50"
               >
                 {cargando === u.id ? "Procesando..." : "Cambiar a Asesora"}
               </button>
@@ -265,8 +268,8 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
           </div>
         )}
 
-        <div className="px-5 pb-5 border-t border-[#f0dde2]">
-          <button onClick={handleCerrar} className="w-full border border-[#f0dde2] text-[#9a6672] text-[13px] font-semibold py-3 rounded-xl mt-3">Cerrar</button>
+        <div className="px-5 pb-5 border-t border-[#F5E1E7]">
+          <button onClick={handleCerrar} className="w-full border border-[#F5E1E7] text-[#9C8790] text-[13px] font-semibold py-3 rounded-xl mt-3">Cerrar</button>
         </div>
       </div>
     </div>
@@ -276,28 +279,28 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
 function ModalAccesos({ u, onClose, onToggle }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#e8849a] to-[#a0435f]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0dde2]">
+        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div>
-            <h3 className="font-bold text-[16px] text-[#2d1a22]">Gestionar accesos</h3>
-            <p className="text-[11px] text-[#9a6672]">{u.nombre} {u.apellido}</p>
+            <h3 className="font-bold text-[16px] text-[#4A2A38]">Gestionar accesos</h3>
+            <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
           {SECCIONES.map(sec=>{
             const Icon=sec.icon, activo=!!u[sec.key];
             return (
-              <div key={sec.key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:activo?sec.bg+"80":"#fff8f9",borderRadius:14,border:`1px solid ${activo?sec.bg:"#f0dde2"}` }}>
+              <div key={sec.key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:activo?sec.bg+"80":"#FBF4F6",borderRadius:14,border:`1px solid ${activo?sec.bg:"#F5E1E7"}` }}>
                 <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                   <div style={{ width:32,height:32,borderRadius:10,background:activo?sec.bg:"#f0e8f0",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                    <Icon size={15} style={{ color:activo?sec.color:"#c0909a" }}/>
+                    <Icon size={15} style={{ color:activo?sec.color:"#C9A9B4" }}/>
                   </div>
                   <div>
-                    <p style={{ fontSize:13,fontWeight:600,color:activo?"#2d1a22":"#9a6672",margin:0 }}>{sec.label}</p>
-                    <p style={{ fontSize:10,color:activo?sec.color:"#c0909a",margin:0,fontWeight:600 }}>{activo?"Activo":"Desactivado"}</p>
+                    <p style={{ fontSize:13,fontWeight:600,color:activo?"#4A2A38":"#9C8790",margin:0 }}>{sec.label}</p>
+                    <p style={{ fontSize:10,color:activo?sec.color:"#C9A9B4",margin:0,fontWeight:600 }}>{activo?"Activo":"Desactivado"}</p>
                   </div>
                 </div>
                 <Toggle active={activo} color={sec.color} onChange={(val)=>onToggle(u.id,sec.key,val)}/>
@@ -306,7 +309,7 @@ function ModalAccesos({ u, onClose, onToggle }) {
           })}
         </div>
         <div className="px-5 pb-5">
-          <button onClick={onClose} className="w-full border border-[#f0dde2] text-[#9a6672] text-[13px] font-semibold py-3 rounded-xl">Cerrar</button>
+          <button onClick={onClose} className="w-full border border-[#F5E1E7] text-[#9C8790] text-[13px] font-semibold py-3 rounded-xl">Cerrar</button>
         </div>
       </div>
     </div>
@@ -329,25 +332,25 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
     <div style={{ position:"fixed",inset:0,background:"rgba(45,26,34,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16 }}
       onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,.15)" }}>
-        <div style={{ height:4,background:gradiente||"linear-gradient(90deg,#a0435f,#e8849a)" }}/>
+        <div style={{ height:4,background:gradiente||"linear-gradient(90deg,#a0435f,#C77D93)" }}/>
         <div style={{ padding:24 }}>
-          <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#2d1a22",margin:"0 0 6px" }}>{titulo}</h2>
-          <p style={{ fontSize:13,color:"#9a6672",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
+          <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:"0 0 6px" }}>{titulo}</h2>
+          <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
           <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-            <span style={{ fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.6 }}>Monto (USD)</span>
+            <span style={{ fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.6 }}>Monto (USD)</span>
             <div style={{ position:"relative" }}>
-              <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9a7080",fontWeight:600 }}>$</span>
+              <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9C8790",fontWeight:600 }}>$</span>
               <input
                 type="number" min="0" step="1" value={monto}
                 onChange={e=>setMonto(e.target.value)}
                 autoFocus
-                style={{ width:"100%",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#1e1033",outline:"none",boxSizing:"border-box" }}
+                style={{ width:"100%",border:"1.5px solid #F5E1E7",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#4A2A38",outline:"none",boxSizing:"border-box" }}
               />
             </div>
             <div style={{ display:"flex",gap:8,marginTop:4 }}>
               {["0","29","35","300"].map(p=>(
                 <button key={p} type="button" onClick={()=>setMonto(p)}
-                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#a0435f":"#f0dde2"}`,background:monto===p?"#fce8ed":"#fff",color:monto===p?"#a0435f":"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#a0435f":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#a0435f":"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                   ${p}
                 </button>
               ))}
@@ -355,14 +358,14 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
           </div>
           <div style={{ display:"flex",gap:10,marginTop:20 }}>
             <button type="button" onClick={onClose}
-              style={{ flex:1,padding:"10px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+              style={{ flex:1,padding:"10px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
               Cancelar
             </button>
             <button
               type="button"
               onClick={handleConfirmar}
               disabled={monto===""||Number(monto)<0||guardando}
-              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#f0dde2":"#a0435f",color:(monto===""||Number(monto)<0)?"#c0909a":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
+              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#F5E1E7":"#a0435f",color:(monto===""||Number(monto)<0)?"#C9A9B4":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
               {guardando?"Guardando...":"✓ Confirmar"}
             </button>
           </div>
@@ -562,7 +565,7 @@ export default function AdminUsuariosPage() {
   const s = stats||{total:0,conAcceso:0,soloGratis:0,conversion:0};
 
   return (
-    <div style={{ display:"flex",gap:20,padding:isMobile?"14px 16px":"20px 28px",background:"#fff8f9",minHeight:"100%",flexDirection:isMobile?"column":"row" }}>
+    <div style={{ display:"flex",gap:20,padding:isMobile?"14px 16px":"20px 28px",background:"#FBF4F6",minHeight:"100%",flexDirection:isMobile?"column":"row" }}>
       <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
 
         {toast && (
@@ -574,8 +577,8 @@ export default function AdminUsuariosPage() {
         {/* Header */}
         <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
           <div>
-            <h1 style={{ fontFamily:"Georgia,serif",fontWeight:700,color:"#2d1a22",fontSize:isMobile?20:24,margin:0 }}>Usuarios registrados</h1>
-            <p style={{ fontSize:12,color:"#9a6672",margin:"2px 0 0" }}>Administra estudiantes, acceso y secciones.</p>
+            <h1 style={{ fontFamily:"Georgia,serif",fontWeight:700,color:"#4A2A38",fontSize:isMobile?20:24,margin:0 }}>Usuarios registrados</h1>
+            <p style={{ fontSize:12,color:"#9C8790",margin:"2px 0 0" }}>Administra estudiantes, acceso y secciones.</p>
           </div>
           <div style={{ display:"flex",gap:8 }}>
             <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:5,color:"#a0435f",fontSize:12,fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit" }}>
@@ -591,18 +594,20 @@ export default function AdminUsuariosPage() {
         {/* Stats */}
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
           {[
-            {emoji:"👥",label:"Usuarios totales",       val:s.total?.toLocaleString("es-CO"),     change:"+18%"},
-            {emoji:"🔓",label:"Con acceso completo",    val:s.conAcceso?.toLocaleString("es-CO"),  change:"+22%"},
-            {emoji:"🎁",label:"Solo bienvenida gratis", val:s.soloGratis?.toLocaleString("es-CO"), change:"+9%"},
-            {emoji:"📈",label:"Conversión total",       val:`${s.conversion||0}%`,                 change:"+15%"},
+            // Estas tarjetas mostraban "+18% este mes", "+22%"… escritos a mano,
+            // con flechita verde incluida. Nadie los calculaba: eran inventados,
+            // igual que las métricas que se retiraron del Resumen en el Sprint 1.
+            // Fuera. La cifra que sí es real se queda; la variación no existe
+            // hasta que haya con qué compararla.
+            {Icono:UsersIcon,      label:"Usuarios totales",       val:s.total?.toLocaleString("es-CO")},
+            {Icono:UnlockIcon,     label:"Con acceso completo",    val:s.conAcceso?.toLocaleString("es-CO")},
+            {Icono:GiftIcon,       label:"Solo bienvenida gratis", val:s.soloGratis?.toLocaleString("es-CO")},
+            {Icono:TrendingUpIcon, label:"Conversión total",       val:`${s.conversion||0}%`},
           ].map((st,i)=>(
-            <div key={i} style={{ background:"#fff",border:"1px solid #f0dde2",borderRadius:16,padding:isMobile?"12px":"16px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-              <div style={{ fontSize:isMobile?20:22,marginBottom:8 }}>{st.emoji}</div>
-              <p style={{ fontSize:10,color:"#9a6672",margin:"0 0 2px",lineHeight:1.3 }}>{st.label}</p>
-              <p style={{ fontFamily:"Georgia,serif",fontWeight:700,fontSize:isMobile?20:24,color:"#2d1a22",margin:0,lineHeight:1 }}>{st.val||0}</p>
-              <p style={{ fontSize:10,color:"#5a8a3a",fontWeight:700,margin:"4px 0 0",display:"flex",alignItems:"center",gap:3 }}>
-                <ArrowUpIcon size={9}/>{st.change} este mes
-              </p>
+            <div key={i} style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:16,padding:isMobile?"12px":"16px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <st.Icono size={isMobile?18:20} style={{ color:"#A0435F",marginBottom:8 }}/>
+              <p style={{ fontSize:10,color:"#9C8790",margin:"0 0 2px",lineHeight:1.3 }}>{st.label}</p>
+              <p style={{ fontFamily:"Georgia,serif",fontWeight:700,fontSize:isMobile?20:24,color:"#4A2A38",margin:0,lineHeight:1 }}>{st.val||0}</p>
             </div>
           ))}
         </div>
@@ -610,19 +615,19 @@ export default function AdminUsuariosPage() {
         {/* Búsqueda */}
         <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
           <div style={{ flex:1,position:"relative",minWidth:160 }}>
-            <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#c0909a" }}/>
+            <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#C9A9B4" }}/>
             <input value={search} onChange={e=>{setSearch(e.target.value);setPagina(1);}} placeholder="Buscar por nombre o email..."
-              style={{ width:"100%",paddingLeft:30,paddingRight:12,height:38,border:"1.5px solid #f0dde2",borderRadius:12,fontSize:12,color:"#1e1033",outline:"none",boxSizing:"border-box",fontFamily:"inherit" }}/>
+              style={{ width:"100%",paddingLeft:30,paddingRight:12,height:38,border:"1.5px solid #F5E1E7",borderRadius:12,fontSize:12,color:"#4A2A38",outline:"none",boxSizing:"border-box",fontFamily:"inherit" }}/>
           </div>
           {!isMobile && (
             <div style={{ position:"relative" }}>
-              <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#c0909a" }}/>
+              <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#C9A9B4" }}/>
               <input value={codigoFiltro} onChange={e=>{setCodigoFiltro(e.target.value);setPagina(1);}} placeholder="Código referido"
-                style={{ paddingLeft:30,paddingRight:12,height:38,width:150,border:"1.5px solid #f0dde2",borderRadius:12,fontSize:12,color:"#1e1033",outline:"none",fontFamily:"inherit" }}/>
+                style={{ paddingLeft:30,paddingRight:12,height:38,width:150,border:"1.5px solid #F5E1E7",borderRadius:12,fontSize:12,color:"#4A2A38",outline:"none",fontFamily:"inherit" }}/>
             </div>
           )}
           <select value={ordenar} onChange={e=>setOrdenar(e.target.value)}
-            style={{ height:38,border:"1.5px solid #f0dde2",borderRadius:12,padding:"0 12px",fontSize:12,color:"#1e1033",background:"#fff",outline:"none",fontFamily:"inherit" }}>
+            style={{ height:38,border:"1.5px solid #F5E1E7",borderRadius:12,padding:"0 12px",fontSize:12,color:"#4A2A38",background:"#fff",outline:"none",fontFamily:"inherit" }}>
             <option value="recientes">Recientes</option>
             <option value="progreso">Progreso</option>
             <option value="nombre">Nombre</option>
@@ -634,25 +639,25 @@ export default function AdminUsuariosPage() {
           {tabs.map(t=>(
             <button key={t.id} onClick={()=>{setTabActivo(t.id);setPagina(1);}}
               style={{ display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:10,border:"none",cursor:"pointer",fontSize:isMobile?11:12,fontWeight:tabActivo===t.id?700:500,whiteSpace:"nowrap",fontFamily:"inherit",transition:"all .12s",
-                color:tabActivo===t.id?"#a0435f":"#9a6672",
+                color:tabActivo===t.id?"#a0435f":"#9C8790",
                 borderBottom:tabActivo===t.id?"2px solid #a0435f":"2px solid transparent",
                 background:"transparent",
               }}>
               {t.label}
-              <span style={{ fontSize:10,padding:"1px 6px",borderRadius:99,fontWeight:700,background:tabActivo===t.id?"#fce8ed":"#f5f0f0",color:tabActivo===t.id?"#a0435f":"#9a6672" }}>{t.count}</span>
+              <span style={{ fontSize:10,padding:"1px 6px",borderRadius:99,fontWeight:700,background:tabActivo===t.id?"#FCE8EE":"#f5f0f0",color:tabActivo===t.id?"#a0435f":"#9C8790" }}>{t.count}</span>
             </button>
           ))}
         </div>
 
         {/* Tabla / Cards */}
-        <div style={{ background:"#fff",borderRadius:20,border:"1px solid #f0dde2",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+        <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           {loading ? (
             <div style={{ padding:"48px 24px",display:"flex",justifyContent:"center" }}>
-              <div style={{ width:32,height:32,border:"2px solid #e8849a",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
+              <div style={{ width:32,height:32,border:"2px solid #C77D93",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
           ) : paginados.length===0 ? (
-            <p style={{ padding:"48px 24px",textAlign:"center",fontSize:13,color:"#9a6672" }}>No se encontraron usuarios.</p>
+            <p style={{ padding:"48px 24px",textAlign:"center",fontSize:13,color:"#9C8790" }}>No se encontraron usuarios.</p>
           ) : isMobile ? (
             <div style={{ display:"flex",flexDirection:"column" }}>
               {paginados.map((u,i)=>{
@@ -661,17 +666,17 @@ export default function AdminUsuariosPage() {
                   <div key={u.id} style={{ padding:"14px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none" }}>
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:10 }}>
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:38,height:38,borderRadius:"50%",background:"#fce8ed",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                        <div style={{ width:38,height:38,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                           {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:12,fontWeight:700 }}>{u.nombre?.[0]}</span>}
                         </div>
                         <div style={{ minWidth:0 }}>
-                          <p style={{ fontSize:13,fontWeight:600,color:"#2d1a22",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
-                          <p style={{ fontSize:11,color:"#9a6672",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
+                          <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
+                          <p style={{ fontSize:11,color:"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
                         </div>
                       </div>
                       <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,flexShrink:0,
-                        background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#f5f0ff":"#fdf3e3",
-                        color:u.tiene_acceso?"#5a8a3a":!u.sesiones_completadas?"#6b4f9e":"#c9973a",
+                        background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#FBF4F6":"#fdf3e3",
+                        color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#6b4f9e":"#c9973a",
                       }}>
                         {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
                       </span>
@@ -679,32 +684,32 @@ export default function AdminUsuariosPage() {
                     <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
                       <div style={{ flex:1 }}>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
-                          <div style={{ flex:1,height:5,background:"#f0dde2",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#e8849a)",borderRadius:99 }}/>
+                          <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
+                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#C77D93)",borderRadius:99 }}/>
                           </div>
-                          <span style={{ fontSize:10,color:"#9a6672",flexShrink:0 }}>{u.porcentaje||0}%</span>
+                          <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
                         </div>
-                        <p style={{ fontSize:10,color:"#c0909a",margin:0 }}>{u.sesiones_completadas||0}/8 sesiones</p>
+                        <p style={{ fontSize:10,color:"#C9A9B4",margin:0 }}>{u.sesiones_completadas||0}/8 sesiones</p>
                       </div>
                       <div style={{ display:"flex",gap:4 }}>
                         {secActivas.slice(0,4).map(sec=>{
                           const Icon=sec.icon;
                           return <div key={sec.key} style={{ width:22,height:22,borderRadius:7,background:sec.bg,display:"flex",alignItems:"center",justifyContent:"center" }} title={sec.label}><Icon size={11} style={{ color:sec.color }}/></div>;
                         })}
-                        {secActivas.length>4&&<span style={{ fontSize:10,color:"#9a6672",fontWeight:700 }}>+{secActivas.length-4}</span>}
+                        {secActivas.length>4&&<span style={{ fontSize:10,color:"#9C8790",fontWeight:700 }}>+{secActivas.length-4}</span>}
                       </div>
                     </div>
                     <div style={{ display:"flex",gap:6 }}>
-                      <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #f0dde2",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <EyeIcon size={12}/>Ver
                       </button>
-                      <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #f0dde2",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <PencilIcon size={12}/>Editar
                       </button>
-                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #ede9f8",background:"#f5f0ff",fontSize:11,fontWeight:600,color:"#7c5cc4",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #ede9f8",background:"#FBF4F6",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <ShieldIcon size={12}/>Rol
                       </button>
-                      <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #e8f0e0",background:"#f0fdf4",fontSize:11,fontWeight:600,color:"#5a8a3a",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #e8f0e0",background:"#f0fdf4",fontSize:11,fontWeight:600,color:"#12A46B",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <ShieldIcon size={12}/>Accesos
                       </button>
                     </div>
@@ -714,9 +719,9 @@ export default function AdminUsuariosPage() {
             </div>
           ) : (
             <>
-              <div style={{ padding:"10px 16px",borderBottom:"1px solid #fce8ed",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
+              <div style={{ padding:"10px 16px",borderBottom:"1px solid #FCE8EE",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
                 {["Usuario","Rol","Estado","Progreso","Código","Pago","Accesos","Acciones"].map((h,i)=>(
-                  <p key={i} style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"#9a6672",margin:0 }}>{h}</p>
+                  <p key={i} style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"#9C8790",margin:0 }}>{h}</p>
                 ))}
               </div>
               <div>
@@ -725,46 +730,46 @@ export default function AdminUsuariosPage() {
                   return (
                     <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:34,height:34,borderRadius:"50%",background:"#fce8ed",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                        <div style={{ width:34,height:34,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                           {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:11,fontWeight:700 }}>{u.nombre?.[0]}</span>}
                         </div>
                         <div style={{ minWidth:0 }}>
-                          <p style={{ fontSize:12,fontWeight:600,color:"#2d1a22",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
-                          <p style={{ fontSize:10,color:"#9a6672",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
+                          <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
+                          <p style={{ fontSize:10,color:"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
                         </div>
                       </div>
                       <div>
                         <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#fee2e2":u.rol==="asociada"?"#ede9f8":u.rol === "agencia" ? "#fdf3e3" :"#dbeafe",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#5b21b6": u.rol === "agencia" ? "#a16207" :"#1e40af" }}>
-                          {u.rol==="admin"?"👨‍💼 Admin":u.rol==="asociada"?"👩‍🏫 Asociada":  u.rol === "agencia" ? "🏢 Agencia" : "👩‍🎓 Usuaria"}
+                          {u.rol==="admin"?"Admin":u.rol==="asociada"?"Asociada":u.rol==="agencia"?"Agencia":"Candidata"}
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#f5f0ff":"#fdf3e3",color:u.tiene_acceso?"#5a8a3a":!u.sesiones_completadas?"#6b4f9e":"#c9973a" }}>
+                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#FBF4F6":"#fdf3e3",color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#6b4f9e":"#c9973a" }}>
                           {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
                         </span>
                       </div>
                       <div>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
-                          <div style={{ flex:1,height:5,background:"#f0dde2",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#e8849a)",borderRadius:99 }}/>
+                          <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
+                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#C77D93)",borderRadius:99 }}/>
                           </div>
-                          <span style={{ fontSize:10,color:"#9a6672",flexShrink:0 }}>{u.porcentaje||0}%</span>
+                          <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
                         </div>
-                        <p style={{ fontSize:9,color:"#c0909a",margin:0 }}>{u.sesiones_completadas||0}/8 ses.</p>
+                        <p style={{ fontSize:9,color:"#C9A9B4",margin:0 }}>{u.sesiones_completadas||0}/8 ses.</p>
                       </div>
                       <div>
                         {u.codigo_referido
                           ? <span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>{u.codigo_referido}</span>
                           : u.codigo_promo_usado
-                          ? <span style={{ fontSize:11,fontWeight:700,color:"#7c5cc4" }}>🎟 {u.codigo_promo_usado}</span>
+                          ? <span style={{ fontSize:11,fontWeight:700,color:"#A0435F",display:"inline-flex",alignItems:"center",gap:4 }}><TagIcon size={11}/>{u.codigo_promo_usado}</span>
                           : <span style={{ fontSize:10,color:"#c0a0a8" }}>—</span>}
                       </div>
                       <div>
                         {u.tiene_acceso?(
                           <div style={{ display:"flex",alignItems:"center",gap:4 }}>
                             <div>
-                              <p style={{ fontSize:11,fontWeight:700,color:"#2d1a22",margin:0 }}>{u.monto_pagado?`$${u.monto_pagado} USD`:"$35 USD"}</p>
-                              <span style={{ fontSize:9,background:"#e8f0e0",color:"#5a8a3a",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
+                              <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{u.monto_pagado?`$${u.monto_pagado} USD`:"$35 USD"}</p>
+                              <span style={{ fontSize:9,background:"#e8f0e0",color:"#12A46B",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
                             </div>
                             <button
                               type="button"
@@ -780,20 +785,20 @@ export default function AdminUsuariosPage() {
                           const Icon=sec.icon;
                           return <div key={sec.key} style={{ width:20,height:20,borderRadius:6,background:sec.bg,display:"flex",alignItems:"center",justifyContent:"center" }} title={sec.label}><Icon size={10} style={{ color:sec.color }}/></div>;
                         })}
-                        {secActivas.length>3&&<span style={{ fontSize:10,color:"#9a6672",fontWeight:700 }}>+{secActivas.length-3}</span>}
+                        {secActivas.length>3&&<span style={{ fontSize:10,color:"#9C8790",fontWeight:700 }}>+{secActivas.length-3}</span>}
                       </div>
                       <div style={{ display:"flex",gap:4 }}>
-                        <button type="button" onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        <button type="button" onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <EyeIcon size={12} style={{ color:"#a0435f" }}/>
                         </button>
-                        <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#fce8ed",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <PencilIcon size={12} style={{ color:"#a0435f" }}/>
                         </button>
                         <button type="button" onClick={()=>setModalCambiarRol(u)} style={{ width:28,height:28,borderRadius:8,background:"#ede9f8",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <ShieldIcon size={12} style={{ color:"#7c5cc4" }}/>
+                          <ShieldIcon size={12} style={{ color:"#A0435F" }}/>
                         </button>
                         <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <ShieldIcon size={12} style={{ color:"#5a8a3a" }}/>
+                          <ShieldIcon size={12} style={{ color:"#12A46B" }}/>
                         </button>
                       </div>
                     </div>
@@ -804,17 +809,17 @@ export default function AdminUsuariosPage() {
           )}
 
           {/* Paginación */}
-          <div style={{ padding:"12px 16px",borderTop:"1px solid #fce8ed",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8 }}>
-            <p style={{ fontSize:11,color:"#9a6672",margin:0 }}>
+          <div style={{ padding:"12px 16px",borderTop:"1px solid #FCE8EE",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8 }}>
+            <p style={{ fontSize:11,color:"#9C8790",margin:0 }}>
               {Math.min((pagina-1)*POR_PAGINA+1,filtrados.length)}–{Math.min(pagina*POR_PAGINA,filtrados.length)} de {filtrados.length}
             </p>
             <div style={{ display:"flex",gap:4 }}>
-              <button onClick={()=>setPagina(p=>Math.max(1,p-1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #f0dde2",background:"#fff",cursor:"pointer",fontSize:12,color:"#9a6672" }}>‹</button>
+              <button onClick={()=>setPagina(p=>Math.max(1,p-1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>‹</button>
               {Array.from({length:Math.min(totalPags,3)},(_,i)=>i+1).map(p=>(
-                <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:p===pagina?"#a0435f":"#fff",color:p===pagina?"#fff":"#9a6672" }}>{p}</button>
+                <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:p===pagina?"#a0435f":"#fff",color:p===pagina?"#fff":"#9C8790" }}>{p}</button>
               ))}
-              {totalPags>3&&<><span style={{ fontSize:11,color:"#9a6672",display:"flex",alignItems:"center" }}>...</span><button onClick={()=>setPagina(totalPags)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,color:"#9a6672",background:"#fff" }}>{totalPags}</button></>}
-              <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #f0dde2",background:"#fff",cursor:"pointer",fontSize:12,color:"#9a6672" }}>›</button>
+              {totalPags>3&&<><span style={{ fontSize:11,color:"#9C8790",display:"flex",alignItems:"center" }}>...</span><button onClick={()=>setPagina(totalPags)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,color:"#9C8790",background:"#fff" }}>{totalPags}</button></>}
+              <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>›</button>
             </div>
           </div>
         </div>
@@ -823,53 +828,53 @@ export default function AdminUsuariosPage() {
       {/* PANEL LATERAL */}
       {!isMobile && (
         <div style={{ width:280,flexShrink:0,display:"flex",flexDirection:"column",gap:14 }}>
-          <div style={{ background:"#fff",border:"1px solid #f0dde2",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <div style={{ padding:"14px 16px",borderBottom:"1px solid #fce8ed" }}>
-              <p style={{ fontSize:13,fontWeight:700,color:"#2d1a22",margin:0 }}>Actividad reciente</p>
+          <div style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div style={{ padding:"14px 16px",borderBottom:"1px solid #FCE8EE" }}>
+              <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Actividad reciente</p>
             </div>
             <div>
               {actividad.length===0
-                ? <p style={{ textAlign:"center",fontSize:12,color:"#9a6672",padding:"24px" }}>Sin actividad aún.</p>
+                ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px" }}>Sin actividad aún.</p>
                 : actividad.slice(0,5).map((a,i)=>(
                   <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"12px 16px",borderBottom:i<4?"1px solid #fff0f3":"none" }}>
-                    <div style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,background:a.tipo==="pago"?"#e8f0e0":a.tipo==="registro"?"#fce8ed":"#fdf3e3" }}>
-                      {a.tipo==="pago"?"💳":a.tipo==="registro"?"👤":"📊"}
+                    <div style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,background:a.tipo==="pago"?"#e8f0e0":a.tipo==="registro"?"#FCE8EE":"#fdf3e3" }}>
+                      {a.tipo==="pago"?<CreditCardIcon size={13}/>:a.tipo==="registro"?<UserIcon size={13}/>:<BarChart2Icon size={13}/>}
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontSize:11,fontWeight:600,color:"#2d1a22",margin:0,lineHeight:1.3 }}>{a.titulo}</p>
-                      <p style={{ fontSize:10,color:"#9a6672",margin:"2px 0 0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.descripcion}</p>
+                      <p style={{ fontSize:11,fontWeight:600,color:"#4A2A38",margin:0,lineHeight:1.3 }}>{a.titulo}</p>
+                      <p style={{ fontSize:10,color:"#9C8790",margin:"2px 0 0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.descripcion}</p>
                     </div>
-                    <span style={{ fontSize:9,color:"#9a6672",flexShrink:0 }}>{a.tiempo}</span>
+                    <span style={{ fontSize:9,color:"#9C8790",flexShrink:0 }}>{a.tiempo}</span>
                   </div>
                 ))
               }
             </div>
           </div>
 
-          <div style={{ background:"#fff",border:"1px solid #f0dde2",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <div style={{ padding:"14px 16px",borderBottom:"1px solid #fce8ed" }}>
-              <p style={{ fontSize:13,fontWeight:700,color:"#2d1a22",margin:0 }}>Top referidoras</p>
+          <div style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div style={{ padding:"14px 16px",borderBottom:"1px solid #FCE8EE" }}>
+              <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Top referidoras</p>
             </div>
             <div style={{ padding:"0 16px" }}>
               {topRef.length===0
-                ? <p style={{ textAlign:"center",fontSize:12,color:"#9a6672",padding:"24px 0" }}>Sin datos aún.</p>
+                ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px 0" }}>Sin datos aún.</p>
                 : topRef.slice(0,3).map((r,i)=>(
                   <div key={i} style={{ padding:"12px 0",borderBottom:i<2?"1px solid #fff0f3":"none" }}>
                     <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
                       <span style={{ fontSize:14 }}>{i===0?"🥇":i===1?"🥈":"🥉"}</span>
-                      <div style={{ width:32,height:32,borderRadius:"50%",background:"#fce8ed",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                      <div style={{ width:32,height:32,borderRadius:"50%",background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                         <span style={{ color:"#a0435f",fontSize:11,fontWeight:700 }}>{r.nombre?.[0]}</span>
                       </div>
                       <div style={{ minWidth:0 }}>
-                        <p style={{ fontSize:12,fontWeight:700,color:"#2d1a22",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.nombre}</p>
+                        <p style={{ fontSize:12,fontWeight:700,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.nombre}</p>
                         <p style={{ fontSize:10,color:"#a0435f",margin:0 }}>@{r.codigo?.toLowerCase()}</p>
                       </div>
                     </div>
                     <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6 }}>
                       {[{label:"Registradas",val:r.registradas},{label:"Pagaron",val:r.pagaron},{label:"Pendiente",val:`$${r.pendiente}`}].map((st,j)=>(
-                        <div key={j} style={{ background:"#fff8f9",borderRadius:10,padding:"6px 8px",textAlign:"center" }}>
-                          <p style={{ fontSize:11,fontWeight:700,color:"#2d1a22",margin:0 }}>{st.val}</p>
-                          <p style={{ fontSize:9,color:"#9a6672",margin:0 }}>{st.label}</p>
+                        <div key={j} style={{ background:"#FBF4F6",borderRadius:10,padding:"6px 8px",textAlign:"center" }}>
+                          <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{st.val}</p>
+                          <p style={{ fontSize:9,color:"#9C8790",margin:0 }}>{st.label}</p>
                         </div>
                       ))}
                     </div>
@@ -893,7 +898,7 @@ export default function AdminUsuariosPage() {
           usuaria={modalPago}
           titulo="Confirmar pago"
           subtitulo="¿Cuánto pagó"
-          gradiente="linear-gradient(90deg,#a0435f,#e8849a)"
+          gradiente="linear-gradient(90deg,#a0435f,#C77D93)"
           onClose={()=>setModalPago(null)}
           onConfirmar={async(monto)=>{ await confirmarToggle(modalPago.id, true, monto); }}
         />
@@ -904,7 +909,7 @@ export default function AdminUsuariosPage() {
           usuaria={modalEditPago}
           titulo="Corregir monto de pago"
           subtitulo="Editando pago de"
-          gradiente="linear-gradient(90deg,#5a8a3a,#90d060)"
+          gradiente="linear-gradient(90deg,#12A46B,#90d060)"
           onClose={()=>setModalEditPago(null)}
           onConfirmar={async(monto)=>{ await corregirMonto(modalEditPago.id, monto); }}
         />
