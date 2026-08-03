@@ -18,5 +18,7 @@
      *(De las 4 con fecha, las 3 de 26 años pasan. Sólo queda bloqueada la de 0 años, que es la cuenta de prueba del equipo — el caso que motivó la regla.)*
 - [ ] 3.3 Comprobar que la candidata con fecha futura deja de figurar como completa y ve el motivo
 - [x] 3.4 `npm run build` y `node scripts/pruebas-humo.mjs` en verde
-- [ ] 3.5 Desplegar con `deploy/desplegar-codigo.sh` y verificar en producción
-- [ ] 3.6 Avisar del efecto: un perfil ya guardado con fecha imposible retrocede de estado
+- [x] 3.5 Desplegar con `deploy/desplegar-codigo.sh` y verificar en producción
+     *(Desplegado el 2026-08-02. 541/541 contra producción y home pública 200.)*
+- [x] 3.6 Avisar del efecto: un perfil ya guardado con fecha imposible retrocede de estado
+     *(Anotado en el cronograma para el reporte del viernes. Afecta a una sola cuenta, que es de prueba del propio equipo.)*
