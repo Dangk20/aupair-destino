@@ -2,7 +2,7 @@
 // app/admin/mensajes/page.jsx
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Send, CheckCheck, Check, Users } from "lucide-react";
+import { Search, Send, CheckCheck, Check, Users, MessageSquare } from "lucide-react";
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -159,7 +159,7 @@ export default function AdminMensajesPage() {
       <div style={{ flex:1, display:"flex", flexDirection:"column", background:"#FBF4F6", minWidth:0 }}>
         {!activa ? (
           <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center" }}>
-            <div style={{ fontSize:60, marginBottom:16 }}>💬</div>
+            <MessageSquare size={46} style={{ color:"#C9A9B4", marginBottom:16 }} strokeWidth={1.5}/>
             <p style={{ fontSize:16, fontWeight:600, color:"#4A2A38", margin:"0 0 6px" }}>Selecciona una conversación</p>
             <p style={{ fontSize:13, color:"#9C8790", margin:0 }}>Elige una estudiante de la lista para ver sus mensajes</p>
           </div>

@@ -134,7 +134,7 @@ export default function VentasAdminPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 {v.codigo ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#A0435F] bg-[#f0ebfa] px-2.5 py-1 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#A0435F] bg-[#FCE8EE] px-2.5 py-1 rounded-full">
                     <TagIcon size={10} /> {v.codigo}
                   </span>
                 ) : (

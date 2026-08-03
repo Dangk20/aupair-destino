@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FotoUpload from "@/components/dashboard/FotoUpload";
 import Link from "next/link";
-import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon } from "lucide-react";
+import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon , AlertTriangle} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import {
   PARTE2, parteCompleta, validarSeccion,
@@ -39,11 +39,11 @@ const evalCompleta = (u) => parteCompleta(1, u);
 const seccionCompleta = (sec, form) => seccionCompletaDe(sec, form);
 const calcProgreso = (form) => progresoParte(2, form);
 
-const IC = { width:"100%", border:"1.5px solid #f0dde2", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
+const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
 // El borde rojo se pierde al enfocar el campo (la regla :focus de la página
 // usa !important sobre border-color), así que el error se marca además con
 // un outline inline, que sí sobrevive al foco.
-const IC_ERR = { ...IC, border:"1.5px solid #dc2626", background:"#fef2f2", outline:"2px solid #dc2626", outlineOffset:"1px" };
+const IC_ERR = { ...IC, border:"1.5px solid #C0392B", background:"#FDECEC", outline:"2px solid #C0392B", outlineOffset:"1px" };
 const LC = { fontSize:10, fontWeight:700, color:"#6b4a54", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
 
 function Select({ name, value, onChange, options, placeholder="", estilo }) {
@@ -59,7 +59,7 @@ function Select({ name, value, onChange, options, placeholder="", estilo }) {
 function Msg({ visible }) {
   if (!visible) return null;
   return (
-    <p style={{ fontSize:11.5, color:"#dc2626", fontWeight:600, margin:"5px 0 0" }}>
+    <p style={{ fontSize:11.5, color:"#C0392B", fontWeight:600, margin:"5px 0 0" }}>
       Este campo es obligatorio.
     </p>
   );
@@ -144,35 +144,35 @@ export default function PerfilAgenciaPage() {
     if (res.ok) {
       if (goNext) {
         setFaltantes([]);
-        showToast("✓ Guardado correctamente");
+        showToast("Guardado correctamente");
         if (seccion < SECCIONES.length-1) setSeccion(s => s+1);
         else router.push("/dashboard/perfil");
       } else if (!ok) {
-        showToast("✓ Guardado — aún te faltan campos");
+        showToast("Guardado — aún te faltan campos");
         señalarFaltantes(pendientes);
       } else {
         setFaltantes([]);
-        showToast("✓ Guardado correctamente");
+        showToast("Guardado correctamente");
       }
     } else showToast("Error al guardar","error");
     setGuardando(false);
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:36,height:36,border:"3px solid #e8849a",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",display:"flex",alignItems:"center",justifyContent:"center" }}>
+      <div style={{ width:36,height:36,border:"3px solid #C77D93",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   /* ── Bloqueado ── */
   if (!evaluOk) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:32,textAlign:"center" }}>
-      <div style={{ width:72,height:72,borderRadius:"50%",background:"#fce8ed",display:"flex",alignItems:"center",justifyContent:"center" }}>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:32,textAlign:"center" }}>
+      <div style={{ width:72,height:72,borderRadius:"50%",background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <LockIcon size={32} style={{ color:"#a0435f" }}/>
       </div>
-      <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:22,fontWeight:700,color:"#2d1a22",margin:0 }}>Perfil con la agencia bloqueado</h2>
-      <p style={{ color:"#9a6672",fontSize:14,maxWidth:360,margin:0,lineHeight:1.7 }}>
+      <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:22,fontWeight:700,color:"#3A2530",margin:0 }}>Perfil con la agencia bloqueado</h2>
+      <p style={{ color:"#9C8790",fontSize:14,maxWidth:360,margin:0,lineHeight:1.7 }}>
         Necesitas completar primero la <strong>Evaluación de Perfil</strong> al 100%. 💕
       </p>
       <Link href="/dashboard/perfil/evaluacion" style={{ background:"#a0435f",color:"#fff",fontSize:13,fontWeight:600,padding:"12px 28px",borderRadius:14,textDecoration:"none" }}>
@@ -188,33 +188,33 @@ export default function PerfilAgenciaPage() {
   const G3  = { display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr", gap:14 };
 
   return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"'Poppins',system-ui,-apple-system,sans-serif" }}>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"'Poppins',system-ui,-apple-system,sans-serif" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#a0435f!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);outline:none;}`}</style>
 
       {toast && (
-        <div style={{ position:"fixed",top:20,right:20,zIndex:2000,background:toast.tipo==="error"?"#dc2626":"#1e1033",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600 }}>
+        <div style={{ position:"fixed",top:20,right:20,zIndex:2000,background:toast.tipo==="error"?"#C0392B":"#4A2A38",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600 }}>
           {toast.msg}
         </div>
       )}
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #f0dde2",padding:isMobile?"12px 16px":"14px 28px",position:"sticky",top:0,zIndex:20 }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"12px 16px":"14px 28px",position:"sticky",top:0,zIndex:20 }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
           <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-            <Link href="/dashboard/perfil" style={{ display:"flex",alignItems:"center",gap:5,color:"#9a7080",textDecoration:"none",fontSize:12,border:"1px solid #f0dde2",padding:"6px 10px",borderRadius:10,flexShrink:0 }}>
+            <Link href="/dashboard/perfil" style={{ display:"flex",alignItems:"center",gap:5,color:"#9C8790",textDecoration:"none",fontSize:12,border:"1px solid #F5E1E7",padding:"6px 10px",borderRadius:10,flexShrink:0 }}>
               <ChevronLeftIcon size={13}/> {isMobile?"Volver":"Volver a mi perfil"}
             </Link>
             {!isMobile && (
               <div>
-                <h1 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:17,fontWeight:700,color:"#1e1033",margin:0 }}>Perfil con la agencia</h1>
-                <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>{SECCIONES.filter(s=>seccionCompleta(s,form)).length} de {SECCIONES.length} secciones completadas</p>
+                <h1 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:0 }}>Perfil con la agencia</h1>
+                <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>{SECCIONES.filter(s=>seccionCompleta(s,form)).length} de {SECCIONES.length} secciones completadas</p>
               </div>
             )}
           </div>
           {/* Barra de progreso */}
           <div style={{ display:"flex",alignItems:"center",gap:10,flex:1,maxWidth:280 }}>
-            <div style={{ flex:1,height:6,background:"#f0dde2",borderRadius:99,overflow:"hidden" }}>
-              <div style={{ height:"100%",width:`${progreso}%`,background:"linear-gradient(90deg,#a0435f,#e8849a)",borderRadius:99,transition:"width .5s" }}/>
+            <div style={{ flex:1,height:6,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
+              <div style={{ height:"100%",width:`${progreso}%`,background:"linear-gradient(90deg,#a0435f,#C77D93)",borderRadius:99,transition:"width .5s" }}/>
             </div>
             <span style={{ fontSize:12,fontWeight:700,color:"#a0435f",flexShrink:0 }}>{progreso}%</span>
           </div>
@@ -233,7 +233,7 @@ export default function PerfilAgenciaPage() {
                 <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"none",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"inherit",transition:"all .12s",fontSize:11,fontWeight:active?700:500,
                     background:active?"#a0435f":completa?"#e8f0e0":"#f3f4f6",
-                    color:active?"#fff":completa?"#5a8a3a":"#6b7280",
+                    color:active?"#fff":completa?"#12A46B":"#6b7280",
                   }}>
                   {completa&&!active?<CheckCircle2Icon size={11}/>:<span>{s.n}</span>}
                   {s.titulo}
@@ -249,18 +249,18 @@ export default function PerfilAgenciaPage() {
         {/* Sidebar — solo desktop */}
         {!isMobile && (
           <div style={{ width:220,flexShrink:0 }}>
-            <p style={{ fontSize:10,fontWeight:700,color:"#9a7080",textTransform:"uppercase",letterSpacing:".8px",margin:"0 0 10px" }}>Secciones</p>
+            <p style={{ fontSize:10,fontWeight:700,color:"#9C8790",textTransform:"uppercase",letterSpacing:".8px",margin:"0 0 10px" }}>Secciones</p>
             {SECCIONES.map((s,i) => {
               const completa=seccionCompleta(s,form), active=i===seccion;
               return (
                 <button key={s.id} onClick={()=>irASeccion(i)}
-                  style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:14,border:"none",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:4,fontFamily:"inherit",transition:"all .12s",background:active?"#fce8ed":"transparent",boxShadow:active?"0 0 0 1.5px #a0435f":"none" }}>
-                  <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,background:completa?"#e8f0e0":active?"#fce8ed":"#f3f4f6",color:completa?"#5a8a3a":active?"#a0435f":"#9ca3af" }}>
-                    {completa?<CheckCircle2Icon size={14} style={{ color:"#5a8a3a" }}/>:s.n}
+                  style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:14,border:"none",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:4,fontFamily:"inherit",transition:"all .12s",background:active?"#FCE8EE":"transparent",boxShadow:active?"0 0 0 1.5px #a0435f":"none" }}>
+                  <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,background:completa?"#e8f0e0":active?"#FCE8EE":"#f3f4f6",color:completa?"#12A46B":active?"#a0435f":"#C9A9B4" }}>
+                    {completa?<CheckCircle2Icon size={14} style={{ color:"#12A46B" }}/>:s.n}
                   </div>
                   <div style={{ minWidth:0 }}>
-                    <p style={{ fontSize:11.5,fontWeight:active?700:500,color:active?"#a0435f":completa?"#5a8a3a":"#555",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{s.titulo}</p>
-                    <p style={{ fontSize:10,color:completa?"#5a8a3a":"#9ca3af",margin:0 }}>{completa?"✓ Completa":"Pendiente"}</p>
+                    <p style={{ fontSize:11.5,fontWeight:active?700:500,color:active?"#a0435f":completa?"#12A46B":"#555",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{s.titulo}</p>
+                    <p style={{ fontSize:10,color:completa?"#12A46B":"#C9A9B4",margin:0 }}>{completa?"Completa":"Pendiente"}</p>
                   </div>
                 </button>
               );
@@ -271,22 +271,22 @@ export default function PerfilAgenciaPage() {
         {/* Formulario */}
         <div style={{ flex:1,minWidth:0 }}>
           {/* Cabecera sección */}
-          <div style={{ background:"linear-gradient(135deg,#a0435f15,#fce8ed)",borderRadius:16,border:"1px solid #f0b8c430",padding:isMobile?"14px 16px":"18px 24px",marginBottom:16,display:"flex",alignItems:"center",gap:14 }}>
-            <div style={{ width:40,height:40,borderRadius:12,background:"#fce8ed",border:"2px solid #f0b8c440",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#a0435f",flexShrink:0 }}>
+          <div style={{ background:"linear-gradient(135deg,#a0435f15,#FCE8EE)",borderRadius:16,border:"1px solid #C77D9330",padding:isMobile?"14px 16px":"18px 24px",marginBottom:16,display:"flex",alignItems:"center",gap:14 }}>
+            <div style={{ width:40,height:40,borderRadius:12,background:"#FCE8EE",border:"2px solid #C77D9340",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#a0435f",flexShrink:0 }}>
               {sec.n}
             </div>
             <div>
               <p style={{ fontSize:10,fontWeight:700,color:"#a0435f",textTransform:"uppercase",letterSpacing:".7px",margin:"0 0 2px" }}>Sección {seccion+1} de {SECCIONES.length}</p>
-              <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:isMobile?16:18,fontWeight:700,color:"#1e1033",margin:0 }}>{sec.titulo}</h2>
+              <h2 style={{ fontFamily:"'Poppins',system-ui,-apple-system,sans-serif",fontSize:isMobile?16:18,fontWeight:700,color:"#4A2A38",margin:0 }}>{sec.titulo}</h2>
             </div>
           </div>
 
-          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"16px":"28px",display:"flex",flexDirection:"column",gap:16 }}>
+          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:isMobile?"16px":"28px",display:"flex",flexDirection:"column",gap:16 }}>
 
             {faltantes.length>0 && (
-              <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#dc2626" }}>
+              <div style={{ background:"#FDECEC",border:"1px solid #FDECEC",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#C0392B" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:8,fontWeight:700 }}>
-                  <span>⚠️</span>
+                  <AlertTriangle size={14}/>
                   {faltantes.length===1
                     ? "Falta 1 campo obligatorio por diligenciar"
                     : `Faltan ${faltantes.length} campos obligatorios por diligenciar`}
@@ -298,7 +298,7 @@ export default function PerfilAgenciaPage() {
                         const el=document.querySelector(`[name="${c.name}"]`);
                         el?.scrollIntoView?.({ behavior:"smooth",block:"center" });
                         el?.focus?.({ preventScroll:true });
-                      }} style={{ background:"none",border:"none",padding:0,color:"#dc2626",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
+                      }} style={{ background:"none",border:"none",padding:0,color:"#C0392B",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
                         {c.label}
                       </button>
                     </li>
@@ -377,14 +377,14 @@ export default function PerfilAgenciaPage() {
             {/* ── 8: Referencias ── */}
             {seccion===7 && (<>
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-                <p style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:0 }}>Referencia 1</p>
+                <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Referencia 1</p>
                 <div style={G1}>
                   <div><label style={LC}>Nombre completo *</label><input name="referencia_1_nombre" value={form.referencia_1_nombre||""} onChange={hi} style={ic("referencia_1_nombre")}/><Msg visible={enError("referencia_1_nombre")}/></div>
                   <div><label style={LC}>Relación</label><Select name="referencia_1_relacion" value={form.referencia_1_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]} estilo={ic("referencia_1_relacion")}/><Msg visible={enError("referencia_1_relacion")}/></div>
                   <div><label style={LC}>Email *</label><input name="referencia_1_email" type="email" value={form.referencia_1_email||""} onChange={hi} style={ic("referencia_1_email")}/><Msg visible={enError("referencia_1_email")}/></div>
                   <div><label style={LC}>Teléfono</label><input name="referencia_1_telefono" value={form.referencia_1_telefono||""} onChange={hi} style={ic("referencia_1_telefono")}/><Msg visible={enError("referencia_1_telefono")}/></div>
                 </div>
-                <p style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:0 }}>Referencia 2</p>
+                <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Referencia 2</p>
                 <div style={G1}>
                   <div><label style={LC}>Nombre completo</label><input name="referencia_2_nombre" value={form.referencia_2_nombre||""} onChange={hi} style={ic("referencia_2_nombre")}/><Msg visible={enError("referencia_2_nombre")}/></div>
                   <div><label style={LC}>Relación</label><Select name="referencia_2_relacion" value={form.referencia_2_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]} estilo={ic("referencia_2_relacion")}/><Msg visible={enError("referencia_2_relacion")}/></div>
@@ -408,25 +408,25 @@ export default function PerfilAgenciaPage() {
 
             {/* ── 10: Estado ── */}
             {seccion===9 && (<>
-              <div style={{ background:progreso>=80?"#d1fae5":progreso>=50?"#fef3c7":"#fce8ed",border:`1px solid ${progreso>=80?"#6ee7b7":progreso>=50?"#fde68a":"#f0b8c4"}`,borderRadius:16,padding:16 }}>
-                <p style={{ fontSize:14,fontWeight:700,color:progreso>=80?"#065f46":progreso>=50?"#92400e":"#a0435f",margin:"0 0 6px" }}>
-                  {progreso>=80?"🎉 ¡Tu perfil está casi listo!":progreso>=50?"⏳ Sigue completando":progreso>0?"📝 Vas por buen camino":"👋 ¡Empecemos!"}
+              <div style={{ background:progreso>=80?"#E6F9F0":progreso>=50?"#FFF4EC":"#FCE8EE",border:`1px solid ${progreso>=80?"#E6F9F0":progreso>=50?"#fde68a":"#C77D93"}`,borderRadius:16,padding:16 }}>
+                <p style={{ fontSize:14,fontWeight:700,color:progreso>=80?"#12A46B":progreso>=50?"#92400e":"#a0435f",margin:"0 0 6px" }}>
+                  {progreso>=80?"¡Tu perfil está casi listo!":progreso>=50?"Sigue completando":progreso>0?"Vas por buen camino":"¡Empecemos!"}
                 </p>
                 <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                   <div style={{ flex:1,height:7,background:"rgba(255,255,255,.5)",borderRadius:99,overflow:"hidden" }}>
-                    <div style={{ height:"100%",width:`${progreso}%`,background:progreso>=80?"#10b981":"#a0435f",borderRadius:99,transition:"width .5s" }}/>
+                    <div style={{ height:"100%",width:`${progreso}%`,background:progreso>=80?"#12A46B":"#a0435f",borderRadius:99,transition:"width .5s" }}/>
                   </div>
-                  <span style={{ fontSize:13,fontWeight:700,color:progreso>=80?"#065f46":"#a0435f" }}>{progreso}%</span>
+                  <span style={{ fontSize:13,fontWeight:700,color:progreso>=80?"#12A46B":"#a0435f" }}>{progreso}%</span>
                 </div>
               </div>
               <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                <p style={{ fontSize:13,fontWeight:600,color:"#1e1033",margin:0 }}>Secciones faltantes:</p>
+                <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0 }}>Secciones faltantes:</p>
                 {SECCIONES.filter(s=>!seccionCompleta(s,form)).map(s=>(
                   <button key={s.id} onClick={()=>setSeccion(s.n-1)}
-                    style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-                    <span style={{ fontSize:12,color:"#9ca3af",width:20 }}>{s.n}.</span>
+                    style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
+                    <span style={{ fontSize:12,color:"#C9A9B4",width:20 }}>{s.n}.</span>
                     <span style={{ fontSize:13,color:"#374151" }}>{s.titulo}</span>
-                    <ChevronRightIcon size={13} style={{ color:"#9ca3af",marginLeft:"auto" }}/>
+                    <ChevronRightIcon size={13} style={{ color:"#C9A9B4",marginLeft:"auto" }}/>
                   </button>
                 ))}
               </div>
@@ -436,19 +436,19 @@ export default function PerfilAgenciaPage() {
           {/* Navegación */}
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:16 }}>
             <button onClick={()=>setSeccion(s=>Math.max(0,s-1))} disabled={seccion===0}
-              style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 18px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a7080",fontSize:13,fontWeight:600,cursor:seccion===0?"not-allowed":"pointer",opacity:seccion===0?.4:1,fontFamily:"inherit" }}>
+              style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 18px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:seccion===0?"not-allowed":"pointer",opacity:seccion===0?.4:1,fontFamily:"inherit" }}>
               <ChevronLeftIcon size={14}/> Anterior
             </button>
             {/* Dots */}
             <div style={{ display:"flex",gap:4,alignItems:"center" }}>
               {SECCIONES.map((_,i)=>(
                 <button key={i} onClick={()=>irASeccion(i)}
-                  style={{ width:i===seccion?24:8,height:8,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:i===seccion?"#a0435f":"#f0dde2" }}/>
+                  style={{ width:i===seccion?24:8,height:8,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:i===seccion?"#a0435f":"#F5E1E7" }}/>
               ))}
             </div>
             <button onClick={()=>guardar(true)} disabled={guardando}
               style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 22px",borderRadius:12,border:"none",background:"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-              {guardando?"Guardando…":seccion<SECCIONES.length-1?<>Guardar <ChevronRightIcon size={13}/></>:"Finalizar ✓"}
+              {guardando?"Guardando…":seccion<SECCIONES.length-1?<>Guardar <ChevronRightIcon size={13}/></>:"Finalizar"}
             </button>
           </div>
         </div>

@@ -190,7 +190,7 @@ function ModalConfirmarPago({ onClose, onConfirm }) {
           </div>
           <div className="bg-[#E6F9F0] border border-[#b8d4a0] rounded-xl px-4 py-3">
             <p className="text-[12px] text-[#3a7a50] font-medium">
-              ✓ Esto activará el acceso del usuario y registrará la comisión del referente si aplica.
+              Esto activará el acceso del usuario y registrará la comisión del referente si aplica.
             </p>
           </div>
         </div>
@@ -201,7 +201,7 @@ function ModalConfirmarPago({ onClose, onConfirm }) {
           </button>
           <button onClick={handleSubmit} disabled={!usuarioId || loading}
             className="flex-1 bg-[#12A46B] hover:bg-[#4a7a2a] disabled:opacity-40 text-white font-semibold text-[13px] py-3 rounded-xl transition">
-            {loading ? "Confirmando..." : "Confirmar pago ✓"}
+            {loading ? "Confirmando..." : "Confirmar pago"}
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function PagosPage() {
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error || "Error", "error"); return; }
-      showToast("Pago confirmado y acceso activado ✓");
+      showToast("Pago confirmado y acceso activado");
       cargar();
     } catch { showToast("Error de conexión", "error"); }
   };
@@ -282,7 +282,7 @@ export default function PagosPage() {
       href: URL.createObjectURL(blob), download: "pagos-comisiones.txt"
     });
     a.click(); URL.revokeObjectURL(a.href);
-    showToast("Reporte exportado 📄");
+    showToast("Reporte exportado");
   };
 
   const filtrados = movimientos.filter(m => {

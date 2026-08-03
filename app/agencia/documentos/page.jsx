@@ -3,7 +3,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { SearchIcon, DownloadIcon, FileTextIcon, EyeIcon } from "lucide-react";
+import { SearchIcon, DownloadIcon, FileTextIcon, EyeIcon,
+  FolderOpen,
+} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
 const PAISES_EMOJI = { "Colombia":"🇨🇴","Mexico":"🇲🇽","México":"🇲🇽","Brasil":"🇧🇷","Argentina":"🇦🇷","Peru":"🇵🇪","Perú":"🇵🇪","Chile":"🇨🇱","Ecuador":"🇪🇨" };
@@ -57,7 +59,7 @@ export default function AgenciaDocumentosPage() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"14px 16px":"20px 28px" }}>
         <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12 }}>
           <div>
             <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#4A2A38",margin:0 }}>Documentos</h1>
@@ -69,23 +71,23 @@ export default function AgenciaDocumentosPage() {
       <div style={{ padding:isMobile?"14px 16px 40px":"20px 28px 40px",maxWidth:1100,margin:"0 auto" }}>
 
         {/* Búsqueda */}
-        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"12px 16px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"12px 16px",marginBottom:16,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           <div style={{ position:"relative" }}>
             <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#9C8790" }}/>
             <input value={busqueda} onChange={e=>setBusqueda(e.target.value)} placeholder="Buscar candidata..."
-              style={{ width:"100%",paddingLeft:30,height:36,border:"1.5px solid #e9e3f8",borderRadius:8,fontSize:12,color:"#6B7280",outline:"none",fontFamily:"inherit",boxSizing:"border-box" }}/>
+              style={{ width:"100%",paddingLeft:30,height:36,border:"1.5px solid #F5E1E7",borderRadius:8,fontSize:12,color:"#6B7280",outline:"none",fontFamily:"inherit",boxSizing:"border-box" }}/>
           </div>
         </div>
 
         {/* Lista */}
         <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
           {filtradas.length===0 ? (
-            <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"48px 20px",textAlign:"center" }}>
-              <p style={{ fontSize:32,margin:"0 0 8px" }}>📂</p>
+            <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"48px 20px",textAlign:"center" }}>
+              <FolderOpen size={38} style={{ color:"#C9A9B4", margin:"0 auto 8px", display:"block" }} strokeWidth={1.5}/>
               <p style={{ fontSize:14,fontWeight:600,color:"#4A2A38",margin:0 }}>No hay candidatas con perfil completado</p>
             </div>
           ) : filtradas.map(c=>(
-            <div key={c.id} style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div key={c.id} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               {/* Header candidata */}
               <div style={{ padding:"14px 20px",borderBottom:"1px solid #FBF4F6",display:"flex",alignItems:"center",gap:12 }}>
                 <div style={{ width:36,height:36,borderRadius:"50%",background:"#FCE8EE",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
@@ -102,11 +104,11 @@ export default function AgenciaDocumentosPage() {
                 {Object.entries(DOCS_LABELS).map(([key,label])=>{
                   const tiene = !!c[key];
                   return (
-                    <div key={key} style={{ background:tiene?"#E6F9F0":"#F3F4F6",borderRadius:10,padding:"10px 12px",border:`1px solid ${tiene?"#E6F9F0":"#e9e3f8"}`,display:"flex",alignItems:"center",gap:8 }}>
+                    <div key={key} style={{ background:tiene?"#E6F9F0":"#F3F4F6",borderRadius:10,padding:"10px 12px",border:`1px solid ${tiene?"#E6F9F0":"#F5E1E7"}`,display:"flex",alignItems:"center",gap:8 }}>
                       <FileTextIcon size={14} style={{ color:tiene?"#12A46B":"#9C8790",flexShrink:0 }}/>
                       <div style={{ minWidth:0 }}>
                         <p style={{ fontSize:11,fontWeight:600,color:tiene?"#4A2A38":"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{label}</p>
-                        <p style={{ fontSize:10,color:tiene?"#12A46B":"#C9A9B4",margin:0,fontWeight:600 }}>{tiene?"✓ Disponible":"Sin subir"}</p>
+                        <p style={{ fontSize:10,color:tiene?"#12A46B":"#C9A9B4",margin:0,fontWeight:600 }}>{tiene?"Disponible":"Sin subir"}</p>
                       </div>
                     </div>
                   );
@@ -116,7 +118,7 @@ export default function AgenciaDocumentosPage() {
               {/* Foto si existe */}
               {c.foto_url && (
                 <div style={{ padding:"0 20px 14px",display:"flex",alignItems:"center",gap:10 }}>
-                  <img src={c.foto_url} alt="Foto perfil" style={{ width:60,height:60,borderRadius:10,objectFit:"cover",border:"2px solid #e9e3f8" }}/>
+                  <img src={c.foto_url} alt="Foto perfil" style={{ width:60,height:60,borderRadius:10,objectFit:"cover",border:"2px solid #F5E1E7" }}/>
                   <div>
                     <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0 }}>Foto de perfil</p>
                     <a href={c.foto_url} target="_blank" rel="noreferrer" style={{ display:"inline-flex",alignItems:"center",gap:4,fontSize:11,color:"#A0435F",fontWeight:600,marginTop:4,textDecoration:"none" }}>

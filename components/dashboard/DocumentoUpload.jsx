@@ -3,6 +3,7 @@
 // Uso: <DocumentoUpload value={form.cedula_frontal_url} onChange={(base64) => set("cedula_frontal_url", base64)} label="Cédula - Lado frontal" />
 
 import { useRef, useState } from "react";
+import { IdCard, Pencil } from "lucide-react";
 
 const MAX_SIZE = 1000;  // px máximo lado más largo — más alto que FotoUpload para que el texto del documento sea legible
 const QUALITY  = 0.85;
@@ -73,7 +74,7 @@ export default function DocumentoUpload({ value, onChange, label="Documento", hi
           <img src={value} alt={label} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
         ) : (
           <div style={{ textAlign:"center", padding:12 }}>
-            <div style={{ fontSize:30, marginBottom:6 }}>🪪</div>
+            <IdCard size={28} style={{ color:"#c0909a", marginBottom:6 }} strokeWidth={1.5}/>
             <p style={{ fontSize:11, color:"#c0909a", margin:0, fontWeight:600 }}>Clic o arrastra la imagen</p>
           </div>
         )}
@@ -81,8 +82,8 @@ export default function DocumentoUpload({ value, onChange, label="Documento", hi
         {value && !loading && (
           <button
             onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-            style={{ position:"absolute", bottom:8, right:8, width:30, height:30, borderRadius:"50%", background:"#a0435f", border:"2px solid #fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>
-            ✏️
+            style={{ position:"absolute", bottom:8, right:8, width:30, height:30, borderRadius:"50%", background:"#a0435f", border:"2px solid #fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Pencil size={13} style={{ color:"#fff" }}/>
           </button>
         )}
       </div>
@@ -103,7 +104,7 @@ export default function DocumentoUpload({ value, onChange, label="Documento", hi
 
       {error && (
         <p style={{ fontSize:11, color:"#dc2626", margin:0, background:"#fee2e2", padding:"6px 10px", borderRadius:8 }}>
-          ⚠️ {error}
+          {error}
         </p>
       )}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>

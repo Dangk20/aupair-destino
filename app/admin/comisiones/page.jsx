@@ -125,7 +125,7 @@ export default function ComisionesAdminPage() {
         <p className="text-[13px] text-[#9C8790] py-10 text-center">Cargando…</p>
       ) : lista.length === 0 ? (
         <div className="bg-white rounded-2xl border border-[#F5E1E7] p-10 text-center">
-          <HandCoinsIcon size={28} className="text-[#e8c4ce] mx-auto mb-3" />
+          <HandCoinsIcon size={28} className="text-[#C9A9B4] mx-auto mb-3" />
           {comisiones.length === 0 ? (
             <>
               <p className="text-[14px] font-semibold text-[#3A2530] mb-1">Todavía no hay comisiones</p>
@@ -159,7 +159,7 @@ export default function ComisionesAdminPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 {c.codigo && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#A0435F] bg-[#f0ebfa] px-2.5 py-1 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#A0435F] bg-[#FCE8EE] px-2.5 py-1 rounded-full">
                     <TagIcon size={10} /> {c.codigo}
                   </span>
                 )}

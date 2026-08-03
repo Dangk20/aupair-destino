@@ -16,10 +16,10 @@ import {
 } from "lucide-react";
 
 const SECCIONES = [
-  { id:"personal",    titulo:"Información personal",     icon:UserIcon,      color:"#ec4899", bg:"#fce7f3" },
+  { id:"personal",    titulo:"Información personal",     icon:UserIcon,      color:"#A0435F", bg:"#FCE8EE" },
   { id:"habilidades", titulo:"Requisitos y habilidades",  icon:WrenchIcon,    color:"#A0435F", bg:"#FCE8EE" },
   { id:"situacion",   titulo:"Situación actual",          icon:BriefcaseIcon, color:"#E8853B", bg:"#FFF4EC" },
-  { id:"salud",       titulo:"Salud",                     icon:HeartIcon,     color:"#ef4444", bg:"#FDECEC" },
+  { id:"salud",       titulo:"Salud",                     icon:HeartIcon,     color:"#C0392B", bg:"#FDECEC" },
   { id:"experiencia", titulo:"Experiencia con niños",     icon:BabyIcon,      color:"#12A46B", bg:"#E6F9F0" },
   { id:"visas",       titulo:"Visas y compromisos",       icon:FileCheckIcon, color:"#A0435F", bg:"#FCE8EE" },
 ];
@@ -188,7 +188,7 @@ function TabDocumentos({ userId }) {
 
                 {/* Ícono tipo */}
                 <div style={{ width:48, height:48, borderRadius:14, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-                  background: isPDF?"#fce7f3":isImg?"#FCE8EE":"#F3F4F6",
+                  background: isPDF?"#FCE8EE":isImg?"#FCE8EE":"#F3F4F6",
                 }}>
                   {isPDF
                     ? <FileTextIcon size={22} style={{ color:"#A0435F" }}/>
@@ -271,7 +271,7 @@ function TabDocumentos({ userId }) {
                   </button>
                   <button onClick={() => actualizarEstado(doc.id,"aprobado")} disabled={guardando||doc.estado==="aprobado"}
                     title="Aprobar"
-                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="aprobado"?"#E6F9F0":"#fff", border:`1.5px solid ${doc.estado==="aprobado"?"#6ee7b7":"#E5E7EB"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="aprobado"?.5:1 }}>
+                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="aprobado"?"#E6F9F0":"#fff", border:`1.5px solid ${doc.estado==="aprobado"?"#E6F9F0":"#E5E7EB"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="aprobado"?.5:1 }}>
                     <CheckCircle2Icon size={15} style={{ color:"#12A46B" }}/>
                   </button>
                   <button onClick={() => actualizarEstado(doc.id,"rechazado")} disabled={guardando||doc.estado==="rechazado"}

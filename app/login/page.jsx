@@ -100,7 +100,7 @@ export default function LoginPage() {
   };
 
   const inputBase =
-    "w-full border border-[#f0dde2] rounded-2xl px-4 pl-11 py-3.5 text-[14px] text-[#2d1a22] bg-white placeholder:text-[#c0a0a8] focus:outline-none focus:ring-2 focus:ring-[#e8849a]/40 focus:border-[#e8849a] transition";
+    "w-full border border-[#F5E1E7] rounded-2xl px-4 pl-11 py-3.5 text-[14px] text-[#3A2530] bg-white placeholder:text-[#c0a0a8] focus:outline-none focus:ring-2 focus:ring-[#C77D93]/40 focus:border-[#C77D93] transition";
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -122,7 +122,7 @@ export default function LoginPage() {
         />
 
         {/* Overlay degradado rosa — más opaco para que resalte el texto */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#a0435f]/95 via-[#a0435f]/90 to-[#2d1a22]/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#a0435f]/95 via-[#a0435f]/90 to-[#3A2530]/95" />
 
         {/* Puntitos */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
@@ -151,7 +151,7 @@ export default function LoginPage() {
           <h2 className="font-serif font-bold text-white text-[34px] lg:text-[42px] leading-tight mb-2 drop-shadow-lg">
             Bienvenida
           </h2>
-          <h2 className="font-serif font-bold italic text-[#fce8ed] text-[34px] lg:text-[42px] leading-tight mb-4 drop-shadow-lg">
+          <h2 className="font-serif font-bold italic text-[#FCE8EE] text-[34px] lg:text-[42px] leading-tight mb-4 drop-shadow-lg">
             de vuelta.
           </h2>
           <div className="flex justify-center mb-5">
@@ -167,11 +167,11 @@ export default function LoginPage() {
           <div className="bg-white/15 border border-white/20 rounded-2xl p-4 text-left backdrop-blur-sm mb-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-white/70 text-[10px] font-bold tracking-[2px] uppercase">Tu progreso</p>
-              <p className="text-[#fce8ed] text-[10px] font-semibold">37% completado</p>
+              <p className="text-[#FCE8EE] text-[10px] font-semibold">37% completado</p>
             </div>
             {/* Barra de progreso */}
             <div className="w-full h-1.5 bg-white/20 rounded-full mb-4">
-              <div className="h-full w-[37%] bg-gradient-to-r from-[#fce8ed] to-[#e8849a] rounded-full" />
+              <div className="h-full w-[37%] bg-gradient-to-r from-[#FCE8EE] to-[#C77D93] rounded-full" />
             </div>
             <div className="space-y-2.5">
               {sessions.map((s, i) => (
@@ -208,7 +208,7 @@ export default function LoginPage() {
                       : "text-white/30"
                     }`}>{s.label}</p>
                     <p className={`text-[9px] mt-0.5 ${
-                      s.status === "active" ? "text-[#fce8ed]"
+                      s.status === "active" ? "text-[#FCE8EE]"
                       : "text-white/30"
                     }`}>{s.sub}</p>
                   </div>
@@ -248,7 +248,7 @@ export default function LoginPage() {
       {/* ══════════════════════════════
           PANEL DERECHA — formulario
       ══════════════════════════════ */}
-      <div className="flex-1 bg-[#fff8f9] flex flex-col items-center justify-between
+      <div className="flex-1 bg-[#FBF4F6] flex flex-col items-center justify-between
                       px-6 sm:px-10 xl:px-16 py-10 xl:py-12 relative overflow-hidden">
 
         {/* Burbuja decorativa derecha */}
@@ -267,7 +267,7 @@ export default function LoginPage() {
 
           {/* Ícono mail */}
           <div className="flex justify-center mb-5">
-            <div className="w-16 h-16 rounded-full bg-[#fce8ed] border border-[#f0b8c4]
+            <div className="w-16 h-16 rounded-full bg-[#FCE8EE] border border-[#C77D93]
                             flex items-center justify-center relative">
               <Mail size={24} className="text-[#a0435f]" strokeWidth={1.5}/>
               <span className="absolute -top-1 -right-1 text-[14px]">✦</span>
@@ -276,11 +276,11 @@ export default function LoginPage() {
 
           {/* Título */}
           <h1 className="font-serif font-bold text-center text-[28px] xl:text-[32px]
-                         text-[#2d1a22] mb-1">
+                         text-[#3A2530] mb-1">
             Iniciar{" "}
             <span className="italic text-[#a0435f]">sesión</span>
           </h1>
-          <p className="text-center text-[13px] xl:text-[14px] text-[#9a6672] mb-8">
+          <p className="text-center text-[13px] xl:text-[14px] text-[#9C8790] mb-8">
             Ingresa a tu cuenta para continuar tu Destino Au Pair.
           </p>
 
@@ -297,11 +297,11 @@ export default function LoginPage() {
             {/* Email */}
             <div>
               <label className="block text-[11px] xl:text-[12px] font-bold tracking-[2px]
-                                uppercase text-[#2d1a22] mb-2">
+                                uppercase text-[#3A2530] mb-2">
                 Correo electrónico
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#c0909a]" strokeWidth={1.5}/>
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A9B4]" strokeWidth={1.5}/>
                 <input name="email" type="email" placeholder="info@destino-aupair.com"
                        value={form.email} onChange={handleChange} required
                        className={inputBase}/>
@@ -312,7 +312,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-[11px] xl:text-[12px] font-bold tracking-[2px]
-                                  uppercase text-[#2d1a22]">
+                                  uppercase text-[#3A2530]">
                   Contraseña
                 </label>
                 <Link href="/forgot-password" style={{ fontSize:13, color:"#a0435f", textDecoration:"none" }}>
@@ -320,13 +320,13 @@ export default function LoginPage() {
 </Link>
               </div>
               <div className="relative">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#c0909a]" strokeWidth={1.5}/>
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A9B4]" strokeWidth={1.5}/>
                 <input name="password" type={showPassword ? "text" : "password"}
                        placeholder="••••••••••••••"
                        value={form.password} onChange={handleChange} required
                        className={`${inputBase} pr-11`}/>
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c0909a] hover:text-[#a0435f] transition">
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C9A9B4] hover:text-[#a0435f] transition">
                   {showPassword ? <EyeOffIcon size={16}/> : <EyeIcon size={16}/>}
                 </button>
               </div>
@@ -344,20 +344,20 @@ export default function LoginPage() {
                   </svg>
                 )}
               </div>
-              <span className="text-[13px] text-[#7a4a54]">Recordarme en este dispositivo</span>
+              <span className="text-[13px] text-[#9C8790]">Recordarme en este dispositivo</span>
             </label>
 
             {/* CTA */}
             <button type="submit" disabled={loading}
               className="w-full bg-gradient-to-r from-[#a0435f] to-[#c9607a]
-                         hover:from-[#8a3550] hover:to-[#b54f68]
+                         hover:from-[#7D2F47] hover:to-[#b54f68]
                          disabled:opacity-60 text-white font-semibold
                          text-[15px] xl:text-[16px] py-4 rounded-2xl
                          shadow-lg shadow-[#a0435f]/30 transition-all duration-200">
               {loading ? "Ingresando..." : "Ingresar a mi destino →"}
             </button>
 
-            <p className="text-center text-[13px] text-[#9a6672]">
+            <p className="text-center text-[13px] text-[#9C8790]">
               ¿No tienes cuenta?{" "}
               <Link href="/register" className="text-[#a0435f] font-semibold hover:underline">
                 Regístrate gratis
@@ -372,9 +372,9 @@ export default function LoginPage() {
               { icon: null,   flag: true,    val: "Comunidad", label: "Colombiana en USA"     },
               { icon: Heart,  val: "Acompañamiento", label: "real en cada paso del proceso"   },
             ].map((s, i) => (
-              <div key={i} className="bg-white border border-[#f0dde2] rounded-2xl
+              <div key={i} className="bg-white border border-[#F5E1E7] rounded-2xl
                                       px-3 py-4 text-center shadow-sm">
-                <div className="w-9 h-9 rounded-full bg-[#fce8ed] border border-[#f0b8c4]
+                <div className="w-9 h-9 rounded-full bg-[#FCE8EE] border border-[#C77D93]
                                 flex items-center justify-center mx-auto mb-2">
                   {s.flag
                     ? <img src="https://flagcdn.com/w40/us.png" alt="USA" className="w-5 h-4 rounded-sm object-cover"/>
@@ -382,7 +382,7 @@ export default function LoginPage() {
                   }
                 </div>
                 <p className="text-[12px] font-bold text-[#a0435f] leading-snug">{s.val}</p>
-                <p className="text-[10px] text-[#9a6672] leading-snug mt-0.5">{s.label}</p>
+                <p className="text-[10px] text-[#9C8790] leading-snug mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
@@ -390,7 +390,7 @@ export default function LoginPage() {
 
         {/* Redes sociales */}
         <div className="w-full max-w-md xl:max-w-lg mx-auto mt-8 text-center">
-          <p className="text-[13px] text-[#2d1a22] font-semibold mb-4">
+          <p className="text-[13px] text-[#3A2530] font-semibold mb-4">
             Síguenos en nuestras <span className="italic text-[#a0435f]">redes</span>{" "}
             <span className="text-[14px]">✦</span>
           </p>
@@ -398,9 +398,9 @@ export default function LoginPage() {
             {socials.map(({ icon: Icon, href, label }) => (
               <a key={label} href={href} target="_blank" rel="noopener noreferrer"
                  aria-label={label}
-                 className="w-11 h-11 rounded-full bg-white border border-[#f0dde2]
-                            flex items-center justify-center text-[#9a6672]
-                            hover:text-[#a0435f] hover:border-[#e8849a]
+                 className="w-11 h-11 rounded-full bg-white border border-[#F5E1E7]
+                            flex items-center justify-center text-[#9C8790]
+                            hover:text-[#a0435f] hover:border-[#C77D93]
                             hover:shadow-md transition-all duration-200">
                 <Icon />
               </a>

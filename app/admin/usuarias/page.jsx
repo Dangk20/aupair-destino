@@ -569,7 +569,7 @@ export default function AdminUsuariosPage() {
       <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
 
         {toast && (
-          <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#ef4444":"#A0435F" }}>
+          <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#C0392B":"#A0435F" }}>
             <CheckIcon size={14}/>{toast.msg}
           </div>
         )}

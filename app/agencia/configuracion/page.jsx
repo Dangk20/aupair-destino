@@ -3,10 +3,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Eye, EyeOff, Lock, Check, AlertCircle } from "lucide-react";
+import { Save, Eye, EyeOff, Lock, Check, AlertCircle,
+  User,
+} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
-const IC = { width:"100%",border:"1.5px solid #e9e3f8",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#4A2A38",background:"#fff",outline:"none",fontFamily:"inherit",boxSizing:"border-box" };
+const IC = { width:"100%",border:"1.5px solid #F5E1E7",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#4A2A38",background:"#fff",outline:"none",fontFamily:"inherit",boxSizing:"border-box" };
 const LC = { fontSize:11,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".6px",display:"block",marginBottom:5 };
 
 export default function AgenciaConfiguracionPage() {
@@ -40,7 +42,7 @@ export default function AgenciaConfiguracionPage() {
     setSaving(true);
     const res = await fetch("/api/agencia/perfil", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form) });
     const data = await res.json();
-    if (data.ok) showToast("Perfil actualizado ✓");
+    if (data.ok) showToast("Perfil actualizado");
     else showToast(data.error||"Error","error");
     setSaving(false);
   };
@@ -52,7 +54,7 @@ export default function AgenciaConfiguracionPage() {
     setSaving(true);
     const res = await fetch("/api/agencia/perfil", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ accion:"cambiar_password", password_actual:passActual, password_nuevo:passNuevo }) });
     const data = await res.json();
-    if (data.ok) { showToast("Contraseña actualizada ✓"); setPassActual(""); setPassNuevo(""); setPassConfirm(""); }
+    if (data.ok) { showToast("Contraseña actualizada"); setPassActual(""); setPassNuevo(""); setPassConfirm(""); }
     else showToast(data.error||"Error","error");
     setSaving(false);
   };
@@ -73,7 +75,7 @@ export default function AgenciaConfiguracionPage() {
       </div>}
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"14px 16px":"20px 28px" }}>
         <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#4A2A38",margin:0 }}>Configuración</h1>
         <p style={{ fontSize:13,color:"#9C8790",margin:"4px 0 0" }}>Actualiza los datos de tu cuenta de agencia.</p>
       </div>
@@ -81,9 +83,9 @@ export default function AgenciaConfiguracionPage() {
       <div style={{ padding:isMobile?"14px 16px 40px":"20px 28px 40px",maxWidth:900,margin:"0 auto",display:"flex",flexDirection:"column",gap:16 }}>
 
         {/* Perfil */}
-        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:16,fontWeight:700,color:"#4A2A38",margin:"0 0 20px",display:"flex",alignItems:"center",gap:8 }}>
-            <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>👤</span>
+            <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><User size={15} style={{ color:"#A0435F" }}/></span>
             Información de la agencia
           </h2>
           <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:14 }}>
@@ -119,9 +121,9 @@ export default function AgenciaConfiguracionPage() {
         </div>
 
         {/* Seguridad */}
-        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:16,fontWeight:700,color:"#4A2A38",margin:"0 0 6px",display:"flex",alignItems:"center",gap:8 }}>
-            <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>🔒</span>
+            <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><Lock size={15} style={{ color:"#A0435F" }}/></span>
             Cambiar contraseña
           </h2>
           <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>Actualiza tu contraseña de acceso al portal.</p>

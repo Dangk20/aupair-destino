@@ -80,6 +80,19 @@ una deja de estar rota, la prueba avisa para quitarla de la lista.
 | `/api/admin/asociadas/asignar` | igual | Sprint 3 |
 | `/api/admin/reuniones` | `reuniones.fecha` no existe · además sin consumidor | Sprint 3 |
 
+### Una ruta que se llama y no existe
+
+`/dashboard` y `/dashboard/proceso` piden **`/api/dashboard/reunion`** (en
+singular) y esa ruta no existe: la real es `/api/dashboard/reuniones`, y
+además devuelve `{ reuniones: [...] }` mientras las dos páginas leen
+`.reunion`. Es decir, **el recuadro "Tu próxima reunión" de la pantalla de
+inicio de la candidata nunca ha mostrado una reunión**: siempre dice "aún no
+tienes una agendada", tenga o no tenga.
+
+No se arregla aquí. Es un cambio de comportamiento visible en la primera
+pantalla que ve una candidata, así que va por su propia propuesta —
+corresponde al Sprint 2, junto con el dashboard con datos reales.
+
 **Seis archivos consultan `usuarios.asesora_asignada_id` y la columna no
 existe ni en local ni en producción.** El módulo de la asociada nunca
 funcionó. `/api/auth/register` también la usa para asignar asesora

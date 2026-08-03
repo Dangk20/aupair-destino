@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  Settings, Globe, Shield, MessageSquare,
+  Settings, Globe, Shield, MessageSquare, Info, FileText, BarChart3, Smartphone,
   Instagram, Save, Check, AlertCircle,
   Eye, EyeOff, Lock,
 } from "lucide-react";
@@ -150,7 +150,7 @@ export default function AdminConfiguracionPage() {
             {/* Col 1 */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #E5E7EB",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px",display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>ℹ️</span>
+                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><Info size={15} style={{ color:"#A0435F" }}/></span>
                 Información general
               </h3>
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
@@ -173,7 +173,7 @@ export default function AdminConfiguracionPage() {
             {/* Col 2 */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #E5E7EB",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px",display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>📝</span>
+                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><FileText size={15} style={{ color:"#A0435F" }}/></span>
                 Descripción
               </h3>
               <div>
@@ -195,7 +195,7 @@ export default function AdminConfiguracionPage() {
           <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20 }}>
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #E5E7EB",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 4px",display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>⚙️</span>
+                <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><Settings size={15} style={{ color:"#A0435F" }}/></span>
                 Ajustes del sistema
               </h3>
               <p style={{ fontSize:12,color:"#9C8790",margin:"0 0 8px" }}>Controla el comportamiento general de la plataforma.</p>
@@ -224,7 +224,7 @@ export default function AdminConfiguracionPage() {
                 <div style={{ background:"#FDECEC",border:"1px solid #FDECEC",borderRadius:12,padding:"12px 16px",marginTop:12,display:"flex",alignItems:"flex-start",gap:10 }}>
                   <AlertCircle size={16} style={{ color:"#C0392B",flexShrink:0,marginTop:1 }}/>
                   <p style={{ fontSize:12,color:"#C0392B",margin:0,fontWeight:600,lineHeight:1.5 }}>
-                    ⚠️ Modo mantenimiento activo — las usuarias no pueden acceder.
+                    Modo mantenimiento activo — las usuarias no pueden acceder.
                   </p>
                 </div>
               )}
@@ -233,13 +233,13 @@ export default function AdminConfiguracionPage() {
             {/* Resumen estado */}
             <div style={{ background:"#fff",borderRadius:16,border:"1px solid #E5E7EB",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px",display:"flex",alignItems:"center",gap:8 }}>
-                <span style={{ width:28,height:28,borderRadius:8,background:"#E6F9F0",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>📊</span>
+                <span style={{ width:28,height:28,borderRadius:8,background:"#E6F9F0",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><BarChart3 size={15} style={{ color:"#12A46B" }}/></span>
                 Estado actual
               </h3>
               {[
-                { label:"Registro de usuarios",  val:config.registro_abierto==="1"?"Abierto ✓":"Cerrado ✗",    bg:config.registro_abierto==="1"?"#E6F9F0":"#fef2f2",     color:config.registro_abierto==="1"?"#12A46B":"#C0392B" },
+                { label:"Registro de usuarios",  val:config.registro_abierto==="1"?"Abierto":"Cerrado",    bg:config.registro_abierto==="1"?"#E6F9F0":"#FDECEC",     color:config.registro_abierto==="1"?"#12A46B":"#C0392B" },
                 { label:"Aprobación de acceso",  val:config.aprobacion_manual==="1"?"Manual":"Automática",      bg:config.aprobacion_manual==="1"?"#fffbeb":"#E6F9F0",     color:config.aprobacion_manual==="1"?"#E8853B":"#12A46B" },
-                { label:"Modo mantenimiento",    val:config.modo_mantenimiento==="1"?"Activo ⚠️":"Inactivo ✓",  bg:config.modo_mantenimiento==="1"?"#fef2f2":"#E6F9F0",    color:config.modo_mantenimiento==="1"?"#C0392B":"#12A46B" },
+                { label:"Modo mantenimiento",    val:config.modo_mantenimiento==="1"?"Activo":"Inactivo",  bg:config.modo_mantenimiento==="1"?"#FDECEC":"#E6F9F0",    color:config.modo_mantenimiento==="1"?"#C0392B":"#12A46B" },
               ].map((s,i)=>(
                 <div key={i} style={{ background:s.bg,borderRadius:12,padding:"12px 16px",marginBottom:10 }}>
                   <p style={{ fontSize:11,color:"#6B7280",margin:"0 0 2px" }}>{s.label}</p>
@@ -258,19 +258,19 @@ export default function AdminConfiguracionPage() {
         {tab==="redes" && (
           <div style={{ background:"#fff",borderRadius:16,border:"1px solid #E5E7EB",padding:isMobile?16:24,boxShadow:"0 1px 4px rgba(0,0,0,.04)",maxWidth:600 }}>
             <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 6px",display:"flex",alignItems:"center",gap:8 }}>
-              <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}>📱</span>
+              <span style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",display:"inline-flex",alignItems:"center",justifyContent:"center" }}><Smartphone size={15} style={{ color:"#A0435F" }}/></span>
               Redes sociales
             </h3>
             <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>Estos links aparecen en la página de pago y en la landing.</p>
             <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
               {[
-                { key:"instagram", label:"Instagram",  placeholder:"https://instagram.com/destinoaupair", emoji:"📸" },
-                { key:"tiktok",    label:"TikTok",     placeholder:"https://tiktok.com/@destinoaupair",  emoji:"🎵" },
-                { key:"youtube",   label:"YouTube",    placeholder:"https://youtube.com/@destinoaupair", emoji:"▶️" },
-                { key:"facebook",  label:"Facebook",   placeholder:"https://facebook.com/destinoaupair", emoji:"👥" },
+                { key:"instagram", label:"Instagram",  placeholder:"https://instagram.com/destinoaupair", },
+                { key:"tiktok",    label:"TikTok",     placeholder:"https://tiktok.com/@destinoaupair",  },
+                { key:"youtube",   label:"YouTube",    placeholder:"https://youtube.com/@destinoaupair", },
+                { key:"facebook",  label:"Facebook",   placeholder:"https://facebook.com/destinoaupair", },
               ].map(r=>(
                 <div key={r.key}>
-                  <label style={LC}>{r.emoji} {r.label}</label>
+                  <label style={LC}>{r.label}</label>
                   <input type="url" value={config[r.key]||""} onChange={e=>set(r.key,e.target.value)} style={IC()} placeholder={r.placeholder}/>
                 </div>
               ))}
@@ -289,11 +289,11 @@ export default function AdminConfiguracionPage() {
             <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>Personaliza los mensajes que ven las usuarias en momentos clave.</p>
             <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
               {[
-                { key:"mensaje_bienvenida", label:"Mensaje de bienvenida",       desc:"Se muestra cuando la usuaria se registra por primera vez", emoji:"👋" },
-                { key:"mensaje_acceso",     label:"Mensaje de acceso concedido",  desc:"Se muestra cuando Jenni activa el acceso completo al programa", emoji:"🎉" },
+                { key:"mensaje_bienvenida", label:"Mensaje de bienvenida",       desc:"Se muestra cuando la usuaria se registra por primera vez", },
+                { key:"mensaje_acceso",     label:"Mensaje de acceso concedido",  desc:"Se muestra cuando Jenni activa el acceso completo al programa", },
               ].map(m=>(
                 <div key={m.key}>
-                  <label style={LC}>{m.emoji} {m.label}</label>
+                  <label style={LC}>{m.label}</label>
                   <p style={{ fontSize:11,color:"#9C8790",margin:"0 0 6px" }}>{m.desc}</p>
                   <textarea value={config[m.key]||""} onChange={e=>set(m.key,e.target.value)} rows={3}
                     style={{ ...IC(),resize:"vertical" }}/>

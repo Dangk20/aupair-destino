@@ -137,10 +137,6 @@ export function HelpCard({ onContact }) {
           </div>
         </div>
 
-        {/* Emoji ilustración */}
-        <div style={{ textAlign:"right", fontSize:42, lineHeight:1, marginBottom:-8, position:"relative", zIndex:1, opacity:.9 }}>
-          🎈
-        </div>
       </div>
 
       {/* Parte blanca con botón */}

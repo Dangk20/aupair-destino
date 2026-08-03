@@ -5,10 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Bell, ArrowRight, Video, CalendarPlus, Lock,
-  ChevronLeft, ChevronRight, X, Check, Clock,
-  CheckCircle2, XCircle, Users, Megaphone, BookOpen,
-  Phone, Star, AlertCircle,
+  Bell, ArrowRight, Video, CalendarPlus, Lock, ChevronLeft, ChevronRight, X, Check, Clock, CheckCircle2, XCircle, Users, Megaphone, BookOpen, Phone, Star, AlertCircle, MessageSquare, Wrench, Pin, UserRound, CalendarDays,
 } from "lucide-react";
 import { HelpCard } from "@/components/dashboard/DashboardWidgets";
 import { useMobile } from "@/context/MobileContext";
@@ -42,13 +39,13 @@ function cleanFecha(f) {
 
 /* ── Tipo de evento → config ── */
 const TIPO_CFG = {
-  foro:           { color:"#7c3aed", bg:"#ede9fe", emoji:"💬", label:"Foro"         },
-  llamada_grupal: { color:"#0369a1", bg:"#dbeafe", emoji:"📞", label:"Llamada"       },
-  taller:         { color:"#d97706", bg:"#fef3c7", emoji:"🛠️", label:"Taller"        },
-  importante:     { color:"#dc2626", bg:"#fee2e2", emoji:"🔔", label:"Importante"    },
-  otro:           { color:"#6b7280", bg:"#f3f4f6", emoji:"📌", label:"Evento"        },
-  reunion:        { color:"#5b21b6", bg:"#ede9fe", emoji:"👩‍💼", label:"Mi reunión"   },
-  disponible:     { color:"#10b981", bg:"#d1fae5", emoji:"✅", label:"Disponible"    },
+  foro:           { color:"#A0435F", bg:"#FCE8EE", Icono:MessageSquare, label:"Foro"         },
+  llamada_grupal: { color:"#0369a1", bg:"#dbeafe", Icono:Phone, label:"Llamada"       },
+  taller:         { color:"#E8853B", bg:"#FFF4EC", Icono:Wrench, label:"Taller"        },
+  importante:     { color:"#C0392B", bg:"#FDECEC", Icono:Bell, label:"Importante"    },
+  otro:           { color:"#6b7280", bg:"#f3f4f6", Icono:Pin, label:"Evento"        },
+  reunion:        { color:"#7D2F47", bg:"#FCE8EE", Icono:UserRound, label:"Mi reunión"   },
+  disponible:     { color:"#12A46B", bg:"#E6F9F0", Icono:CheckCircle2, label:"Disponible"    },
 };
 
 /* ── Modal para reservar slot ── */
@@ -58,17 +55,17 @@ function ModalReservar({ slot, onClose, onConfirm, loading }) {
     <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16 }}
       onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:420,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,.15)" }}>
-        <div style={{ height:4,background:"linear-gradient(90deg,#5b21b6,#a0435f)",borderRadius:99,marginBottom:20 }}/>
+        <div style={{ height:4,background:"linear-gradient(90deg,#7D2F47,#a0435f)",borderRadius:99,marginBottom:20 }}/>
         <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}>
-          <div style={{ width:44,height:44,borderRadius:12,background:"#ede9fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20 }}>👩‍💼</div>
+          <div style={{ width:44,height:44,borderRadius:12,background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center" }}><UserRound size={20} style={{ color:"#A0435F" }}/></div>
           <div>
-            <p style={{ fontSize:15,fontWeight:700,color:"#1e1033",margin:0 }}>Reservar reunión</p>
-            <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>con {slot.asesora_nombre} {slot.asesora_apellido}</p>
+            <p style={{ fontSize:15,fontWeight:700,color:"#4A2A38",margin:0 }}>Reservar reunión</p>
+            <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>con {slot.asesora_nombre} {slot.asesora_apellido}</p>
           </div>
         </div>
-        <div style={{ background:"#f5f0ff",borderRadius:14,padding:"12px 16px",marginBottom:16 }}>
-          <p style={{ fontSize:13,fontWeight:600,color:"#1e1033",margin:"0 0 4px" }}>📅 {fmtFecha(slot.fecha)}</p>
-          <p style={{ fontSize:13,color:"#7c3aed",margin:0 }}>🕐 {fmtHora(slot.hora_inicio)} — {fmtHora(slot.hora_fin)}</p>
+        <div style={{ background:"#FBF4F6",borderRadius:14,padding:"12px 16px",marginBottom:16 }}>
+          <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:"0 0 4px", display:"flex", alignItems:"center", gap:6 }}><CalendarDays size={13}/> {fmtFecha(slot.fecha)}</p>
+          <p style={{ fontSize:13,color:"#A0435F",margin:0, display:"flex", alignItems:"center", gap:6 }}><Clock size={13}/> {fmtHora(slot.hora_inicio)} — {fmtHora(slot.hora_fin)}</p>
         </div>
         <div style={{ marginBottom:16 }}>
           <label style={{ fontSize:11,fontWeight:700,color:"#374151",textTransform:"uppercase",letterSpacing:".7px",display:"block",marginBottom:6 }}>
@@ -76,7 +73,7 @@ function ModalReservar({ slot, onClose, onConfirm, loading }) {
           </label>
           <textarea value={notas} onChange={e=>setNotas(e.target.value)} rows={3}
             placeholder="¿Algún tema puntual que quieras tratar?"
-            style={{ width:"100%",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px",fontSize:13,color:"#1e1033",outline:"none",fontFamily:"inherit",boxSizing:"border-box",resize:"none" }}/>
+            style={{ width:"100%",border:"1.5px solid #F5E1E7",borderRadius:12,padding:"10px 14px",fontSize:13,color:"#4A2A38",outline:"none",fontFamily:"inherit",boxSizing:"border-box",resize:"none" }}/>
         </div>
         <div style={{ display:"flex",gap:10 }}>
           <button onClick={onClose}
@@ -84,8 +81,8 @@ function ModalReservar({ slot, onClose, onConfirm, loading }) {
             Cancelar
           </button>
           <button onClick={()=>onConfirm(slot.id, notas)} disabled={loading}
-            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#5b21b6,#7c3aed)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:loading?0.6:1 }}>
-            {loading?"Reservando...":"✓ Confirmar reunión"}
+            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#7D2F47,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:loading?0.6:1 }}>
+            {loading?"Reservando...":"Confirmar reunión"}
           </button>
         </div>
       </div>
@@ -106,10 +103,10 @@ function ModalDetalle({ item, tipo, onClose, onReservar, miReunion, onCancelar, 
         <div style={{ height:4,background:cfg.color,borderRadius:99,marginBottom:20 }}/>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
           <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-            <div style={{ width:40,height:40,borderRadius:12,background:cfg.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>{cfg.emoji}</div>
+            <div style={{ width:40,height:40,borderRadius:12,background:cfg.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}><cfg.Icono size={14}/></div>
             <div>
               <p style={{ fontSize:11,fontWeight:700,color:cfg.color,textTransform:"uppercase",letterSpacing:".7px",margin:0 }}>{cfg.label}</p>
-              <p style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:0 }}>{item.titulo||`Reunión con ${item.asesora_nombre}`}</p>
+              <p style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>{item.titulo||`Reunión con ${item.asesora_nombre}`}</p>
             </div>
           </div>
           <button onClick={onClose} style={{ background:"#f3f4f6",border:"none",borderRadius:99,width:30,height:30,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
@@ -119,35 +116,35 @@ function ModalDetalle({ item, tipo, onClose, onReservar, miReunion, onCancelar, 
 
         <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
           <div style={{ display:"flex",gap:8,alignItems:"center" }}>
-            <span style={{ fontSize:12 }}>📅</span>
-            <span style={{ fontSize:13,color:"#1e1033",fontWeight:500 }}>{fmtFecha(item.fecha)}</span>
+            <CalendarDays size={12}/>
+            <span style={{ fontSize:13,color:"#4A2A38",fontWeight:500 }}>{fmtFecha(item.fecha)}</span>
           </div>
           {(item.hora_inicio||item.hora_fin) && (
             <div style={{ display:"flex",gap:8,alignItems:"center" }}>
               <span style={{ fontSize:12 }}>🕐</span>
-              <span style={{ fontSize:13,color:"#1e1033" }}>{fmtHora(item.hora_inicio)} — {fmtHora(item.hora_fin)}</span>
+              <span style={{ fontSize:13,color:"#4A2A38" }}>{fmtHora(item.hora_inicio)} — {fmtHora(item.hora_fin)}</span>
             </div>
           )}
           {(item.asesora_nombre||item.asesora) && (
             <div style={{ display:"flex",gap:8,alignItems:"center" }}>
               <span style={{ fontSize:12 }}>👩‍💼</span>
-              <span style={{ fontSize:13,color:"#1e1033" }}>{item.asesora_nombre} {item.asesora_apellido||""}</span>
+              <span style={{ fontSize:13,color:"#4A2A38" }}>{item.asesora_nombre} {item.asesora_apellido||""}</span>
             </div>
           )}
           {item.descripcion && (
-            <p style={{ fontSize:13,color:"#9a7080",margin:"4px 0 0",lineHeight:1.5 }}>{item.descripcion}</p>
+            <p style={{ fontSize:13,color:"#9C8790",margin:"4px 0 0",lineHeight:1.5 }}>{item.descripcion}</p>
           )}
         </div>
 
         {esSlot && !miReunion && (
           <button onClick={()=>onReservar(item)}
-            style={{ width:"100%",padding:"12px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#5b21b6,#7c3aed)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+            style={{ width:"100%",padding:"12px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#7D2F47,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
             ✓ Reservar este horario
           </button>
         )}
 
         {esSlot && miReunion && (
-          <div style={{ background:"#fef3c7",borderRadius:12,padding:"10px 14px",fontSize:12,color:"#92400e" }}>
+          <div style={{ background:"#FFF4EC",borderRadius:12,padding:"10px 14px",fontSize:12,color:"#92400e" }}>
             ⚠️ Ya tienes una reunión agendada. Cancélala primero para reservar otro horario.
           </div>
         )}
@@ -156,16 +153,16 @@ function ModalDetalle({ item, tipo, onClose, onReservar, miReunion, onCancelar, 
           <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
             {item.url_meet && (
               <a href={item.url_meet} target="_blank" rel="noopener noreferrer"
-                style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"11px",borderRadius:12,background:"#5b21b6",color:"#fff",fontSize:13,fontWeight:600,textDecoration:"none" }}>
+                style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"11px",borderRadius:12,background:"#7D2F47",color:"#fff",fontSize:13,fontWeight:600,textDecoration:"none" }}>
                 <Video size={14}/> Unirse al Meet
               </a>
             )}
             <a href={buildCalendarUrl(`Reunión con ${item.asesora_nombre}`,item.fecha,item.hora_inicio,item.hora_fin,item.url_meet)} target="_blank" rel="noopener noreferrer"
-              style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"11px",borderRadius:12,border:"1.5px solid #ede9fe",color:"#7c3aed",fontSize:13,fontWeight:600,textDecoration:"none" }}>
+              style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"11px",borderRadius:12,border:"1.5px solid #FCE8EE",color:"#A0435F",fontSize:13,fontWeight:600,textDecoration:"none" }}>
               <CalendarPlus size={14}/> Agregar a Google Calendar
             </a>
             <button onClick={()=>onCancelar(item.reunion_id)} disabled={loadingCancel}
-              style={{ padding:"10px",borderRadius:12,border:"1.5px solid #fecaca",background:"#fee2e2",color:"#dc2626",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:loadingCancel?0.6:1 }}>
+              style={{ padding:"10px",borderRadius:12,border:"1.5px solid #FDECEC",background:"#FDECEC",color:"#C0392B",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:loadingCancel?0.6:1 }}>
               {loadingCancel?"Cancelando...":"Cancelar reunión"}
             </button>
           </div>
@@ -310,29 +307,29 @@ export default function ReunionesPage() {
   const hoyStr = fechaStr(hoy);
 
   return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Toast */}
-      {toast && <div style={{ position:"fixed",top:20,right:20,zIndex:200,background:toast.tipo==="error"?"#dc2626":"#1e1033",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>{toast.msg}</div>}
+      {toast && <div style={{ position:"fixed",top:20,right:20,zIndex:200,background:toast.tipo==="error"?"#C0392B":"#4A2A38",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>{toast.msg}</div>}
 
       {/* Modales */}
       {modalSlot && <ModalReservar slot={modalSlot} onClose={()=>setModalSlot(null)} onConfirm={reservar} loading={loadingRes}/>}
       {modalItem && <ModalDetalle item={modalItem.item} tipo={modalItem.tipo} onClose={()=>setModalItem(null)} onReservar={(s)=>{setModalItem(null);setModalSlot(s);}} miReunion={miReunion} onCancelar={cancelar} loadingCancel={loadingCancel}/>}
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #ece8f0",padding:isMobile?"12px 16px":"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,position:"sticky",top:0,zIndex:20 }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"12px 16px":"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,position:"sticky",top:0,zIndex:20 }}>
         <div style={{ minWidth:0 }}>
-          <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?18:22,fontWeight:700,color:"#1e1033",margin:0 }}>Calendario 📅</h1>
-          {!isMobile && <p style={{ fontSize:13,color:"#9a7080",margin:"2px 0 0" }}>Reserva tu reunión y mantente al día con los eventos. 💜</p>}
+          <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?18:22,fontWeight:700,color:"#4A2A38",margin:0 }}>Calendario 📅</h1>
+          {!isMobile && <p style={{ fontSize:13,color:"#9C8790",margin:"2px 0 0" }}>Reserva tu reunión y mantente al día con los eventos. 💜</p>}
         </div>
         <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
-          <button style={{ position:"relative",padding:8,borderRadius:12,border:"1px solid #ece4f0",background:"#fff",cursor:"pointer" }}>
-            <Bell size={17} style={{ color:"#9a7080" }}/>
+          <button style={{ position:"relative",padding:8,borderRadius:12,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer" }}>
+            <Bell size={17} style={{ color:"#9C8790" }}/>
             <span style={{ position:"absolute",top:6,right:6,width:7,height:7,background:"#a0435f",borderRadius:"50%",border:"1.5px solid #fff" }}/>
           </button>
           {!isMobile && (
-            <Link href="/dashboard/proceso" style={{ display:"flex",alignItems:"center",gap:6,background:"#5b21b6",color:"#fff",fontSize:13,fontWeight:600,padding:"9px 16px",borderRadius:12,textDecoration:"none" }}>
+            <Link href="/dashboard/proceso" style={{ display:"flex",alignItems:"center",gap:6,background:"#7D2F47",color:"#fff",fontSize:13,fontWeight:600,padding:"9px 16px",borderRadius:12,textDecoration:"none" }}>
               Ver mi proceso <ArrowRight size={13}/>
             </Link>
           )}
@@ -344,7 +341,7 @@ export default function ReunionesPage() {
 
           {/* Mi reunión activa */}
           {miReunion && (
-            <div style={{ background:"linear-gradient(135deg,#5b21b6,#7c3aed)",borderRadius:20,padding:isMobile?"16px":"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",boxShadow:"0 8px 24px rgba(91,33,182,.25)" }}>
+            <div style={{ background:"linear-gradient(135deg,#7D2F47,#A0435F)",borderRadius:20,padding:isMobile?"16px":"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",boxShadow:"0 8px 24px rgba(91,33,182,.25)" }}>
               <div style={{ display:"flex",alignItems:"center",gap:14 }}>
                 <div style={{ width:44,height:44,borderRadius:14,background:"rgba(255,255,255,.15)",overflow:"hidden",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
                   {miReunion.asesora_foto
@@ -364,7 +361,7 @@ export default function ReunionesPage() {
               <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
                 {miReunion.url_meet && (
                   <a href={miReunion.url_meet} target="_blank" rel="noopener noreferrer"
-                    style={{ display:"flex",alignItems:"center",gap:6,background:"#fff",color:"#5b21b6",fontSize:12,fontWeight:700,padding:"8px 14px",borderRadius:12,textDecoration:"none" }}>
+                    style={{ display:"flex",alignItems:"center",gap:6,background:"#fff",color:"#7D2F47",fontSize:12,fontWeight:700,padding:"8px 14px",borderRadius:12,textDecoration:"none" }}>
                     <Video size={13}/> Unirse
                   </a>
                 )}
@@ -379,12 +376,12 @@ export default function ReunionesPage() {
           {/* Leyenda */}
           <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
             {[
-              { color:"#10b981", label:"Disponible para reservar" },
-              { color:"#5b21b6", label:"Mi reunión" },
-              { color:"#dc2626", label:"Importante" },
-              { color:"#7c3aed", label:"Evento / Foro" },
+              { color:"#12A46B", label:"Disponible para reservar" },
+              { color:"#7D2F47", label:"Mi reunión" },
+              { color:"#C0392B", label:"Importante" },
+              { color:"#A0435F", label:"Evento / Foro" },
             ].map((l,i)=>(
-              <div key={i} style={{ display:"flex",alignItems:"center",gap:5,background:"#fff",border:"1px solid #ece4f0",borderRadius:99,padding:"4px 10px" }}>
+              <div key={i} style={{ display:"flex",alignItems:"center",gap:5,background:"#fff",border:"1px solid #F5E1E7",borderRadius:99,padding:"4px 10px" }}>
                 <div style={{ width:8,height:8,borderRadius:"50%",background:l.color,flexShrink:0 }}/>
                 <span style={{ fontSize:11,color:"#6b7280" }}>{l.label}</span>
               </div>
@@ -392,24 +389,24 @@ export default function ReunionesPage() {
           </div>
 
           {/* CALENDARIO */}
-          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
             {/* Header mes */}
-            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"14px 16px":"16px 24px",borderBottom:"1px solid #f5eef8" }}>
-              <button onClick={()=>navMes(-1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #ece4f0",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"14px 16px":"16px 24px",borderBottom:"1px solid #FCE8EE" }}>
+              <button onClick={()=>navMes(-1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                 <ChevronLeft size={16} style={{ color:"#6b7280" }}/>
               </button>
-              <h2 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?16:18,fontWeight:700,color:"#1e1033",margin:0 }}>
+              <h2 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?16:18,fontWeight:700,color:"#4A2A38",margin:0 }}>
                 {MESES[mesActual.m]} {mesActual.y}
               </h2>
-              <button onClick={()=>navMes(1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #ece4f0",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <button onClick={()=>navMes(1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                 <ChevronRight size={16} style={{ color:"#6b7280" }}/>
               </button>
             </div>
 
             {/* Días de la semana */}
-            <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",borderBottom:"1px solid #f5eef8" }}>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",borderBottom:"1px solid #FCE8EE" }}>
               {DIAS.map(d=>(
-                <div key={d} style={{ padding:isMobile?"6px 0":"8px 0",textAlign:"center",fontSize:11,fontWeight:700,color:"#9a7080",textTransform:"uppercase" }}>{d}</div>
+                <div key={d} style={{ padding:isMobile?"6px 0":"8px 0",textAlign:"center",fontSize:11,fontWeight:700,color:"#9C8790",textTransform:"uppercase" }}>{d}</div>
               ))}
             </div>
 
@@ -428,21 +425,21 @@ export default function ReunionesPage() {
 
                 return (
                   <div key={fStr} onClick={()=>setDiaSelec(dia)}
-                    style={{ padding:isMobile?"6px 4px":"8px 6px",minHeight:isMobile?52:68,borderRight:"1px solid #f5eef8",borderBottom:"1px solid #f5eef8",cursor:"pointer",transition:"background .1s",
-                      background:esSel?"#f5f0ff":esHoy?"#fce8ed":"#fff",
+                    style={{ padding:isMobile?"6px 4px":"8px 6px",minHeight:isMobile?52:68,borderRight:"1px solid #FCE8EE",borderBottom:"1px solid #FCE8EE",cursor:"pointer",transition:"background .1s",
+                      background:esSel?"#FBF4F6":esHoy?"#FCE8EE":"#fff",
                       opacity:esAntes?.5:1,
                     }}>
                     <div style={{ display:"flex",justifyContent:"center",marginBottom:4 }}>
                       <span style={{ width:isMobile?26:30,height:isMobile?26:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?12:13,fontWeight:esHoy?700:500,
-                        background:esHoy?"#a0435f":esSel?"#7c3aed":"transparent",
-                        color:esHoy||esSel?"#fff":"#1e1033",
+                        background:esHoy?"#a0435f":esSel?"#A0435F":"transparent",
+                        color:esHoy||esSel?"#fff":"#4A2A38",
                       }}>{dia.getDate()}</span>
                     </div>
                     {/* Puntos indicadores */}
                     <div style={{ display:"flex",justifyContent:"center",gap:3,flexWrap:"wrap" }}>
-                      {tieneMiReunion && <div style={{ width:6,height:6,borderRadius:"50%",background:"#5b21b6" }}/>}
-                      {tieneSlots && <div style={{ width:6,height:6,borderRadius:"50%",background:"#10b981" }}/>}
-                      {tieneEventos && <div style={{ width:6,height:6,borderRadius:"50%",background:"#7c3aed" }}/>}
+                      {tieneMiReunion && <div style={{ width:6,height:6,borderRadius:"50%",background:"#7D2F47" }}/>}
+                      {tieneSlots && <div style={{ width:6,height:6,borderRadius:"50%",background:"#12A46B" }}/>}
+                      {tieneEventos && <div style={{ width:6,height:6,borderRadius:"50%",background:"#A0435F" }}/>}
                     </div>
                   </div>
                 );
@@ -452,29 +449,29 @@ export default function ReunionesPage() {
 
           {/* Panel del día seleccionado */}
           {diaSelec && diaInfo && (
-            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-              <div style={{ padding:"14px 20px",borderBottom:"1px solid #f5eef8",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                <h3 style={{ fontFamily:"Georgia,serif",fontSize:14,fontWeight:700,color:"#1e1033",margin:0 }}>
+            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <div style={{ padding:"14px 20px",borderBottom:"1px solid #FCE8EE",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                <h3 style={{ fontFamily:"Georgia,serif",fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>
                   {fmtFecha(fechaStr(diaSelec))}
                 </h3>
-                <button onClick={()=>setDiaSelec(null)} style={{ background:"none",border:"none",cursor:"pointer",color:"#9a7080" }}><X size={16}/></button>
+                <button onClick={()=>setDiaSelec(null)} style={{ background:"none",border:"none",cursor:"pointer",color:"#9C8790" }}><X size={16}/></button>
               </div>
 
               {/* Mi reunión en este día */}
               {diaInfo.miReunion && (
-                <div style={{ padding:"12px 20px",borderBottom:"1px solid #f5eef8",background:"#f5f0ff" }}>
+                <div style={{ padding:"12px 20px",borderBottom:"1px solid #FCE8EE",background:"#FBF4F6" }}>
                   <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
                     <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                      <div style={{ width:32,height:32,borderRadius:10,background:"#ede9fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16 }}>👩‍💼</div>
+                      <div style={{ width:32,height:32,borderRadius:10,background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16 }}>👩‍💼</div>
                       <div>
-                        <p style={{ fontSize:12,fontWeight:700,color:"#5b21b6",margin:0 }}>Tu reunión confirmada</p>
-                        <p style={{ fontSize:12,color:"#7c3aed",margin:0 }}>
+                        <p style={{ fontSize:12,fontWeight:700,color:"#7D2F47",margin:0 }}>Tu reunión confirmada</p>
+                        <p style={{ fontSize:12,color:"#A0435F",margin:0 }}>
                           {fmtHora(diaInfo.miReunion.hora_inicio)} — {fmtHora(diaInfo.miReunion.hora_fin)} · con {diaInfo.miReunion.asesora_nombre}
                         </p>
                       </div>
                     </div>
                     <button onClick={()=>setModalItem({item:{...diaInfo.miReunion,reunion_id:diaInfo.miReunion.reunion_id||diaInfo.miReunion.id},tipo:"reunion"})}
-                      style={{ fontSize:11,fontWeight:600,color:"#7c3aed",border:"1.5px solid #ede9fe",background:"#fff",padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",flexShrink:0 }}>
+                      style={{ fontSize:11,fontWeight:600,color:"#A0435F",border:"1.5px solid #FCE8EE",background:"#fff",padding:"5px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit",flexShrink:0 }}>
                       Ver detalles
                     </button>
                   </div>
@@ -483,22 +480,22 @@ export default function ReunionesPage() {
 
               {/* Slots disponibles */}
               {(diaInfo.slots||[]).filter(s=>s.estado==="disponible").length>0 && (
-                <div style={{ padding:"12px 20px",borderBottom:diaInfo.eventos?.length?"1px solid #f5eef8":"none" }}>
-                  <p style={{ fontSize:11,fontWeight:700,color:"#10b981",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Horarios disponibles</p>
+                <div style={{ padding:"12px 20px",borderBottom:diaInfo.eventos?.length?"1px solid #FCE8EE":"none" }}>
+                  <p style={{ fontSize:11,fontWeight:700,color:"#12A46B",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Horarios disponibles</p>
                   <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
                     {diaInfo.slots.filter(s=>s.estado==="disponible").map(s=>(
                       <div key={s.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,background:"#f0fdf4",borderRadius:12,padding:"10px 14px",border:"1px solid #bbf7d0" }}>
                         <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                           {s.asesora_foto
                             ? <img src={s.asesora_foto} alt="" style={{ width:28,height:28,borderRadius:"50%",objectFit:"cover",flexShrink:0 }}/>
-                            : <div style={{ width:28,height:28,borderRadius:"50%",background:"#d1fae5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0 }}>👩‍💼</div>}
+                            : <div style={{ width:28,height:28,borderRadius:"50%",background:"#E6F9F0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0 }}>👩‍💼</div>}
                           <div>
-                            <p style={{ fontSize:12,fontWeight:600,color:"#065f46",margin:0 }}>{fmtHora(s.hora_inicio)} — {fmtHora(s.hora_fin)}</p>
+                            <p style={{ fontSize:12,fontWeight:600,color:"#12A46B",margin:0 }}>{fmtHora(s.hora_inicio)} — {fmtHora(s.hora_fin)}</p>
                             <p style={{ fontSize:11,color:"#059669",margin:0 }}>{s.asesora_nombre} {s.asesora_apellido}</p>
                           </div>
                         </div>
                         <button onClick={()=>miReunion?showToast("Ya tienes una reunión agendada","error"):setModalSlot(s)}
-                          style={{ fontSize:11,fontWeight:700,color:miReunion?"#9ca3af":"#fff",background:miReunion?"#f3f4f6":"#10b981",border:"none",padding:"7px 14px",borderRadius:9,cursor:miReunion?"not-allowed":"pointer",fontFamily:"inherit",flexShrink:0 }}>
+                          style={{ fontSize:11,fontWeight:700,color:miReunion?"#C9A9B4":"#fff",background:miReunion?"#f3f4f6":"#12A46B",border:"none",padding:"7px 14px",borderRadius:9,cursor:miReunion?"not-allowed":"pointer",fontFamily:"inherit",flexShrink:0 }}>
                           {miReunion?"Ocupado":"Reservar"}
                         </button>
                       </div>
@@ -510,14 +507,14 @@ export default function ReunionesPage() {
               {/* Eventos del día */}
               {(diaInfo.eventos||[]).length>0 && (
                 <div style={{ padding:"12px 20px" }}>
-                  <p style={{ fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Eventos</p>
+                  <p style={{ fontSize:11,fontWeight:700,color:"#A0435F",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Eventos</p>
                   <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
                     {diaInfo.eventos.map(e=>{
                       const cfg = TIPO_CFG[e.tipo]||TIPO_CFG.otro;
                       return (
                         <div key={e.id} onClick={()=>setModalItem({item:e,tipo:e.tipo})}
                           style={{ display:"flex",alignItems:"center",gap:10,background:cfg.bg,borderRadius:12,padding:"10px 14px",cursor:"pointer",border:`1px solid ${cfg.color}30` }}>
-                          <span style={{ fontSize:16,flexShrink:0 }}>{cfg.emoji}</span>
+                          <span style={{ fontSize:16,flexShrink:0 }}><cfg.Icono size={14}/></span>
                           <div style={{ flex:1,minWidth:0 }}>
                             <p style={{ fontSize:12,fontWeight:600,color:cfg.color,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
                             {e.hora_inicio && <p style={{ fontSize:11,color:cfg.color,opacity:.8,margin:0 }}>{fmtHora(e.hora_inicio)}{e.hora_fin?` — ${fmtHora(e.hora_fin)}`:""}</p>}
@@ -533,7 +530,7 @@ export default function ReunionesPage() {
               {/* Sin nada */}
               {!diaInfo.miReunion && !(diaInfo.slots||[]).filter(s=>s.estado==="disponible").length && !(diaInfo.eventos||[]).length && (
                 <div style={{ padding:"24px 20px",textAlign:"center" }}>
-                  <p style={{ fontSize:13,color:"#9a7080",margin:0 }}>Sin eventos ni horarios disponibles este día.</p>
+                  <p style={{ fontSize:13,color:"#9C8790",margin:0 }}>Sin eventos ni horarios disponibles este día.</p>
                 </div>
               )}
             </div>
@@ -545,17 +542,17 @@ export default function ReunionesPage() {
             return f >= hoy;
           }).length>0 && (
             <div>
-              <h3 style={{ fontFamily:"Georgia,serif",fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 10px" }}>Próximos eventos</h3>
+              <h3 style={{ fontFamily:"Georgia,serif",fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 10px" }}>Próximos eventos</h3>
               <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
                 {eventos.filter(e=>new Date(e.fecha+"T12:00:00")>=hoy).slice(0,5).map(e=>{
                   const cfg=TIPO_CFG[e.tipo]||TIPO_CFG.otro;
                   return (
                     <div key={e.id} onClick={()=>setModalItem({item:e,tipo:e.tipo})}
-                      style={{ display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:16,border:"1px solid #ece4f0",padding:"14px 16px",cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-                      <div style={{ width:40,height:40,borderRadius:12,background:cfg.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}>{cfg.emoji}</div>
+                      style={{ display:"flex",alignItems:"center",gap:12,background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"14px 16px",cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+                      <div style={{ width:40,height:40,borderRadius:12,background:cfg.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0 }}><cfg.Icono size={14}/></div>
                       <div style={{ flex:1,minWidth:0 }}>
-                        <p style={{ fontSize:13,fontWeight:600,color:"#1e1033",margin:"0 0 2px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
-                        <p style={{ fontSize:11,color:"#9a7080",margin:0 }}>{fmtFecha(e.fecha)}{e.hora_inicio?` · ${fmtHora(e.hora_inicio)}`:""}</p>
+                        <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:"0 0 2px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
+                        <p style={{ fontSize:11,color:"#9C8790",margin:0 }}>{fmtFecha(e.fecha)}{e.hora_inicio?` · ${fmtHora(e.hora_inicio)}`:""}</p>
                       </div>
                       <span style={{ fontSize:10,fontWeight:700,background:cfg.bg,color:cfg.color,padding:"3px 9px",borderRadius:99,flexShrink:0 }}>{cfg.label}</span>
                     </div>
@@ -570,51 +567,51 @@ export default function ReunionesPage() {
         <aside style={{ width:isMobile?"100%":260,flexShrink:0,display:"flex",flexDirection:"column",gap:14 }}>
 
           {/* Progreso */}
-          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"14px 16px":20 }}>
-            <h3 style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:"0 0 12px" }}>Tu progreso</h3>
+          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:isMobile?"14px 16px":20 }}>
+            <h3 style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:"0 0 12px" }}>Tu progreso</h3>
             {isMobile ? (
               <div>
                 <div style={{ display:"flex",justifyContent:"space-between",marginBottom:8 }}>
-                  <span style={{ fontSize:13,fontWeight:700,color:"#1e1033" }}>{fasesComp} de 5 fases</span>
-                  <span style={{ fontSize:13,fontWeight:700,color:"#7c3aed" }}>{Math.round(fasesComp/5*100)}%</span>
+                  <span style={{ fontSize:13,fontWeight:700,color:"#4A2A38" }}>{fasesComp} de 5 fases</span>
+                  <span style={{ fontSize:13,fontWeight:700,color:"#A0435F" }}>{Math.round(fasesComp/5*100)}%</span>
                 </div>
-                <div style={{ height:8,background:"#f0e8f8",borderRadius:99,overflow:"hidden",marginBottom:12 }}>
-                  <div style={{ height:"100%",width:`${Math.round(fasesComp/5*100)}%`,background:"linear-gradient(90deg,#7c3aed,#a0435f)",borderRadius:99 }}/>
+                <div style={{ height:8,background:"#FCE8EE",borderRadius:99,overflow:"hidden",marginBottom:12 }}>
+                  <div style={{ height:"100%",width:`${Math.round(fasesComp/5*100)}%`,background:"linear-gradient(90deg,#A0435F,#a0435f)",borderRadius:99 }}/>
                 </div>
               </div>
             ) : (
               <>
                 <div style={{ display:"flex",justifyContent:"center",marginBottom:12 }}>
                   <svg width="120" height="120" viewBox="0 0 140 140">
-                    <circle cx="70" cy="70" r="54" fill="none" stroke="#f0e8f8" strokeWidth="12"/>
+                    <circle cx="70" cy="70" r="54" fill="none" stroke="#FCE8EE" strokeWidth="12"/>
                     <circle cx="70" cy="70" r="54" fill="none" stroke="url(#gr3)" strokeWidth="12"
                       strokeDasharray={`${(fasesComp/5)*2*Math.PI*54} ${(1-fasesComp/5)*2*Math.PI*54}`}
                       strokeDashoffset={2*Math.PI*54*.25} strokeLinecap="round"/>
                     <defs><linearGradient id="gr3" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#7c3aed"/><stop offset="100%" stopColor="#a0435f"/>
+                      <stop offset="0%" stopColor="#A0435F"/><stop offset="100%" stopColor="#a0435f"/>
                     </linearGradient></defs>
-                    <text x="70" y="63" textAnchor="middle" fill="#1e1033" style={{ fontSize:22,fontWeight:700,fontFamily:"Georgia,serif" }}>{Math.round(fasesComp/5*100)}%</text>
-                    <text x="70" y="82" textAnchor="middle" fill="#9a7080" style={{ fontSize:11 }}>Completado</text>
+                    <text x="70" y="63" textAnchor="middle" fill="#4A2A38" style={{ fontSize:22,fontWeight:700,fontFamily:"Georgia,serif" }}>{Math.round(fasesComp/5*100)}%</text>
+                    <text x="70" y="82" textAnchor="middle" fill="#9C8790" style={{ fontSize:11 }}>Completado</text>
                   </svg>
                 </div>
-                <p style={{ fontFamily:"Georgia,serif",fontSize:15,fontWeight:700,color:"#1e1033",margin:"0 0 2px",textAlign:"center" }}>{fasesComp} de 5 fases</p>
-                <p style={{ fontSize:12,color:"#9a7080",margin:"0 0 14px",textAlign:"center" }}>Sigue así 💜</p>
+                <p style={{ fontFamily:"Georgia,serif",fontSize:15,fontWeight:700,color:"#4A2A38",margin:"0 0 2px",textAlign:"center" }}>{fasesComp} de 5 fases</p>
+                <p style={{ fontSize:12,color:"#9C8790",margin:"0 0 14px",textAlign:"center" }}>Sigue así 💜</p>
               </>
             )}
-            <Link href="/dashboard/proceso" style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,border:"1.5px solid #ede9fe",color:"#7c3aed",fontSize:12,fontWeight:600,padding:"10px",borderRadius:12,textDecoration:"none" }}>
+            <Link href="/dashboard/proceso" style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,border:"1.5px solid #FCE8EE",color:"#A0435F",fontSize:12,fontWeight:600,padding:"10px",borderRadius:12,textDecoration:"none" }}>
               🗺️ Ver mi proceso
             </Link>
           </div>
 
           {/* Próximo paso */}
           {proceso?.proximoPaso && (
-            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"14px 16px":18 }}>
+            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:isMobile?"14px 16px":18 }}>
               <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
-                <div style={{ width:26,height:26,borderRadius:8,background:"#fce7f3",display:"flex",alignItems:"center",justifyContent:"center" }}>🎯</div>
-                <h3 style={{ fontSize:13,fontWeight:700,color:"#1e1033",margin:0 }}>Próximo paso</h3>
+                <div style={{ width:26,height:26,borderRadius:8,background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center" }}>🎯</div>
+                <h3 style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Próximo paso</h3>
               </div>
-              <p style={{ fontSize:13,color:"#1e1033",margin:"0 0 10px",lineHeight:1.5 }}>{proceso.proximoPaso.titulo}</p>
-              <Link href={proceso.proximoPaso.link||"#"} style={{ display:"block",textAlign:"center",background:"#5b21b6",color:"#fff",fontSize:12,fontWeight:600,padding:"10px",borderRadius:12,textDecoration:"none" }}>
+              <p style={{ fontSize:13,color:"#4A2A38",margin:"0 0 10px",lineHeight:1.5 }}>{proceso.proximoPaso.titulo}</p>
+              <Link href={proceso.proximoPaso.link||"#"} style={{ display:"block",textAlign:"center",background:"#7D2F47",color:"#fff",fontSize:12,fontWeight:600,padding:"10px",borderRadius:12,textDecoration:"none" }}>
                 {proceso.proximoPaso.label_boton}
               </Link>
             </div>

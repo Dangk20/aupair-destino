@@ -344,13 +344,13 @@ export default function AdminCodigosPromoPage() {
               const pctUsos    = c.usos_max ? Math.round((usosConf/c.usos_max)*100) : null;
 
               return (
-                <div key={c.id} style={{ background:"#fff",borderRadius:20,border:`1.5px solid ${inactivo?"#E5E7EB":"#c4b0e8"}`,padding:isMobile?"14px 16px":"18px 22px",boxShadow:"0 1px 4px rgba(0,0,0,.04)",opacity:inactivo?.7:1 }}>
+                <div key={c.id} style={{ background:"#fff",borderRadius:20,border:`1.5px solid ${inactivo?"#E5E7EB":"#C77D93"}`,padding:isMobile?"14px 16px":"18px 22px",boxShadow:"0 1px 4px rgba(0,0,0,.04)",opacity:inactivo?.7:1 }}>
                   <div style={{ display:"flex",alignItems:"flex-start",gap:12,flexWrap:"wrap",flexDirection:isMobile?"column":"row" }}>
 
                     {/* Código + precio — fila en mobile */}
                     <div style={{ flex:1,minWidth:0,width:"100%" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap" }}>
-                        <div style={{ background:inactivo?"#F3F4F6":"#FBF4F6",borderRadius:12,padding:"8px 14px",border:`1.5px solid ${inactivo?"#E5E7EB":"#c4b0e8"}` }}>
+                        <div style={{ background:inactivo?"#F3F4F6":"#FBF4F6",borderRadius:12,padding:"8px 14px",border:`1.5px solid ${inactivo?"#E5E7EB":"#C77D93"}` }}>
                           <p style={{ fontFamily:"monospace",fontSize:isMobile?16:18,fontWeight:800,color:inactivo?"#C9A9B4":"#A0435F",letterSpacing:2,margin:0 }}>{c.codigo}</p>
                         </div>
                         <button onClick={()=>copiar(c.codigo)}

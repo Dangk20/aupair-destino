@@ -81,7 +81,7 @@ function SectionBlock({ icon: Icon, label, color, items }) {
       <div className="space-y-4">
         {items.map((item) => (
           <div key={item.num}
-            className="flex gap-4 xl:gap-5 bg-white rounded-2xl border border-[#f0dde2]
+            className="flex gap-4 xl:gap-5 bg-white rounded-2xl border border-[#F5E1E7]
                        px-5 xl:px-6 py-4 xl:py-5 shadow-sm hover:shadow-md
                        hover:border-[#e8b0bc] transition-all duration-200">
             {/* Número */}
@@ -90,10 +90,10 @@ function SectionBlock({ icon: Icon, label, color, items }) {
               {item.num}
             </div>
             <div>
-              <p className="text-[14px] xl:text-[15px] font-bold text-[#2d1a22] mb-1">
+              <p className="text-[14px] xl:text-[15px] font-bold text-[#3A2530] mb-1">
                 {item.title}
               </p>
-              <p className="text-[13px] xl:text-[14px] text-[#7a4a54] leading-relaxed">
+              <p className="text-[13px] xl:text-[14px] text-[#9C8790] leading-relaxed">
                 {item.text}
               </p>
             </div>
@@ -106,7 +106,7 @@ function SectionBlock({ icon: Icon, label, color, items }) {
 
 export default function TerminosPage() {
   return (
-    <main className="bg-[#fff8f9] min-h-screen">
+    <main className="bg-[#FBF4F6] min-h-screen">
 
       {/* ── HERO ── */}
       <div className="bg-[#a0435f] relative overflow-hidden
@@ -116,7 +116,7 @@ export default function TerminosPage() {
         {/* Círculos decorativos */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/8 rounded-full
                         translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-[#2d1a22]/10 rounded-full
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-[#3A2530]/10 rounded-full
                         -translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl xl:max-w-4xl mx-auto text-center">
@@ -132,7 +132,7 @@ export default function TerminosPage() {
             <span className="block text-[36px] md:text-[48px] xl:text-[54px]">
               Términos de Uso y
             </span>
-            <span className="block text-[36px] md:text-[48px] xl:text-[54px] italic text-[#fce8ed]">
+            <span className="block text-[36px] md:text-[48px] xl:text-[54px] italic text-[#FCE8EE]">
               Política de Privacidad
             </span>
           </h1>
@@ -147,15 +147,15 @@ export default function TerminosPage() {
       {/* ── CHECKBOX DESTACADO ── */}
       <div className="px-6 sm:px-10 md:px-14 lg:px-16 xl:px-24 2xl:px-40 -mt-6 relative z-10 mb-12">
         <div className="max-w-3xl xl:max-w-4xl mx-auto">
-          <div className="bg-white border-2 border-[#e8849a] rounded-2xl px-6 xl:px-8 py-5 xl:py-6
-                          shadow-lg shadow-[#e8849a]/15 flex items-start gap-4">
+          <div className="bg-white border-2 border-[#C77D93] rounded-2xl px-6 xl:px-8 py-5 xl:py-6
+                          shadow-lg shadow-[#C77D93]/15 flex items-start gap-4">
             <div className="w-5 h-5 rounded border-2 border-[#a0435f] bg-[#a0435f]
                             flex items-center justify-center shrink-0 mt-0.5">
               <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
                 <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <p className="text-[13px] xl:text-[14px] text-[#2d1a22] leading-relaxed">
+            <p className="text-[13px] xl:text-[14px] text-[#3A2530] leading-relaxed">
               <span className="font-semibold">Acepto los Términos de Uso, Política de Privacidad</span>{" "}
               y entiendo que Destino Au Pair es un programa educativo y de acompañamiento.
             </p>
@@ -173,9 +173,9 @@ export default function TerminosPage() {
             label="Términos de Uso"
             items={terminos}
             color={{
-              badge: "bg-[#fce8ed] border border-[#f0b8c4]",
+              badge: "bg-[#FCE8EE] border border-[#C77D93]",
               icon:  "text-[#a0435f]",
-              num:   "bg-[#fce8ed] text-[#a0435f]",
+              num:   "bg-[#FCE8EE] text-[#a0435f]",
             }}
           />
 
@@ -185,7 +185,7 @@ export default function TerminosPage() {
             label="Política de Privacidad"
             items={privacidad}
             color={{
-              badge: "bg-[#ede9f8] border border-[#c4b0e8]",
+              badge: "bg-[#ede9f8] border border-[#C77D93]",
               icon:  "text-[#7c5cc4]",
               num:   "bg-[#ede9f8] text-[#7c5cc4]",
             }}
@@ -204,14 +204,14 @@ export default function TerminosPage() {
               <p className="text-white/70 text-[13px] xl:text-[14px]">
                 Escríbenos a{" "}
                 <a href="mailto:info@destino-aupair.com"
-                   className="text-[#fce8ed] font-semibold hover:underline">
+                   className="text-[#FCE8EE] font-semibold hover:underline">
                   info@destino-aupair.com
                 </a>
               </p>
             </div>
             <Link href="/"
               className="bg-white text-[#a0435f] font-semibold text-[13px] xl:text-[14px]
-                         px-6 py-2.5 rounded-xl hover:bg-[#fce8ed] transition shrink-0">
+                         px-6 py-2.5 rounded-xl hover:bg-[#FCE8EE] transition shrink-0">
               Volver al inicio
             </Link>
           </div>

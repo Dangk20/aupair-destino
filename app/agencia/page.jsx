@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   DownloadIcon, SlidersIcon, EyeIcon, FileTextIcon,
   MessageSquareIcon, ArrowRightIcon,
+  Users, CheckCircle2, Star, ClipboardList, Search, Info, CalendarDays,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
@@ -54,7 +55,7 @@ function DonaProgreso({ stats }) {
   return (
     <div style={{ display:"flex",alignItems:"center",gap:20 }}>
       <svg width={160} height={160} viewBox="0 0 160 160" style={{ flexShrink:0 }}>
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e9e3f8" strokeWidth={stroke}/>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F5E1E7" strokeWidth={stroke}/>
         {data.map((d,i)=>{
           const dash=(d.val/total)*circ;
           const el=<circle key={i} cx={cx} cy={cy} r={r} fill="none"
@@ -134,18 +135,18 @@ export default function AgenciaDashboard() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"14px 16px":"20px 28px" }}>
         <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#4A2A38",margin:0 }}>
-              ¡Hola, {user?.nombre}! 👋
+              ¡Hola, {user?.nombre}!
             </h1>
             <p style={{ fontSize:13,color:"#9C8790",margin:"4px 0 0" }}>Aquí tienes el resumen de tus candidatas activas.</p>
           </div>
           {!isMobile && (
             <div style={{ display:"flex",gap:10 }}>
               <button onClick={exportar}
-                style={{ display:"flex",alignItems:"center",gap:7,background:"#fff",border:"1.5px solid #e9e3f8",color:"#A0435F",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>
+                style={{ display:"flex",alignItems:"center",gap:7,background:"#fff",border:"1.5px solid #F5E1E7",color:"#A0435F",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,cursor:"pointer",fontFamily:"inherit" }}>
                 <DownloadIcon size={14}/> Exportar reporte
               </button>
               <button
@@ -166,14 +167,14 @@ export default function AgenciaDashboard() {
             {/* STATS */}
             <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12 }}>
               {[
-                { label:"Total candidatas",      val:stats.total,          desc:"Aprobadas y visibles para tu agencia",        color:"#A0435F", emoji:"👥" },
-                { label:"Listas para conectar",  val:stats.listasConectar, desc:"En espera de que inicies el primer contacto", color:"#12A46B", emoji:"✅" },
-                { label:"En proceso de match",   val:stats.enMatch,        desc:"Ya hay comunicación con Host Family",          color:"#E8853B", emoji:"⭐" },
-                { label:"En proceso de visa",    val:stats.visaEnProceso,  desc:"Documentos enviados a la embajada",            color:"#C0392B", emoji:"📋" },
+                { label:"Total candidatas",      val:stats.total,          desc:"Aprobadas y visibles para tu agencia",        color:"#A0435F", Icono:Users },
+                { label:"Listas para conectar",  val:stats.listasConectar, desc:"En espera de que inicies el primer contacto", color:"#12A46B", Icono:CheckCircle2 },
+                { label:"En proceso de match",   val:stats.enMatch,        desc:"Ya hay comunicación con Host Family",          color:"#E8853B", Icono:Star },
+                { label:"En proceso de visa",    val:stats.visaEnProceso,  desc:"Documentos enviados a la embajada",            color:"#C0392B", Icono:ClipboardList },
               ].map((s,i)=>(
-                <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"18px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+                <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"18px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
                   <div style={{ display:"flex",alignItems:"flex-start",gap:14 }}>
-                    <div style={{ width:44,height:44,borderRadius:12,background:`${s.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{s.emoji}</div>
+                    <div style={{ width:44,height:44,borderRadius:12,background:`${s.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}><s.Icono size={18} style={{ color:s.color }}/></div>
                     <div>
                       <p style={{ fontFamily:"Georgia,serif",fontSize:28,fontWeight:700,color:"#4A2A38",margin:0,lineHeight:1 }}>{s.val}</p>
                       <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:"4px 0 2px" }}>{s.label}</p>
@@ -185,7 +186,7 @@ export default function AgenciaDashboard() {
             </div>
 
             {/* TABLA CANDIDATAS */}
-            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ padding:"16px 20px",borderBottom:"1px solid #F3F4F6",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
                 <div>
                   <h2 style={{ fontSize:16,fontWeight:700,color:"#4A2A38",margin:0 }}>Candidatas aprobadas</h2>
@@ -200,12 +201,12 @@ export default function AgenciaDashboard() {
               {/* Buscador */}
               <div style={{ padding:"10px 20px",borderBottom:"1px solid #F3F4F6" }}>
                 <input value={filtro} onChange={e=>setFiltro(e.target.value)} placeholder="Buscar por nombre, ciudad o país..."
-                  style={{ width:"100%",border:"1.5px solid #e9e3f8",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#4A2A38",outline:"none",fontFamily:"inherit",boxSizing:"border-box" }}/>
+                  style={{ width:"100%",border:"1.5px solid #F5E1E7",borderRadius:10,padding:"8px 12px",fontSize:12,color:"#4A2A38",outline:"none",fontFamily:"inherit",boxSizing:"border-box" }}/>
               </div>
 
               {filtradas.length === 0 ? (
                 <div style={{ padding:"48px 20px",textAlign:"center" }}>
-                  <p style={{ fontSize:32,margin:"0 0 8px" }}>🔍</p>
+                  <Search size={38} style={{ color:"#C9A9B4", margin:"0 auto 8px", display:"block" }} strokeWidth={1.5}/>
                   <p style={{ fontSize:14,fontWeight:600,color:"#4A2A38",margin:"0 0 4px" }}>No hay candidatas aún</p>
                   <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>Las candidatas aparecerán cuando completen su evaluación de perfil.</p>
                 </div>
@@ -283,7 +284,7 @@ export default function AgenciaDashboard() {
               {filtradas.length > 5 && (
                 <div style={{ padding:"14px 20px",borderTop:"1px solid #F3F4F6",textAlign:"center" }}>
                   <button onClick={()=>setVerMas(v=>!v)}
-                    style={{ display:"inline-flex",alignItems:"center",gap:6,background:"none",border:"1.5px solid #e9e3f8",color:"#A0435F",fontSize:12,fontWeight:600,padding:"9px 20px",borderRadius:10,cursor:"pointer",fontFamily:"inherit" }}>
+                    style={{ display:"inline-flex",alignItems:"center",gap:6,background:"none",border:"1.5px solid #F5E1E7",color:"#A0435F",fontSize:12,fontWeight:600,padding:"9px 20px",borderRadius:10,cursor:"pointer",fontFamily:"inherit" }}>
                     {verMas ? "Ver menos" : `Ver más candidatas (${filtradas.length - 5} más)`}
                   </button>
                 </div>
@@ -292,7 +293,7 @@ export default function AgenciaDashboard() {
 
             {/* AVISO */}
             <div style={{ background:"#FCE8EE",borderRadius:12,padding:"12px 16px",display:"flex",alignItems:"flex-start",gap:10,border:"1px solid #F5E1E7" }}>
-              <span style={{ fontSize:16,flexShrink:0 }}>ℹ️</span>
+              <Info size={16} style={{ flexShrink:0, color:"#A0435F" }}/>
               <p style={{ fontSize:12,color:"#7D2F47",margin:0,lineHeight:1.5 }}>
                 <strong>Recuerda:</strong> Solo puedes ver y comunicarte con las candidatas que Destino Au Pair ha aprobado y compartido contigo.
               </p>
@@ -304,13 +305,13 @@ export default function AgenciaDashboard() {
             <div style={{ width:300,flexShrink:0,display:"flex",flexDirection:"column",gap:16 }}>
 
               {/* PROGRESO GENERAL */}
-              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
                 <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px" }}>Progreso general</h3>
                 <DonaProgreso stats={stats}/>
               </div>
 
               {/* ACTIVIDAD RECIENTE */}
-              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
                 <div style={{ padding:"14px 16px",borderBottom:"1px solid #F3F4F6" }}>
                   <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>Actividad reciente</h3>
                 </div>
@@ -340,9 +341,9 @@ export default function AgenciaDashboard() {
               </div>
 
               {/* RECORDATORIOS */}
-              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}>
-                  <div style={{ width:32,height:32,borderRadius:10,background:"#FFF4EC",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16 }}>📅</div>
+                  <div style={{ width:32,height:32,borderRadius:10,background:"#FFF4EC",display:"flex",alignItems:"center",justifyContent:"center" }}><CalendarDays size={16} style={{ color:"#E8853B" }}/></div>
                   <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Recordatorios importantes</p>
                 </div>
                 <p style={{ fontSize:12,color:"#6B7280",margin:"0 0 12px",lineHeight:1.5 }}>

@@ -3,6 +3,7 @@
 // Uso: <FotoUpload value={form.foto_url} onChange={(base64) => set("foto_url", base64)} />
 
 import { useRef, useState } from "react";
+import { Camera, Pencil } from "lucide-react";
 
 const MAX_SIZE = 400;   // px máximo lado más largo
 const QUALITY  = 0.82;  // calidad JPEG
@@ -74,7 +75,7 @@ export default function FotoUpload({ value, onChange, size=100, label="Foto de p
             <img src={value} alt="Foto de perfil" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           ) : (
             <div style={{ textAlign:"center", padding:8 }}>
-              <div style={{ fontSize:28, marginBottom:4 }}>📷</div>
+              <Camera size={26} style={{ color:"#c0909a", marginBottom:4 }} strokeWidth={1.5}/>
               <p style={{ fontSize:9, color:"#c0909a", margin:0, lineHeight:1.3 }}>Subir foto</p>
             </div>
           )}
@@ -83,8 +84,8 @@ export default function FotoUpload({ value, onChange, size=100, label="Foto de p
         {value && (
           <button
             onClick={() => inputRef.current?.click()}
-            style={{ position:"absolute", bottom:0, right:0, width:28, height:28, borderRadius:"50%", background:"#a0435f", border:"2px solid #fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>
-            ✏️
+            style={{ position:"absolute", bottom:0, right:0, width:28, height:28, borderRadius:"50%", background:"#a0435f", border:"2px solid #fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Pencil size={13} style={{ color:"#fff" }}/>
           </button>
         )}
         <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.webp,.gif" style={{ display:"none" }}
@@ -100,7 +101,7 @@ export default function FotoUpload({ value, onChange, size=100, label="Foto de p
         </p>
         {error && (
           <p style={{ fontSize:11, color:"#dc2626", margin:"0 0 8px", background:"#fee2e2", padding:"6px 10px", borderRadius:8 }}>
-            ⚠️ {error}
+            {error}
           </p>
         )}
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>

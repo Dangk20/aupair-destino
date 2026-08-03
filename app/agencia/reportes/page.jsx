@@ -65,7 +65,7 @@ export default function AgenciaReportesPage() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"14px 16px":"20px 28px" }}>
         <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#4A2A38",margin:0 }}>Reportes</h1>
@@ -82,12 +82,12 @@ export default function AgenciaReportesPage() {
         {/* Stats */}
         <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12 }}>
           {[
-            { icon:UsersIcon,       label:"Total candidatas",  val:stats.total,       color:"#A0435F", emoji:"👥" },
-            { icon:CheckCircleIcon, label:"Listas para match", val:stats.listas,      color:"#12A46B", emoji:"✅" },
-            { icon:TrendingUpIcon,  label:"En proceso",        val:stats.enMatch,     color:"#E8853B", emoji:"📈" },
-            { icon:CheckCircleIcon, label:"Completadas",       val:stats.completadas, color:"#12A46B", emoji:"🏆" },
+            { icon:UsersIcon,       label:"Total candidatas",  val:stats.total,       color:"#A0435F" },
+            { icon:CheckCircleIcon, label:"Listas para match", val:stats.listas,      color:"#12A46B" },
+            { icon:TrendingUpIcon,  label:"En proceso",        val:stats.enMatch,     color:"#E8853B" },
+            { icon:CheckCircleIcon, label:"Completadas",       val:stats.completadas, color:"#12A46B" },
           ].map((s,i)=>(
-            <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"18px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+            <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"18px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ fontSize:24,marginBottom:8 }}>{s.emoji}</div>
               <p style={{ fontSize:11,color:"#9C8790",margin:"0 0 2px",textTransform:"uppercase",fontWeight:600,letterSpacing:".5px" }}>{s.label}</p>
               <p style={{ fontFamily:"Georgia,serif",fontSize:28,fontWeight:700,color:"#4A2A38",margin:0 }}>{s.val}</p>
@@ -98,7 +98,7 @@ export default function AgenciaReportesPage() {
         <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:16 }}>
 
           {/* Distribución por fase */}
-          <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+          <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
             <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px" }}>Distribución por fase</h3>
             <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
               {fases.map((f,i)=>(
@@ -110,7 +110,7 @@ export default function AgenciaReportesPage() {
                     </div>
                     <span style={{ fontSize:12,fontWeight:700,color:"#4A2A38" }}>{f.val} ({f.pct}%)</span>
                   </div>
-                  <div style={{ height:8,background:"#e9e3f8",borderRadius:99,overflow:"hidden" }}>
+                  <div style={{ height:8,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
                     <div style={{ height:"100%",width:`${f.pct}%`,background:f.color,borderRadius:99,transition:"width .3s" }}/>
                   </div>
                 </div>
@@ -119,14 +119,14 @@ export default function AgenciaReportesPage() {
           </div>
 
           {/* Por país */}
-          <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+          <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
             <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px" }}>Candidatas por país</h3>
             {paises.length===0 ? (
               <p style={{ fontSize:12,color:"#9C8790",textAlign:"center",padding:"20px 0" }}>Sin datos aún</p>
             ) : (
               <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
                 {paises.slice(0,6).map(([pais,count],i)=>(
-                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"#FBF4F6",borderRadius:10,border:"1px solid #e9e3f8" }}>
+                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"#FBF4F6",borderRadius:10,border:"1px solid #F5E1E7" }}>
                     <span style={{ fontSize:13,color:"#6B7280" }}>{pais}</span>
                     <span style={{ fontSize:13,fontWeight:700,color:"#A0435F" }}>{count}</span>
                   </div>
@@ -137,12 +137,12 @@ export default function AgenciaReportesPage() {
         </div>
 
         {/* Tabla resumen */}
-        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-          <div style={{ padding:"14px 20px",borderBottom:"1px solid #e9e3f8" }}>
+        <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
+          <div style={{ padding:"14px 20px",borderBottom:"1px solid #F5E1E7" }}>
             <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>Detalle de candidatas</h3>
           </div>
           {!isMobile && (
-            <div style={{ display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:12,padding:"8px 20px",background:"#faf8ff",borderBottom:"1px solid #e9e3f8" }}>
+            <div style={{ display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:12,padding:"8px 20px",background:"#FBF4F6",borderBottom:"1px solid #F5E1E7" }}>
               {["Candidata","País","Edad","Estado"].map((h,i)=>(
                 <p key={i} style={{ fontSize:10,fontWeight:700,color:"#9C8790",margin:0,textTransform:"uppercase",letterSpacing:".5px" }}>{h}</p>
               ))}

@@ -6,10 +6,11 @@ import Link from "next/link";
 import {
   Bell, CalendarIcon, ArrowRight, ChevronRight,
   UsersIcon, TrendingUpIcon, CheckCircleIcon,
+  Users, CheckCircle2, TrendingUp, CalendarDays, Phone, Check, GraduationCap,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 
-function StatCard({ icon: Icon, title, value, color, emoji }) {
+function StatCard({ title, value, color = "#FCE8EE", Icono }) {
   return (
     <div className="bg-white rounded-2xl border border-[#F5E1E7] shadow-sm" style={{ padding:"16px 20px" }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
@@ -17,8 +18,8 @@ function StatCard({ icon: Icon, title, value, color, emoji }) {
           <p style={{ fontSize:11, fontWeight:600, color:"#9C8790", margin:"0 0 4px", textTransform:"uppercase", letterSpacing:".5px" }}>{title}</p>
           <p style={{ fontFamily:"Georgia,serif", fontSize:26, fontWeight:700, color:"#4A2A38", margin:0 }}>{value}</p>
         </div>
-        <div style={{ width:44, height:44, borderRadius:12, background:color, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>
-          {emoji || <Icon size={20} className="text-white"/>}
+        <div style={{ width:44, height:44, borderRadius:12, background:color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          {Icono && <Icono size={20} style={{ color:"#A0435F" }}/>}
         </div>
       </div>
     </div>
@@ -61,14 +62,14 @@ export default function AsociadaDashboard() {
     <div className="min-h-screen bg-[#FBF4F6]" style={{ fontFamily:"system-ui,-apple-system,sans-serif" }}>
 
       {/* ── HEADER ── */}
-      <div className="bg-white border-b border-[#ece8f0] sticky top-0 z-20"
+      <div className="bg-white border-b border-[#F5E1E7] sticky top-0 z-20"
            style={{ padding:isMobile?"12px 16px":"14px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
           <div style={{ minWidth:0 }}>
             <h1 style={{ fontFamily:"Georgia,serif", fontSize:isMobile?18:22, fontWeight:700, color:"#4A2A38", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-              ¡Hola, {user?.nombre}! 👋
+              ¡Hola, {user?.nombre}!
             </h1>
-            {!isMobile && <p style={{ fontSize:13, color:"#9C8790", margin:"2px 0 0" }}>Panel de control de asesora 💜</p>}
+            {!isMobile && <p style={{ fontSize:13, color:"#9C8790", margin:"2px 0 0" }}>Panel de control de asesora</p>}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
             <button style={{ position:"relative", padding:8, borderRadius:12, border:"1px solid #F5E1E7", background:"#fff", cursor:"pointer", flexShrink:0 }}>
@@ -77,7 +78,7 @@ export default function AsociadaDashboard() {
             </button>
             {!isMobile && (
               <>
-                <Link href="/asociada/reuniones" style={{ display:"flex", alignItems:"center", gap:6, border:"1.5px solid #e0d0e8", color:"#6b4a70", fontSize:13, fontWeight:500, padding:"8px 14px", borderRadius:12, textDecoration:"none", background:"#fff" }}>
+                <Link href="/asociada/reuniones" style={{ display:"flex", alignItems:"center", gap:6, border:"1.5px solid #F5E1E7", color:"#9C8790", fontSize:13, fontWeight:500, padding:"8px 14px", borderRadius:12, textDecoration:"none", background:"#fff" }}>
                   <CalendarIcon size={14}/> Ver reuniones
                 </Link>
                 <Link href="/asociada/usuarias" style={{ display:"flex", alignItems:"center", gap:6, background:"#A0435F", color:"#fff", fontSize:13, fontWeight:600, padding:"9px 16px", borderRadius:12, textDecoration:"none" }}>
@@ -105,10 +106,10 @@ export default function AsociadaDashboard() {
             <div>
               <h2 style={{ fontFamily:"Georgia,serif", fontSize:14, fontWeight:700, color:"#4A2A38", margin:"0 0 10px" }}>Resumen de tu semana</h2>
               <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)", gap:12 }}>
-                <StatCard title="Mis Usuarias" value={totalUsuarias} emoji="👥"/>
-                <StatCard title="Completadas" value={completadas} emoji="✓"/>
-                <StatCard title="En Progreso" value={enProgreso} emoji="📈"/>
-                <StatCard title="Reuniones esta semana" value={reunionesSemanales} emoji="📅"/>
+                <StatCard title="Mis Usuarias" value={totalUsuarias} Icono={Users}/>
+                <StatCard title="Completadas" value={completadas} Icono={CheckCircle2}/>
+                <StatCard title="En Progreso" value={enProgreso} Icono={TrendingUp}/>
+                <StatCard title="Reuniones esta semana" value={reunionesSemanales} Icono={CalendarDays}/>
               </div>
             </div>
 
@@ -126,7 +127,7 @@ export default function AsociadaDashboard() {
                     proximasReuniones.slice(0, 5).map((r, i) => (
                       <Link key={i} href={`/asociada/reuniones`}
                         style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 16px", borderBottom:i<Math.min(5, proximasReuniones.length)-1?"1px solid #FBF4F6":"none", textDecoration:"none" }}>
-                        <div style={{ width:36, height:36, borderRadius:10, background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>📞</div>
+                        <div style={{ width:36, height:36, borderRadius:10, background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Phone size={16} style={{ color:"#A0435F" }}/></div>
                         <div style={{ flex:1, minWidth:0 }}>
                           <p style={{ fontSize:12, fontWeight:600, color:"#4A2A38", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.usuario_nombre || "Usuario"}</p>
                           <p style={{ fontSize:11, color:"#9C8790", margin:"2px 0 0" }}>{r.fecha} a las {r.hora}</p>
@@ -176,7 +177,7 @@ export default function AsociadaDashboard() {
                 <div>
                   {tareasPendientes.map((tarea, i) => (
                     <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 16px", borderBottom:i<tareasPendientes.length-1?"1px solid #FBF4F6":"none" }}>
-                      <div style={{ width:20, height:20, borderRadius:6, background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:12 }}>✓</div>
+                      <div style={{ width:20, height:20, borderRadius:6, background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Check size={12} style={{ color:"#A0435F" }}/></div>
                       <div style={{ flex:1 }}>
                         <p style={{ fontSize:12, fontWeight:600, color:"#4A2A38", margin:"0 0 2px" }}>{tarea.titulo}</p>
                         <p style={{ fontSize:11, color:"#9C8790", margin:0 }}>{tarea.descripcion}</p>
@@ -196,7 +197,7 @@ export default function AsociadaDashboard() {
               <div className="bg-white rounded-2xl border border-[#F5E1E7] shadow-sm overflow-hidden">
                 <div style={{ padding:16, borderBottom:"1px solid #FCE8EE", background:"linear-gradient(135deg,#A0435F,#A0435F)" }}>
                   <div style={{ width:48, height:48, borderRadius:12, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, marginBottom:8 }}>
-                    👩‍🏫
+                    <GraduationCap size={30} style={{ color:"#A0435F" }}/>
                   </div>
                   <p style={{ fontSize:14, fontWeight:700, color:"#fff", margin:"0 0 2px" }}>{user?.nombre || "Asesora"}</p>
                   <p style={{ fontSize:11, color:"rgba(255,255,255,.8)", margin:0 }}>{user?.ciudad || "Ciudad"}, {user?.pais || "País"}</p>

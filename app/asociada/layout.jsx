@@ -4,13 +4,13 @@
 // roles: lo que distingue a una asociada de un admin es a qué entra, no cómo
 // se ve.
 
-import { BarChart3, Users, Calendar, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
 
 const MODULOS = [
-  { href: "/asociada",               label: "Dashboard",     icon: BarChart3 },
-  { href: "/asociada/usuarias",      label: "Mis Candidatas", icon: Users    },
+  { href: "/asociada",               label: "Inicio",        icon: LayoutDashboard },
+  { href: "/asociada/usuarias",      label: "Mis Candidatas", icon: Users },
   { href: "/asociada/reuniones",     label: "Calendario",    icon: Calendar  },
   { href: "/asociada/configuracion", label: "Configuración", icon: Settings  },
 ];

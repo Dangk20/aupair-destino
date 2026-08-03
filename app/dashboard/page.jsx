@@ -110,7 +110,7 @@ export default function DashboardPage() {
         {/* header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
           <div>
-            <div style={{ fontSize:isMobile?21:26, fontWeight:700, color:T.text, lineHeight:1.1 }}>Hola, {user?.nombre} 👋</div>
+            <div style={{ fontSize:isMobile?21:26, fontWeight:700, color:T.text, lineHeight:1.1 }}>Hola, {user?.nombre}</div>
             <div style={{ fontSize:13.5, color:T.textSoft, marginTop:3 }}>Cada paso te acerca a tu aventura</div>
           </div>
           <button style={{ width:42, height:42, borderRadius:12, background:"#fff", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:T.primary, cursor:"pointer", position:"relative", flexShrink:0 }}>

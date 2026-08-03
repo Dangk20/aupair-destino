@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronLeft, ChevronRight, Save, CheckCircle2,
-  User, Wrench, Briefcase, Heart, Baby, FileCheck, Check,
+  ChevronLeft, ChevronRight, Save, CheckCircle2, User, Wrench, Briefcase, Heart, Baby, FileCheck, Check, AlertTriangle,
 } from "lucide-react";
 import FotoUpload from "@/components/dashboard/FotoUpload";
 import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
@@ -16,34 +15,34 @@ import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe, seccionIn
 // La presentación vive acá; QUÉ es obligatorio vive en lib/campos-perfil.js,
 // que comparten el formulario, el servidor y el cálculo de progreso.
 const PRESENTACION = [
-  { icon:User,      color:"#ec4899", bg:"#fce7f3", desc:"Datos básicos de identificación" },
-  { icon:Wrench,    color:"#7c3aed", bg:"#ede9fe", desc:"Inglés, licencia y primeros auxilios" },
-  { icon:Briefcase, color:"#d97706", bg:"#fef3c7", desc:"Qué estás haciendo actualmente" },
-  { icon:Heart,     color:"#ef4444", bg:"#fee2e2", desc:"Condiciones médicas relevantes" },
-  { icon:Baby,      color:"#10b981", bg:"#d1fae5", desc:"Horas y tipo de experiencia" },
+  { icon:User,      color:"#A0435F", bg:"#FCE8EE", desc:"Datos básicos de identificación" },
+  { icon:Wrench,    color:"#A0435F", bg:"#FCE8EE", desc:"Inglés, licencia y primeros auxilios" },
+  { icon:Briefcase, color:"#E8853B", bg:"#FFF4EC", desc:"Qué estás haciendo actualmente" },
+  { icon:Heart,     color:"#C0392B", bg:"#FDECEC", desc:"Condiciones médicas relevantes" },
+  { icon:Baby,      color:"#12A46B", bg:"#E6F9F0", desc:"Horas y tipo de experiencia" },
   { icon:FileCheck, color:"#1d4ed8", bg:"#dbeafe", desc:"Historial migratorio" },
 ];
 const SECCIONES = PARTE1.map((s,i) => ({ ...s, ...PRESENTACION[i] }));
 
 const seccionCompleta = (s, form) => seccionCompletaDe(s, form);
 
-const IC = { width:"100%", border:"1.5px solid #f0dde2", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color .15s" };
+const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color .15s" };
 // El borde rojo se pierde al enfocar el campo (la regla :focus de la página
 // usa !important sobre border-color), así que el error se marca además con
 // un outline inline, que sí sobrevive al foco.
-const IC_ERR = { ...IC, border:"1.5px solid #dc2626", background:"#fef2f2", outline:"2px solid #dc2626", outlineOffset:"1px" };
-const LC = { fontSize:11, fontWeight:700, color:"#1e1033", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
+const IC_ERR = { ...IC, border:"1.5px solid #C0392B", background:"#FDECEC", outline:"2px solid #C0392B", outlineOffset:"1px" };
+const LC = { fontSize:11, fontWeight:700, color:"#4A2A38", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
 
 function Radio({ name, options, value, onChange, error }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4,
-      ...(error ? { border:"1.5px solid #dc2626", background:"#fef2f2", borderRadius:12, padding:"10px 12px" } : {}) }}>
+      ...(error ? { border:"1.5px solid #C0392B", background:"#FDECEC", borderRadius:12, padding:"10px 12px" } : {}) }}>
       {options.map(opt => (
         <label key={opt} onClick={()=>onChange(name,opt)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
-          <div style={{ width:20,height:20,borderRadius:"50%",border:`2px solid ${value===opt?"#ec4899":error?"#dc2626":"#f0dde2"}`,background:value===opt?"#ec4899":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .12s" }}>
+          <div style={{ width:20,height:20,borderRadius:"50%",border:`2px solid ${value===opt?"#A0435F":error?"#C0392B":"#F5E1E7"}`,background:value===opt?"#A0435F":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .12s" }}>
             {value===opt&&<div style={{ width:8,height:8,borderRadius:"50%",background:"#fff" }}/>}
           </div>
-          <span style={{ fontSize:13,color:"#1e1033",lineHeight:1.4 }}>{opt}</span>
+          <span style={{ fontSize:13,color:"#4A2A38",lineHeight:1.4 }}>{opt}</span>
         </label>
       ))}
     </div>
@@ -54,7 +53,7 @@ function Radio({ name, options, value, onChange, error }) {
 function Msg({ visible }) {
   if (!visible) return null;
   return (
-    <p style={{ fontSize:11.5, color:"#dc2626", fontWeight:600, margin:"5px 0 0" }}>
+    <p style={{ fontSize:11.5, color:"#C0392B", fontWeight:600, margin:"5px 0 0" }}>
       Este campo es obligatorio.
     </p>
   );
@@ -185,16 +184,16 @@ export default function PerfilEvaluacionPage() {
     if (res.ok) {
       if (goNext) {
         setFaltantes([]);
-        setToast("✓ Guardado correctamente");
+        setToast("Guardado correctamente");
         if (paso<SECCIONES.length-1) setPaso(paso+1);
         else router.push("/dashboard/perfil");
       } else if (!ok) {
         // Guardado parcial: se guardó, pero le decimos qué le falta.
-        setToast("✓ Guardado — aún te faltan campos");
+        setToast("Guardado — aún te faltan campos");
         señalarFaltantes(pendientes);
       } else {
         setFaltantes([]);
-        setToast("✓ Guardado correctamente");
+        setToast("Guardado correctamente");
       }
       setTimeout(()=>setToast(null),2500);
     } else setToast("Error al guardar");
@@ -202,8 +201,8 @@ export default function PerfilEvaluacionPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:36,height:36,border:"3px solid #e8849a",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",display:"flex",alignItems:"center",justifyContent:"center" }}>
+      <div style={{ width:36,height:36,border:"3px solid #C77D93",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -216,35 +215,35 @@ export default function PerfilEvaluacionPage() {
   const G2 = { display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:14 };
 
   return (
-    <div style={{ minHeight:"100vh",background:"#faf5f6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#ec4899!important;box-shadow:0 0 0 3px rgba(236,72,153,.1);}`}</style>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#A0435F!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);}`}</style>
 
       {toast && (
-        <div style={{ position:"fixed",top:20,right:20,zIndex:2000,background:"#1e1033",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600 }}>
+        <div style={{ position:"fixed",top:20,right:20,zIndex:2000,background:"#4A2A38",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600 }}>
           {toast}
         </div>
       )}
 
       {/* HEADER */}
-      <div style={{ background:"#fff",borderBottom:"1px solid #ece8f0",padding:isMobile?"12px 16px":"14px 28px",position:"sticky",top:0,zIndex:20 }}>
+      <div style={{ background:"#fff",borderBottom:"1px solid #F5E1E7",padding:isMobile?"12px 16px":"14px 28px",position:"sticky",top:0,zIndex:20 }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
           <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-            <Link href="/dashboard/perfil" style={{ display:"flex",alignItems:"center",gap:5,color:"#9a7080",textDecoration:"none",fontSize:12,border:"1px solid #ece4f0",padding:"6px 10px",borderRadius:10,flexShrink:0 }}>
+            <Link href="/dashboard/perfil" style={{ display:"flex",alignItems:"center",gap:5,color:"#9C8790",textDecoration:"none",fontSize:12,border:"1px solid #F5E1E7",padding:"6px 10px",borderRadius:10,flexShrink:0 }}>
               <ChevronLeft size={13}/> {isMobile?"Volver":"Volver a mi perfil"}
             </Link>
             {!isMobile && (
               <div>
-                <h1 style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:700,color:"#1e1033",margin:0 }}>Evaluación de perfil</h1>
-                <p style={{ fontSize:12,color:"#9a7080",margin:0 }}>{completadas} de {SECCIONES.length} secciones completadas</p>
+                <h1 style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:700,color:"#4A2A38",margin:0 }}>Evaluación de perfil</h1>
+                <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>{completadas} de {SECCIONES.length} secciones completadas</p>
               </div>
             )}
           </div>
           {/* Barra progreso */}
           <div style={{ display:"flex",alignItems:"center",gap:10,flex:1,maxWidth:280 }}>
             <div style={{ flex:1,height:7,background:"#f0e8f0",borderRadius:99,overflow:"hidden" }}>
-              <div style={{ height:"100%",width:`${pctGlobal}%`,background:"linear-gradient(90deg,#ec4899,#be185d)",borderRadius:99,transition:"width .5s" }}/>
+              <div style={{ height:"100%",width:`${pctGlobal}%`,background:"linear-gradient(90deg,#A0435F,#7D2F47)",borderRadius:99,transition:"width .5s" }}/>
             </div>
-            <span style={{ fontSize:12,fontWeight:700,color:"#ec4899",flexShrink:0 }}>{pctGlobal}%</span>
+            <span style={{ fontSize:12,fontWeight:700,color:"#A0435F",flexShrink:0 }}>{pctGlobal}%</span>
           </div>
         </div>
 
@@ -273,18 +272,18 @@ export default function PerfilEvaluacionPage() {
         {/* SIDEBAR — solo desktop */}
         {!isMobile && (
           <div style={{ width:220,flexShrink:0,display:"flex",flexDirection:"column",gap:4 }}>
-            <p style={{ fontSize:10,fontWeight:700,color:"#9a7080",textTransform:"uppercase",letterSpacing:".8px",margin:"0 0 10px" }}>Secciones</p>
+            <p style={{ fontSize:10,fontWeight:700,color:"#9C8790",textTransform:"uppercase",letterSpacing:".8px",margin:"0 0 10px" }}>Secciones</p>
             {SECCIONES.map((s,i) => {
               const SIcon=s.icon, active=i===paso, completa=seccionCompleta(s,form);
               return (
                 <button key={s.id} onClick={()=>irASeccion(i)}
                   style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:14,border:"none",cursor:"pointer",textAlign:"left",transition:"all .12s",fontFamily:"inherit",background:active?s.bg:"transparent",boxShadow:active?`0 0 0 1.5px ${s.color}`:"none" }}>
                   <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:completa?s.bg:active?s.bg:"#f3f4f6" }}>
-                    {completa?<Check size={14} style={{ color:s.color }}/>:<SIcon size={14} style={{ color:active?s.color:"#9ca3af" }}/>}
+                    {completa?<Check size={14} style={{ color:s.color }}/>:<SIcon size={14} style={{ color:active?s.color:"#C9A9B4" }}/>}
                   </div>
                   <div style={{ minWidth:0 }}>
                     <p style={{ fontSize:11.5,fontWeight:active?700:500,color:active?s.color:"#555",margin:0,lineHeight:1.3 }}>{s.titulo}</p>
-                    {completa&&<p style={{ fontSize:10,color:s.color,margin:0 }}>✓ Completa</p>}
+                    {completa&&<p style={{ fontSize:10,color:s.color,margin:0 }}>Completa</p>}
                   </div>
                 </button>
               );
@@ -301,22 +300,22 @@ export default function PerfilEvaluacionPage() {
             </div>
             <div style={{ flex:1,minWidth:0 }}>
               <p style={{ fontSize:10,fontWeight:700,color:seccion.color,textTransform:"uppercase",letterSpacing:".7px",margin:"0 0 2px" }}>Sección {paso+1} de {SECCIONES.length}</p>
-              <h2 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?15:18,fontWeight:700,color:"#1e1033",margin:"0 0 2px" }}>{seccion.titulo}</h2>
-              {!isMobile&&<p style={{ fontSize:12,color:"#9a7080",margin:0 }}>{seccion.desc}</p>}
+              <h2 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?15:18,fontWeight:700,color:"#4A2A38",margin:"0 0 2px" }}>{seccion.titulo}</h2>
+              {!isMobile&&<p style={{ fontSize:12,color:"#9C8790",margin:0 }}>{seccion.desc}</p>}
             </div>
             {estaCompleta && (
-              <div style={{ display:"flex",alignItems:"center",gap:5,background:"#d1fae5",color:"#10b981",fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:99,flexShrink:0 }}>
+              <div style={{ display:"flex",alignItems:"center",gap:5,background:"#E6F9F0",color:"#12A46B",fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:99,flexShrink:0 }}>
                 <CheckCircle2 size={12}/> Completa
               </div>
             )}
           </div>
 
-          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #ece4f0",padding:isMobile?"16px":"24px",display:"flex",flexDirection:"column",gap:18 }}>
+          <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:isMobile?"16px":"24px",display:"flex",flexDirection:"column",gap:18 }}>
 
             {errorVal && (
-              <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#dc2626" }}>
+              <div style={{ background:"#FDECEC",border:"1px solid #FDECEC",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#C0392B" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:8,fontWeight:700 }}>
-                  <span>⚠️</span>
+                  <AlertTriangle size={14}/>
                   {faltantes.some(c=>c.error)
                     ? (faltantes.length===1 ? "Revisa este campo" : `Revisa ${faltantes.length} campos`)
                     : faltantes.length===1
@@ -332,7 +331,7 @@ export default function PerfilEvaluacionPage() {
                           const el=document.querySelector(`[name="${c.name}"]`);
                           el?.scrollIntoView?.({ behavior:"smooth",block:"center" });
                           el?.focus?.({ preventScroll:true });
-                        }} style={{ background:"none",border:"none",padding:0,color:"#dc2626",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
+                        }} style={{ background:"none",border:"none",padding:0,color:"#C0392B",fontSize:13,fontFamily:"inherit",textDecoration:"underline",cursor:"pointer" }}>
                           {c.label}
                         </button>
                       </li>
@@ -353,8 +352,8 @@ export default function PerfilEvaluacionPage() {
 
               {/* Documento de identidad — frontal y posterior */}
               <div>
-                <p style={{ fontSize:13, fontWeight:600, color:"#2d1a22", margin:"0 0 4px" }}>Foto de tu cédula</p>
-                <p style={{ fontSize:11, color:"#9a7080", margin:"0 0 12px", lineHeight:1.5 }}>
+                <p style={{ fontSize:13, fontWeight:600, color:"#3A2530", margin:"0 0 4px" }}>Foto de tu cédula</p>
+                <p style={{ fontSize:11, color:"#9C8790", margin:"0 0 12px", lineHeight:1.5 }}>
                   Sube una foto clara de ambos lados de tu documento de identidad.
                 </p>
                 <div style={G2}>
@@ -469,12 +468,12 @@ export default function PerfilEvaluacionPage() {
           {/* NAVEGACIÓN */}
           <div style={{ display:"flex",gap:10,marginTop:14,justifyContent:"space-between",alignItems:"center" }}>
             <button onClick={()=>setPaso(Math.max(0,paso-1))} disabled={paso===0}
-              style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 18px",borderRadius:12,border:"1.5px solid #ece4f0",background:"#fff",color:"#9a7080",fontSize:13,fontWeight:600,cursor:paso===0?"not-allowed":"pointer",opacity:paso===0?.4:1,fontFamily:"inherit" }}>
+              style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 18px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:paso===0?"not-allowed":"pointer",opacity:paso===0?.4:1,fontFamily:"inherit" }}>
               <ChevronLeft size={14}/> {isMobile?"":"Anterior"}
             </button>
             <div style={{ display:"flex",gap:8 }}>
               <button onClick={()=>guardar(false)} disabled={guardando}
-                style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 12px":"10px 18px",borderRadius:12,border:"1.5px solid #ece4f0",background:"#fff",color:"#9a7080",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 12px":"10px 18px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                 <Save size={13}/> {isMobile?"":"Guardar"}
               </button>
               <button onClick={()=>guardar(true)} disabled={guardando}
@@ -483,7 +482,7 @@ export default function PerfilEvaluacionPage() {
                   ? <><div style={{ width:13,height:13,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>...</>
                   : paso<SECCIONES.length-1
                   ? <>{isMobile?"Continuar":"Guardar y continuar"} <ChevronRight size={14}/></>
-                  : "Finalizar ✓"}
+                  : "Finalizar"}
               </button>
             </div>
           </div>
@@ -494,7 +493,7 @@ export default function PerfilEvaluacionPage() {
               const completa=seccionCompleta(s,form);
               return (
                 <button key={i} onClick={()=>irASeccion(i)}
-                  style={{ width:i===paso?26:9,height:9,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:completa?s.color:i===paso?"#ec4899":"#e5e7eb" }}/>
+                  style={{ width:i===paso?26:9,height:9,borderRadius:99,border:"none",cursor:"pointer",transition:"all .2s",background:completa?s.color:i===paso?"#A0435F":"#e5e7eb" }}/>
               );
             })}
           </div>

@@ -23,12 +23,21 @@ import { T, POPPINS_HREF } from "@/lib/tema";
 
 /**
  * @param {object}   props
- * @param {Array}    props.modulos   [{ href, label, icon, disponible?, motivo?, badge?, separador? }]
+ * @param {Array}    props.modulos   [{ href, label, icon, disponible?, motivo?, badge?, separador?, grupo?, principal? }]
  * @param {string}   props.rol       etiqueta bajo el nombre ("Administración", "Asesora"…)
  * @param {string}   props.inicio    a dónde lleva el logo
+ * @param {string}   [props.claseMain]      clase extra para <main> (la candidata usa "dap-main")
+ * @param {string}   [props.claseContenido] envuelve children en un div con esta clase
  * @param {React.ReactNode} props.children
+ *
+ * Un módulo marcado `principal: true` aparece además en la barra inferior de
+ * móvil. Si ninguno lo está, no se dibuja la barra: los paneles que no la
+ * necesitan navegan con el menú lateral, igual que antes.
  */
-export default function PanelLayout({ modulos = [], rol = "", inicio = "/", children }) {
+export default function PanelLayout({
+  modulos = [], rol = "", inicio = "/",
+  claseMain = "", claseContenido = "", children,
+}) {
   const pathname = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [usuario, setUsuario] = useState(null);
@@ -143,6 +152,34 @@ export default function PanelLayout({ modulos = [], rol = "", inicio = "/", chil
     </aside>
   );
 
+  // Barra inferior de móvil. Sólo con los módulos marcados `principal`, y sólo
+  // si hay alguno: el menú lateral sigue siendo el que lo lleva todo, así que
+  // ningún módulo queda inalcanzable en un teléfono por no caber aquí.
+  const principales = modulos.filter((m) => m.principal && m.href);
+  const BarraInferior = () => (
+    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30, background: "rgba(255,255,255,.94)", backdropFilter: "blur(10px)", borderTop: `1px solid ${T.border}`, padding: "9px 6px 11px", display: "flex", justifyContent: "space-around" }}>
+      {principales.map((it) => {
+        const off = it.disponible === false;
+        const Icono = off ? Lock : it.icon;
+        const act = activo(it.href);
+        const contenido = (
+          <>
+            <Icono size={21} />
+            <span style={{ fontSize: 10, fontWeight: 600 }}>{it.label}</span>
+          </>
+        );
+        const estilo = {
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+          textDecoration: "none", color: act ? T.primary : T.softText,
+          fontFamily: T.font, padding: "4px 8px",
+        };
+        return off
+          ? <div key={it.href} style={{ ...estilo, opacity: .75 }} title={it.motivo || "Todavía no está disponible"} aria-disabled="true">{contenido}</div>
+          : <Link key={it.href} href={it.href} style={estilo}>{contenido}</Link>;
+      })}
+    </div>
+  );
+
   return (
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -173,7 +210,11 @@ export default function PanelLayout({ modulos = [], rol = "", inicio = "/", chil
             <div style={{ width: 21 }} />
           </header>
 
-          <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>{children}</main>
+          <main className={claseMain} data-main="true" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minWidth: 0 }}>
+            {claseContenido ? <div className={claseContenido}>{children}</div> : children}
+          </main>
+
+          {principales.length > 0 && <div className="md:hidden"><BarraInferior /></div>}
         </div>
       </div>
     </>

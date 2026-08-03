@@ -603,7 +603,7 @@ export default function AdminPerfilAgenciaPage() {
                   <input value={progreso} readOnly style={{ ...IC, background:"#F3F4F6", color:"#6B7280" }}/>
                 </div>
               </div>
-              <div style={{ background:progreso>=80?"#E6F9F0":progreso>=50?"#FFF4EC":"#FDECEC", border:`1px solid ${progreso>=80?"#6ee7b7":progreso>=50?"#FFF4EC":"#C0392B"}`, borderRadius:12, padding:"14px 16px" }}>
+              <div style={{ background:progreso>=80?"#E6F9F0":progreso>=50?"#FFF4EC":"#FDECEC", border:`1px solid ${progreso>=80?"#E6F9F0":progreso>=50?"#FFF4EC":"#C0392B"}`, borderRadius:12, padding:"14px 16px" }}>
                 <p style={{ fontSize:13, fontWeight:700, color:progreso>=80?"#12A46B":progreso>=50?"#E8853B":"#7f1d1d", margin:"0 0 4px" }}>
                   {progreso>=80?"✅ Perfil casi listo":progreso>=50?"⏳ Perfil en progreso":"❌ Perfil incompleto"}
                 </p>

@@ -4,6 +4,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
+  MessageSquare, Phone, Wrench, Bell, Pin, CheckCircle2, CalendarDays, Target,
   ChevronLeft, ChevronRight, X, Plus, Trash2,
   Video, Users, Calendar, Clock, Check, AlertCircle,
   Repeat, Edit2,
@@ -30,11 +31,11 @@ function cleanFecha(f) {
 
 
 const TIPO_CFG = {
-  foro:           { color:"#A0435F", bg:"#FCE8EE", emoji:"💬", label:"Foro"          },
-  llamada_grupal: { color:"#0369a1", bg:"#FCE8EE", emoji:"📞", label:"Llamada grupal" },
-  taller:         { color:"#E8853B", bg:"#FFF4EC", emoji:"🛠️",  label:"Taller"        },
-  importante:     { color:"#C0392B", bg:"#FDECEC", emoji:"🔔", label:"Importante"    },
-  otro:           { color:"#6B7280", bg:"#F3F4F6", emoji:"📌", label:"Otro"          },
+  foro:           { color:"#A0435F", bg:"#FCE8EE", Icono:MessageSquare, label:"Foro"          },
+  llamada_grupal: { color:"#A0435F", bg:"#FCE8EE", Icono:Phone,         label:"Llamada grupal" },
+  taller:         { color:"#E8853B", bg:"#FFF4EC", Icono:Wrench,        label:"Taller"        },
+  importante:     { color:"#C0392B", bg:"#FDECEC", Icono:Bell,          label:"Importante"    },
+  otro:           { color:"#6B7280", bg:"#F3F4F6", Icono:Pin,           label:"Otro"          },
 };
 
 const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
@@ -154,7 +155,7 @@ function ModalEvento({ onClose, onGuardar, loading, editando }) {
               {Object.entries(TIPO_CFG).map(([k,v])=>(
                 <button key={k} onClick={()=>{ set("tipo",k); set("color",v.color); }}
                   style={{ display:"flex",alignItems:"center",gap:8,padding:"9px 12px",borderRadius:12,border:`1.5px solid ${form.tipo===k?v.color:"#E5E7EB"}`,background:form.tipo===k?v.bg:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .1s" }}>
-                  <span style={{ fontSize:16 }}>{v.emoji}</span>
+                  <span style={{ fontSize:16 }}><v.Icono size={15}/></span>
                   <span style={{ fontSize:12,fontWeight:form.tipo===k?700:500,color:form.tipo===k?v.color:"#6B7280" }}>{v.label}</span>
                 </button>
               ))}
@@ -379,12 +380,12 @@ const diasMapa = useMemo(() => {
         {/* Stats */}
         <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:12,marginBottom:16 }}>
           {[
-            { n:totalDisp,   label:"Horarios disponibles", color:"#12A46B", bg:"#E6F9F0", emoji:"✅" },
-            { n:totalReserv, label:"Reuniones agendadas",  color:"#7D2F47", bg:"#FCE8EE", emoji:"📅" },
-            { n:totalEventos,label:"Eventos este mes",     color:"#A0435F", bg:"#FBF4F6", emoji:"🎯" },
+            { n:totalDisp,   label:"Horarios disponibles", color:"#12A46B", bg:"#E6F9F0", Icono:CheckCircle2 },
+            { n:totalReserv, label:"Reuniones agendadas",  color:"#7D2F47", bg:"#FCE8EE", Icono:CalendarDays },
+            { n:totalEventos,label:"Eventos este mes",     color:"#A0435F", bg:"#FBF4F6", Icono:Target },
           ].map((s,i)=>(
             <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:isMobile?"12px 14px":"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-              <div style={{ width:isMobile?36:44,height:isMobile?36:44,borderRadius:12,background:s.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?16:20,flexShrink:0 }}>{s.emoji}</div>
+              <div style={{ width:isMobile?36:44,height:isMobile?36:44,borderRadius:12,background:s.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?16:20,flexShrink:0 }}><s.Icono size={15}/></div>
               <div>
                 <p style={{ fontFamily:"Georgia,serif",fontSize:isMobile?22:28,fontWeight:700,color:s.color,margin:0,lineHeight:1 }}>{s.n}</p>
                 <p style={{ fontSize:isMobile?10:12,color:"#9C8790",margin:0 }}>{s.label}</p>
@@ -486,7 +487,7 @@ const diasMapa = useMemo(() => {
                             </div>
                             <p style={{ fontSize:11,color:"#9C8790",margin:"2px 0 0" }}>
                               {s.asesora_nombre} {s.asesora_apellido}
-                              {s.estado==="reservada"&&s.cliente_nombre && ` · 👤 ${s.cliente_nombre} ${s.cliente_apellido}`}
+                              {s.estado==="reservada"&&s.cliente_nombre && ` · ${s.cliente_nombre} ${s.cliente_apellido}`}
                             </p>
                           </div>
                           {s.estado!=="reservada" && (
@@ -515,7 +516,7 @@ const diasMapa = useMemo(() => {
                         const cfg=TIPO_CFG[e.tipo]||TIPO_CFG.otro;
                         return (
                           <div key={e.id} style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:14,border:`1px solid ${cfg.color}30`,background:cfg.bg }}>
-                            <span style={{ fontSize:18,flexShrink:0 }}>{cfg.emoji}</span>
+                            <span style={{ fontSize:18,flexShrink:0 }}><cfg.Icono size={15}/></span>
                             <div style={{ flex:1,minWidth:0 }}>
                               <p style={{ fontSize:13,fontWeight:600,color:cfg.color,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
                               <p style={{ fontSize:11,color:cfg.color,opacity:.8,margin:0 }}>
@@ -618,7 +619,7 @@ const diasMapa = useMemo(() => {
                         const cfg=TIPO_CFG[e.tipo]||TIPO_CFG.otro;
                         return (
                           <div key={e.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,border:`1px solid ${cfg.color}25`,background:cfg.bg }}>
-                            <span style={{ fontSize:16,flexShrink:0 }}>{cfg.emoji}</span>
+                            <span style={{ fontSize:16,flexShrink:0 }}><cfg.Icono size={15}/></span>
                             <div style={{ flex:1,minWidth:0 }}>
                               <p style={{ fontSize:12,fontWeight:600,color:cfg.color,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
                               <p style={{ fontSize:11,color:cfg.color,opacity:.8,margin:0 }}>
@@ -668,7 +669,7 @@ const diasMapa = useMemo(() => {
               <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
                 <button onClick={()=>setShowModalSlot(true)}
                   style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #E6F9F0",background:"#E6F9F0",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-                  <span style={{ fontSize:16 }}>✅</span>
+                  <CheckCircle2 size={15} style={{ color:"#12A46B" }}/>
                   <div>
                     <p style={{ fontSize:12,fontWeight:600,color:"#12A46B",margin:0 }}>Agregar horario disponible</p>
                     <p style={{ fontSize:10,color:"#12A46B",margin:0 }}>Las usuarias podrán reservarlo</p>
@@ -676,7 +677,7 @@ const diasMapa = useMemo(() => {
                 </button>
                 <button onClick={()=>{setEditandoEvento(null);setShowModalEvento(true);}}
                   style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #c4b5fd",background:"#FBF4F6",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-                  <span style={{ fontSize:16 }}>🎯</span>
+                  <Target size={15} style={{ color:"#A0435F" }}/>
                   <div>
                     <p style={{ fontSize:12,fontWeight:600,color:"#7D2F47",margin:0 }}>Crear evento general</p>
                     <p style={{ fontSize:10,color:"#A0435F",margin:0 }}>Foro, taller, llamada grupal...</p>

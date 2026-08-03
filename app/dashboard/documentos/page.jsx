@@ -6,9 +6,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell, Check, CheckCircle2, Lock, Upload, Eye, ArrowRight, AlertCircle,
-  GraduationCap, BookMarked, IdCard, Camera, HeartPulse, ShieldCheck,
-  ScrollText, Stethoscope, Mail, Award, Languages, Baby, FileText,
+  Bell, Check, CheckCircle2, Lock, Upload, Eye, ArrowRight, AlertCircle, GraduationCap, BookMarked, IdCard, Camera, HeartPulse, ShieldCheck, ScrollText, Stethoscope, Mail, Award, Languages, Baby, FileText, Paperclip, Image as ImageIcon, X,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
@@ -56,24 +54,24 @@ function UploadModal({ doc, onClose, onUploaded }) {
             </div>
             <button onClick={onClose} style={{ background:T.lilac,border:"none",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:17,color:T.primary,display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
           </div>
-          {error && <div style={{ background:"#FEECEC",border:"1px solid #F6C9C9",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#C0392B",marginBottom:12,display:"flex",alignItems:"center",gap:8 }}><AlertCircle size={14}/>{error}</div>}
+          {error && <div style={{ background:"#FDECEC",border:"1px solid #F6C9C9",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#C0392B",marginBottom:12,display:"flex",alignItems:"center",gap:8 }}><AlertCircle size={14}/>{error}</div>}
           <div onClick={()=>!file&&ref.current?.click()}
             onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)}
             onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}}
             style={{ border:`2px dashed ${drag?T.primary:T.border}`,borderRadius:14,padding:22,textAlign:"center",cursor:file?"default":"pointer",background:drag?T.lilac:T.softFill,transition:"all .15s" }}>
             <input ref={ref} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])}/>
             {!file ? (
-              <><div style={{ fontSize:34,marginBottom:8 }}>📎</div>
+              <><Paperclip size={30} style={{ color:"#C9A9B4", marginBottom:8 }} strokeWidth={1.5}/>
               <p style={{ fontSize:13,fontWeight:600,color:T.primary,margin:"0 0 4px" }}>Arrastra o haz clic para subir</p>
               <p style={{ fontSize:11,color:T.textSoft,margin:0 }}>{doc.formatos} · Máx. 10 MB</p></>
             ) : (
               <div style={{ display:"flex",alignItems:"center",gap:12,justifyContent:"center" }}>
-                <div style={{ width:40,height:40,borderRadius:10,background:T.lilac,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>{ext==="PDF"?"📄":"🖼️"}</div>
+                <div style={{ width:40,height:40,borderRadius:10,background:T.lilac,display:"flex",alignItems:"center",justifyContent:"center" }}>{ext==="PDF"?<FileText size={18} style={{ color:"#A0435F" }}/>:<ImageIcon size={18} style={{ color:"#A0435F" }}/>}</div>
                 <div style={{ textAlign:"left",flex:1,minWidth:0 }}>
                   <p style={{ fontSize:13,fontWeight:600,color:T.text,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{file.name}</p>
                   <p style={{ fontSize:11,color:T.textSoft,margin:0 }}>{(file.size/1024).toFixed(0)} KB · {ext}</p>
                 </div>
-                <button onClick={e=>{e.stopPropagation();setFile(null);}} style={{ background:"#FEECEC",border:"none",borderRadius:8,padding:"4px 8px",fontSize:11,color:"#C0392B",cursor:"pointer",flexShrink:0 }}>✕</button>
+                <button onClick={e=>{e.stopPropagation();setFile(null);}} style={{ background:"#FDECEC",border:"none",borderRadius:8,padding:"4px 8px",fontSize:11,color:"#C0392B",cursor:"pointer",flexShrink:0 }}><X size={12}/></button>
               </div>
             )}
           </div>
@@ -131,7 +129,7 @@ export default function DocumentosPage() {
     <div style={{ fontFamily:T.font,color:T.text,padding:isMobile?"16px 16px 90px":"28px 30px",maxWidth:860,margin:"0 auto",display:"flex",flexDirection:"column",gap:18 }}>
       <style>{`@keyframes dapspin{to{transform:rotate(360deg)}}`}</style>
       {toast && <div style={{ position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:2000,background:T.ink,color:"#fff",padding:"12px 20px",borderRadius:12,fontSize:13,fontWeight:600 }}>{toast}</div>}
-      {modal && <UploadModal doc={modal} onClose={()=>setModal(null)} onUploaded={()=>{ cargar(); showToast("✓ Documento subido"); }}/>}
+      {modal && <UploadModal doc={modal} onClose={()=>setModal(null)} onUploaded={()=>{ cargar(); showToast("Documento subido"); }}/>}
 
       {/* header */}
       <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
@@ -168,17 +166,17 @@ export default function DocumentosPage() {
           const DocIcon = DOC_ICON[r.tipo] || FileText;
           return (
             <div key={r.tipo} style={{ background:"#fff",border:`1.5px solid ${perdido?"#fca5a5":up?T.primary3:"transparent"}`,borderRadius:16,padding:13,display:"flex",alignItems:"center",gap:12,boxShadow:T.shadow }}>
-              <div style={{ width:42,height:42,borderRadius:12,background:perdido?"#fee2e2":up?T.primary:T.lilac,color:perdido?"#dc2626":up?"#fff":T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><DocIcon size={20}/></div>
+              <div style={{ width:42,height:42,borderRadius:12,background:perdido?"#FDECEC":up?T.primary:T.lilac,color:perdido?"#C0392B":up?"#fff":T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><DocIcon size={20}/></div>
               <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ fontWeight:600,fontSize:14,color:T.text,lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.label}</div>
-                <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:perdido?"#dc2626":up?T.primary:T.textSoft,fontWeight:600 }}>
+                <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:perdido?"#C0392B":up?T.primary:T.textSoft,fontWeight:600 }}>
                   {up && !perdido && <Check size={12}/>}
                   {perdido?"Vuelve a subirlo":up?"Cargado":"Pendiente"}
                 </div>
               </div>
               {perdido ? (
                 <button onClick={()=>setModal(r)}
-                  style={{ background:"#dc2626",color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
+                  style={{ background:"#C0392B",color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
                   Volver a subir
                 </button>
               ) : up ? (

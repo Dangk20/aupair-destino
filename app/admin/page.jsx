@@ -44,7 +44,7 @@ export default function AdminInicioPage() {
   return (
     <div className="p-5 xl:p-8 bg-[#FBF4F6] min-h-full max-w-5xl">
       <h1 className="font-serif font-bold text-[#4A2A38] text-[26px] xl:text-[28px] leading-tight">
-        {nombre ? `¡Hola, ${nombre}!` : "¡Hola!"} 👋
+        {nombre ? `¡Hola, ${nombre}!` : "¡Hola!"}
       </h1>
       <p className="text-[13px] text-[#9C8790] mt-0.5 mb-6">
         Este es tu panel de <span className="text-[#A0435F] font-semibold">Destino Au Pair</span>.

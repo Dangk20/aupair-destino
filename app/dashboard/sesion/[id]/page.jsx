@@ -46,10 +46,10 @@ export default function SesionPage() {
       });
       if (res.ok) {
         setYaCompletada(true);
-        confetti({ particleCount:120, spread:80, origin:{ y:0.6 }, colors:["#a0435f","#e8849a","#fce8ed","#2d1a22","#f0b8c4"] });
+        confetti({ particleCount:120, spread:80, origin:{ y:0.6 }, colors:["#a0435f","#C77D93","#FCE8EE","#3A2530","#C77D93"] });
         setTimeout(() => {
-          confetti({ particleCount:60, angle:60,  spread:55, origin:{ x:0 }, colors:["#a0435f","#e8849a","#fce8ed"] });
-          confetti({ particleCount:60, angle:120, spread:55, origin:{ x:1 }, colors:["#a0435f","#e8849a","#fce8ed"] });
+          confetti({ particleCount:60, angle:60,  spread:55, origin:{ x:0 }, colors:["#a0435f","#C77D93","#FCE8EE"] });
+          confetti({ particleCount:60, angle:120, spread:55, origin:{ x:1 }, colors:["#a0435f","#C77D93","#FCE8EE"] });
         }, 300);
         setTimeout(() => router.push("/dashboard/curso"), 2500);
       } else {
@@ -64,10 +64,10 @@ export default function SesionPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#fff8f9] flex items-center justify-center">
+    <div className="min-h-screen bg-[#FBF4F6] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-10 h-10 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[13px] text-[#9a6672]">Cargando sesión...</p>
+        <div className="w-10 h-10 border-2 border-[#C77D93] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-[13px] text-[#9C8790]">Cargando sesión...</p>
       </div>
     </div>
   );
@@ -85,22 +85,22 @@ export default function SesionPage() {
   const esMp4        = !tieneYoutube && !tieneDrive && !esYoutube && !esVimeo && !!urlVideo;
 
   return (
-    <div className="min-h-screen bg-[#fff8f9]">
+    <div className="min-h-screen bg-[#FBF4F6]">
       <div className="max-w-3xl mx-auto px-4 py-8">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link href="/dashboard/curso"
-            className="flex items-center gap-1.5 text-[13px] text-[#9a6672] hover:text-[#a0435f] transition">
+            className="flex items-center gap-1.5 text-[13px] text-[#9C8790] hover:text-[#a0435f] transition">
             <ChevronLeftIcon size={14} />
             Mi curso
           </Link>
           <span className="text-[#e8b0bc] text-[13px]">/</span>
-          <span className="text-[13px] text-[#2d1a22] font-medium">{sesion.titulo}</span>
+          <span className="text-[13px] text-[#3A2530] font-medium">{sesion.titulo}</span>
         </div>
 
         {/* ── VIDEO PLAYER ── */}
-        <div className="rounded-2xl overflow-hidden bg-[#2d1a22] shadow-2xl shadow-[#2d1a22]/25 mb-6 aspect-video w-full relative">
+        <div className="rounded-2xl overflow-hidden bg-[#3A2530] shadow-2xl shadow-[#3A2530]/25 mb-6 aspect-video w-full relative">
 
           {tieneYoutube && (
             <iframe
@@ -168,7 +168,7 @@ export default function SesionPage() {
           {!tieneYoutube && !tieneDrive && !urlVideo && (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
               <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                <PlayCircleIcon size={28} className="text-[#e8849a]"/>
+                <PlayCircleIcon size={28} className="text-[#C77D93]"/>
               </div>
               <p className="text-white/60 text-[13px]">Video próximamente disponible</p>
             </div>
@@ -176,28 +176,28 @@ export default function SesionPage() {
         </div>
 
         {/* Info sesión */}
-        <div className="bg-white rounded-2xl border border-[#f0dde2] p-6 mb-4">
+        <div className="bg-white rounded-2xl border border-[#F5E1E7] p-6 mb-4">
           <div className="flex items-start justify-between gap-4 mb-3">
             <div>
               {(sesion.es_gratis === 1 || sesion.es_gratis === true) && (
-                <span className="text-[10px] bg-[#fce8ed] text-[#a0435f] font-semibold px-2 py-0.5 rounded-full mr-2">
+                <span className="text-[10px] bg-[#FCE8EE] text-[#a0435f] font-semibold px-2 py-0.5 rounded-full mr-2">
                   GRATIS
                 </span>
               )}
-              <h1 className="font-serif text-[22px] font-bold text-[#2d1a22] mt-1">{sesion.titulo}</h1>
+              <h1 className="font-serif text-[22px] font-bold text-[#3A2530] mt-1">{sesion.titulo}</h1>
             </div>
             {yaCompletada ? (
-              <div className="flex items-center gap-1.5 bg-[#fce8ed] text-[#a0435f] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
+              <div className="flex items-center gap-1.5 bg-[#FCE8EE] text-[#a0435f] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
                 <CheckIcon size={12} /> Completada
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 bg-[#fce8ed] text-[#e8849a] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
+              <div className="flex items-center gap-1.5 bg-[#FCE8EE] text-[#C77D93] text-[12px] font-medium px-3 py-1.5 rounded-full shrink-0">
                 <PlayCircleIcon size={12} /> En curso
               </div>
             )}
           </div>
           {sesion.descripcion && (
-            <p className="text-[14px] text-[#7a4a54] leading-relaxed">{sesion.descripcion}</p>
+            <p className="text-[14px] text-[#9C8790] leading-relaxed">{sesion.descripcion}</p>
           )}
         </div>
 
@@ -211,7 +211,7 @@ export default function SesionPage() {
         {/* Botón completar */}
         {!yaCompletada ? (
           <button onClick={handleCompletar} disabled={completando}
-            className="w-full bg-[#a0435f] hover:bg-[#8a3550] disabled:bg-[#a0435f]/50 text-white font-medium text-[14px] py-4 rounded-2xl transition shadow-lg shadow-[#a0435f]/20 mb-4">
+            className="w-full bg-[#a0435f] hover:bg-[#7D2F47] disabled:bg-[#a0435f]/50 text-white font-medium text-[14px] py-4 rounded-2xl transition shadow-lg shadow-[#a0435f]/20 mb-4">
             {completando ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -220,7 +220,7 @@ export default function SesionPage() {
             ) : "✓ Marcar como completada y continuar"}
           </button>
         ) : (
-          <div className="w-full bg-[#fce8ed] border border-[#f0b8c4] text-[#a0435f] font-medium text-[14px] py-4 rounded-2xl text-center mb-4">
+          <div className="w-full bg-[#FCE8EE] border border-[#C77D93] text-[#a0435f] font-medium text-[14px] py-4 rounded-2xl text-center mb-4">
             ✓ Sesión completada — volviendo al curso...
           </div>
         )}
@@ -229,25 +229,25 @@ export default function SesionPage() {
         <div className="flex items-center justify-between gap-3">
           {anterior ? (
             <Link href={`/dashboard/sesion/${anterior.id}`}
-              className="flex items-center gap-2 text-[13px] text-[#9a6672] hover:text-[#a0435f] border border-[#f0dde2] bg-white px-4 py-2.5 rounded-xl transition">
+              className="flex items-center gap-2 text-[13px] text-[#9C8790] hover:text-[#a0435f] border border-[#F5E1E7] bg-white px-4 py-2.5 rounded-xl transition">
               <ChevronLeftIcon size={14} />
               {anterior.titulo}
             </Link>
           ) : (
             <Link href="/dashboard/curso"
-              className="flex items-center gap-2 text-[13px] text-[#9a6672] hover:text-[#a0435f] border border-[#f0dde2] bg-white px-4 py-2.5 rounded-xl transition">
+              className="flex items-center gap-2 text-[13px] text-[#9C8790] hover:text-[#a0435f] border border-[#F5E1E7] bg-white px-4 py-2.5 rounded-xl transition">
               <ChevronLeftIcon size={14} />
               Volver al curso
             </Link>
           )}
           {siguiente && siguiente.estado !== "locked" ? (
             <Link href={`/dashboard/sesion/${siguiente.id}`}
-              className="flex items-center gap-2 text-[13px] text-white bg-[#a0435f] hover:bg-[#8a3550] px-4 py-2.5 rounded-xl transition ml-auto">
+              className="flex items-center gap-2 text-[13px] text-white bg-[#a0435f] hover:bg-[#7D2F47] px-4 py-2.5 rounded-xl transition ml-auto">
               {siguiente.titulo}
               <ChevronLeftIcon size={14} className="rotate-180" />
             </Link>
           ) : siguiente ? (
-            <div className="flex items-center gap-2 text-[13px] text-[#c0909a] border border-[#f0dde2] px-4 py-2.5 rounded-xl ml-auto">
+            <div className="flex items-center gap-2 text-[13px] text-[#C9A9B4] border border-[#F5E1E7] px-4 py-2.5 rounded-xl ml-auto">
               <LockIcon size={12} />
               {siguiente.titulo}
             </div>

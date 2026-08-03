@@ -228,7 +228,7 @@ function RegisterContent() {
           <div className="bg-white rounded-3xl border border-[#e0d4f5] shadow-xl shadow-[#7c5cc4]/10 px-7 xl:px-9 py-8 xl:py-10">
 
             <div className="flex justify-center mb-5">
-              <div className="w-16 h-16 rounded-full bg-[#ede9f8] border border-[#c4b0e8] flex items-center justify-center relative">
+              <div className="w-16 h-16 rounded-full bg-[#ede9f8] border border-[#C77D93] flex items-center justify-center relative">
                 <User size={26} className="text-[#7c5cc4]" strokeWidth={1.5}/>
                 <span className="absolute -top-1 -right-1 text-[#7c5cc4] text-[14px]">✦</span>
               </div>
@@ -316,7 +316,7 @@ function RegisterContent() {
               <label className="flex items-start gap-3 cursor-pointer">
                 <div onClick={() => setAccepted(!accepted)}
                      className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                       accepted ? "bg-[#7c5cc4] border-[#7c5cc4]" : "border-[#c4b0e8] bg-white"
+                       accepted ? "bg-[#7c5cc4] border-[#7c5cc4]" : "border-[#C77D93] bg-white"
                      }`}>
                   {accepted && (
                     <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">

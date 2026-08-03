@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Bell, User, Shield, Globe, HelpCircle, Settings, ChevronRight,
-  Eye, EyeOff, Check, AlertTriangle, Lock, MessageCircle, Calendar, FolderOpen, GraduationCap,
+  Bell, User, Shield, Globe, HelpCircle, Settings, ChevronRight, Eye, EyeOff, Check, AlertTriangle, Lock, MessageCircle, Calendar, FolderOpen, GraduationCap, X,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
@@ -34,7 +33,7 @@ function CampoEditable({ label, valor, campo, tipo="text", onGuardar, loading, i
           style={{ flex:1, minWidth:120, border:`1.5px solid ${T.primary}`, borderRadius:10, padding:"9px 12px", fontSize:13, color:T.text, outline:"none", fontFamily:T.font, background:"#fff" }} autoFocus/>
         <div style={{ display:"flex", gap:6 }}>
           <button onClick={guardar} disabled={loading} style={{ padding:"9px 14px", borderRadius:10, border:"none", background:T.primary, color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:T.font }}>{loading?"...":"Guardar"}</button>
-          <button onClick={cancelar} style={{ padding:"9px 12px", borderRadius:10, border:`1.5px solid ${T.border}`, background:"#fff", color:T.textSoft, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:T.font }}>✕</button>
+          <button onClick={cancelar} style={{ padding:"9px 12px", borderRadius:10, border:`1.5px solid ${T.border}`, background:"#fff", color:T.textSoft, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:T.font }}><X size={13}/></button>
         </div>
       </div>
     </div>
@@ -83,7 +82,7 @@ export default function ConfiguracionPage() {
   const guardar=async(campos)=>{ setSaving(true);
     const res=await fetch("/api/dashboard/configuracion",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(campos)});
     const data=await res.json();
-    if(res.ok){ setConfig(c=>({...c,...campos})); showToast("✓ Cambios guardados"); } else showToast(data.error||"Error al guardar","error"); setSaving(false); };
+    if(res.ok){ setConfig(c=>({...c,...campos})); showToast("Cambios guardados"); } else showToast(data.error||"Error al guardar","error"); setSaving(false); };
 
   const cambiarPassword=async(e)=>{ e.preventDefault();
     if(passNuevo!==passConfirm){ showToast("Las contraseñas no coinciden","error"); return; }
@@ -91,7 +90,7 @@ export default function ConfiguracionPage() {
     setSaving(true);
     const res=await fetch("/api/dashboard/configuracion",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({accion:"cambiar_password",password_actual:passActual,password_nuevo:passNuevo})});
     const data=await res.json();
-    if(res.ok){ showToast("✓ Contraseña actualizada"); setPassActual(""); setPassNuevo(""); setPassConfirm(""); } else showToast(data.error||"Error","error"); setSaving(false); };
+    if(res.ok){ showToast("Contraseña actualizada"); setPassActual(""); setPassNuevo(""); setPassConfirm(""); } else showToast(data.error||"Error","error"); setSaving(false); };
 
   const eliminarCuenta=async()=>{ setSaving(true);
     const res=await fetch("/api/dashboard/configuracion",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({accion:"eliminar_cuenta",password_confirm:passEliminar})});
@@ -120,7 +119,7 @@ export default function ConfiguracionPage() {
         <div style={{ position:"fixed",inset:0,background:"rgba(58,37,48,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16 }}
           onClick={e=>e.target===e.currentTarget&&setModalEliminar(false)}>
           <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:420,padding:isMobile?20:30 }}>
-            <div style={{ width:52,height:52,borderRadius:"50%",background:"#FEECEC",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px" }}><AlertTriangle size={24} style={{ color:"#C0392B" }}/></div>
+            <div style={{ width:52,height:52,borderRadius:"50%",background:"#FDECEC",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px" }}><AlertTriangle size={24} style={{ color:"#C0392B" }}/></div>
             <h3 style={{ fontSize:17,fontWeight:700,color:T.ink,textAlign:"center",margin:"0 0 8px" }}>¿Eliminar tu cuenta?</h3>
             <p style={{ fontSize:13,color:T.textSoft,textAlign:"center",margin:"0 0 18px",lineHeight:1.6 }}>Esta acción es permanente. Se eliminarán todos tus datos, documentos y progreso.</p>
             <label style={{ fontSize:11,fontWeight:700,color:T.text,textTransform:"uppercase",letterSpacing:".7px",display:"block",marginBottom:6 }}>Confirma tu contraseña</label>
@@ -203,7 +202,7 @@ export default function ConfiguracionPage() {
                     <p style={{ fontSize:13,fontWeight:600,color:"#C0392B",margin:0 }}>Eliminar cuenta</p>
                     <p style={{ fontSize:11,color:T.textSoft,margin:0 }}>Acción permanente e irreversible</p>
                   </div>
-                  <button onClick={()=>setModalEliminar(true)} style={{ padding:"7px 14px",borderRadius:10,border:"1.5px solid #F6C9C9",background:"#FEECEC",color:"#C0392B",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:T.font,flexShrink:0 }}>Eliminar</button>
+                  <button onClick={()=>setModalEliminar(true)} style={{ padding:"7px 14px",borderRadius:10,border:"1.5px solid #F6C9C9",background:"#FDECEC",color:"#C0392B",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:T.font,flexShrink:0 }}>Eliminar</button>
                 </div>
               </div>
             </div>

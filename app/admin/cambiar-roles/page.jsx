@@ -179,10 +179,10 @@ export default function CambiarRolesPage() {
                   <p className="text-xs text-gray-500 uppercase mb-1">Rol Actual</p>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${getRolColor(usuario.rol)}`}>
                     {usuario.rol === "usuaria"
-                      ? "👩‍🎓 Usuaria"
+                      ? "Candidata"
                       : usuario.rol === "asociada"
-                      ? "👩‍🏫 Asociada"
-                      : "👨‍💼 Admin"}
+                      ? "Asociada"
+                      : "Admin"}
                   </span>
                 </div>
 
@@ -241,11 +241,11 @@ export default function CambiarRolesPage() {
 
       {/* Info sobre roles */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-        <p className="text-sm font-medium text-blue-900">📋 Tipos de Roles:</p>
+        <p className="text-sm font-medium text-blue-900">Tipos de rol</p>
         <ul className="text-sm text-blue-800 space-y-1 ml-4">
-          <li>👩‍🎓 <strong>Usuaria:</strong> Estudiantes Au Pair en el programa</li>
-          <li>👩‍🏫 <strong>Asociada:</strong> Asesoras que guían a las usuarias</li>
-          <li>👨‍💼 <strong>Admin:</strong> Administradores del sistema</li>
+          <li><strong>Candidata:</strong> jóvenes en el programa au pair</li>
+          <li><strong>Asociada:</strong> asesoras que acompañan a las candidatas</li>
+          <li><strong>Admin:</strong> administración de la plataforma</li>
         </ul>
       </div>
     </div>

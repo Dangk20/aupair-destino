@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
+  Pencil,
   FileText, FileEdit, Folder, Lock, Paperclip, Users, Search, Eye,
   PlayCircle, CheckCircle2, Timer, Trash2,
 } from "lucide-react";
@@ -76,7 +77,7 @@ const MOD_C = {
   "Modulo 5":["#e0eafa","#2040a0"],"Modulo 6":["#ede0fc","#5030a0"],
 };
 const ModBadge = ({ m }) => {
-  const [bg,fg] = MOD_C[m]||["#f0e8f8","#6030a0"];
+  const [bg,fg] = MOD_C[m]||["#FCE8EE","#7D2F47"];
   return <span style={{background:bg,color:fg,fontSize:11,fontWeight:600,padding:"3px 9px",borderRadius:999}}>{m||"—"}</span>;
 };
 const StatusBadge = ({ estado }) => {
@@ -87,7 +88,7 @@ const GRADS=[["#FCE8EE","#f0c0cc"],["#e8f0fc","#c0ccf0"],["#e8fce8","#b0e0b0"],[
 const Thumb = ({ orden }) => { const [g1,g2]=GRADS[(orden-1)%GRADS.length]; return <div style={{width:44,height:34,borderRadius:8,flexShrink:0,background:`linear-gradient(135deg,${g1},${g2})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#A0435F"}}>{orden}</div>; };
 
 const TIPO_ICON  = { pdf:FileText, docx:FileEdit, otro:Folder };
-const TIPO_COLOR = { pdf:["#FCE8EE","#A0435F"], docx:["#FCE8EE","#3060c0"], otro:["#FBF4F6","#6030a0"] };
+const TIPO_COLOR = { pdf:["#FCE8EE","#A0435F"], docx:["#FCE8EE","#3060c0"], otro:["#FBF4F6","#7D2F47"] };
 function formatBytes(kb) { if(!kb)return""; return kb<1024?`${kb} KB`:`${(kb/1024).toFixed(1)} MB`; }
 function extractYoutubeId(url) {
   if (!url) return "";
@@ -720,8 +721,8 @@ export default function AdminSesionesPage() {
                       <td>
                         <div style={{display:"flex",gap:4,justifyContent:"center"}}>
                           <button className="act-btn" title="Vista estudiante" onClick={()=>setStudentView(true)}><Eye size={14}/></button>
-                          <button className="act-btn accent" title="Editar" onClick={()=>setEditModal(s)}>✏️</button>
-                          <button className="act-btn danger" title="Eliminar" onClick={()=>eliminarSesion(s.id,s.titulo)}>🗑</button>
+                          <button className="act-btn accent" title="Editar" onClick={()=>setEditModal(s)}><Pencil size={14}/></button>
+                          <button className="act-btn danger" title="Eliminar" onClick={()=>eliminarSesion(s.id,s.titulo)}><Trash2 size={14}/></button>
                         </div>
                       </td>
                     </tr>

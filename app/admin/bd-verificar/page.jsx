@@ -171,7 +171,7 @@ export default function VerificadorBDPage() {
 
       {/* Info útil */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p className="text-sm font-medium text-green-900 mb-2">✅ Verificación Completada</p>
+        <p className="text-sm font-medium text-green-900 mb-2 flex items-center gap-1.5"><CheckCircleIcon size={15}/> Verificación completada</p>
         <p className="text-sm text-green-800">
           Todas las tablas de tu base de datos están visibles arriba. Puedes copiar la estructura de cada tabla usando el botón de copiar.
         </p>
