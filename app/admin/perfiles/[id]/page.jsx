@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  ClipboardList, Paperclip, FolderOpen, CalendarDays, AlertTriangle,
+  MessageSquare, Building2,
   ChevronLeftIcon, ChevronRightIcon, SaveIcon,
   UserIcon, WrenchIcon, BriefcaseIcon, HeartIcon,
   BabyIcon, FileCheckIcon,
@@ -14,12 +16,12 @@ import {
 } from "lucide-react";
 
 const SECCIONES = [
-  { id:"personal",    titulo:"Información personal",     emoji:"👤", icon:UserIcon,      color:"#ec4899", bg:"#fce7f3" },
-  { id:"habilidades", titulo:"Requisitos y habilidades",  emoji:"🔧", icon:WrenchIcon,    color:"#7c3aed", bg:"#ede9fe" },
-  { id:"situacion",   titulo:"Situación actual",          emoji:"💼", icon:BriefcaseIcon, color:"#d97706", bg:"#fef3c7" },
-  { id:"salud",       titulo:"Salud",                     emoji:"❤️", icon:HeartIcon,     color:"#ef4444", bg:"#fee2e2" },
-  { id:"experiencia", titulo:"Experiencia con niños",     emoji:"👶", icon:BabyIcon,      color:"#10b981", bg:"#d1fae5" },
-  { id:"visas",       titulo:"Visas y compromisos",       emoji:"📋", icon:FileCheckIcon, color:"#1d4ed8", bg:"#dbeafe" },
+  { id:"personal",    titulo:"Información personal",     icon:UserIcon,      color:"#ec4899", bg:"#fce7f3" },
+  { id:"habilidades", titulo:"Requisitos y habilidades",  icon:WrenchIcon,    color:"#A0435F", bg:"#FCE8EE" },
+  { id:"situacion",   titulo:"Situación actual",          icon:BriefcaseIcon, color:"#E8853B", bg:"#FFF4EC" },
+  { id:"salud",       titulo:"Salud",                     icon:HeartIcon,     color:"#ef4444", bg:"#FDECEC" },
+  { id:"experiencia", titulo:"Experiencia con niños",     icon:BabyIcon,      color:"#12A46B", bg:"#E6F9F0" },
+  { id:"visas",       titulo:"Visas y compromisos",       icon:FileCheckIcon, color:"#A0435F", bg:"#FCE8EE" },
 ];
 
 const CAMPOS_PROGRESO = [
@@ -36,12 +38,12 @@ function calcProgreso(form) {
 }
 
 const IC = {
-  width:"100%", border:"1.5px solid #f0dde2", borderRadius:12,
-  padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff",
+  width:"100%", border:"1.5px solid #F5E1E7", borderRadius:12,
+  padding:"10px 14px", fontSize:13, color:"#4A2A38", background:"#fff",
   outline:"none", fontFamily:"inherit", boxSizing:"border-box",
 };
 const LC = {
-  fontSize:10, fontWeight:700, color:"#6b4a54", textTransform:"uppercase",
+  fontSize:10, fontWeight:700, color:"#9C8790", textTransform:"uppercase",
   letterSpacing:".7px", display:"block", marginBottom:6,
 };
 
@@ -53,14 +55,14 @@ function Radio({ name, options, value, onChange }) {
           style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
           <div style={{
             width:20, height:20, borderRadius:"50%", flexShrink:0,
-            border:`2px solid ${value===opt?"#a0435f":"#f0dde2"}`,
-            background:value===opt?"#a0435f":"#fff",
+            border:`2px solid ${value===opt?"#A0435F":"#F5E1E7"}`,
+            background:value===opt?"#A0435F":"#fff",
             display:"flex", alignItems:"center", justifyContent:"center",
             transition:"all .12s",
           }}>
             {value===opt && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }}/>}
           </div>
-          <span style={{ fontSize:13, color:"#1e1033", lineHeight:1.4 }}>{opt}</span>
+          <span style={{ fontSize:13, color:"#4A2A38", lineHeight:1.4 }}>{opt}</span>
         </label>
       ))}
     </div>
@@ -69,9 +71,9 @@ function Radio({ name, options, value, onChange }) {
 
 /* ══ Tab Documentos ══════════════════════════════════════════════════════ */
 const ESTADO_DOC = {
-  aprobado:  { bg:"#d1fae5", color:"#059669", label:"Aprobado",   icon:CheckCircle2Icon },
-  pendiente: { bg:"#fef3c7", color:"#d97706", label:"En revisión", icon:ClockIcon        },
-  rechazado: { bg:"#fee2e2", color:"#dc2626", label:"Rechazado",  icon:XCircleIcon       },
+  aprobado:  { bg:"#E6F9F0", color:"#12A46B", label:"Aprobado",   icon:CheckCircle2Icon },
+  pendiente: { bg:"#FFF4EC", color:"#E8853B", label:"En revisión", icon:ClockIcon        },
+  rechazado: { bg:"#FDECEC", color:"#C0392B", label:"Rechazado",  icon:XCircleIcon       },
 };
 
 function TabDocumentos({ userId }) {
@@ -125,15 +127,15 @@ function TabDocumentos({ userId }) {
 
   if (loading) return (
     <div style={{ padding:"48px", display:"flex", justifyContent:"center" }}>
-      <div style={{ width:32, height:32, border:"2px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
+      <div style={{ width:32, height:32, border:"2px solid #C77D93", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
     </div>
   );
 
   if (docs.length === 0) return (
     <div style={{ padding:"56px 24px", textAlign:"center" }}>
-      <div style={{ fontSize:52, marginBottom:14 }}>📂</div>
-      <p style={{ fontSize:15, fontWeight:600, color:"#1e1033", margin:"0 0 6px" }}>Sin documentos subidos</p>
-      <p style={{ fontSize:13, color:"#9a7080", margin:0 }}>Esta aplicante aún no ha subido documentos.</p>
+      <FolderOpen size={44} style={{ color:"#C77D93", marginBottom:14 }}/>
+      <p style={{ fontSize:15, fontWeight:600, color:"#4A2A38", margin:"0 0 6px" }}>Sin documentos subidos</p>
+      <p style={{ fontSize:13, color:"#9C8790", margin:0 }}>Esta aplicante aún no ha subido documentos.</p>
     </div>
   );
 
@@ -144,7 +146,7 @@ function TabDocumentos({ userId }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       {toast && (
-        <div style={{ position:"fixed", top:20, right:20, zIndex:3000, background:toast.tipo==="error"?"#dc2626":"#1e1033", color:"#fff", padding:"10px 18px", borderRadius:12, fontSize:13, fontWeight:600 }}>
+        <div style={{ position:"fixed", top:20, right:20, zIndex:3000, background:toast.tipo==="error"?"#C0392B":"#4A2A38", color:"#fff", padding:"10px 18px", borderRadius:12, fontSize:13, fontWeight:600 }}>
           {toast.msg}
         </div>
       )}
@@ -152,10 +154,10 @@ function TabDocumentos({ userId }) {
       {/* Stats */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
         {[
-          { label:"Total",       val:docs.length,  color:"#1e1033", bg:"#f5f0ff" },
-          { label:"Aprobados",   val:aprobados,    color:"#059669", bg:"#d1fae5" },
-          { label:"En revisión", val:pendientes,   color:"#d97706", bg:"#fef3c7" },
-          { label:"Rechazados",  val:rechazados,   color:"#dc2626", bg:"#fee2e2" },
+          { label:"Total",       val:docs.length,  color:"#4A2A38", bg:"#FBF4F6" },
+          { label:"Aprobados",   val:aprobados,    color:"#12A46B", bg:"#E6F9F0" },
+          { label:"En revisión", val:pendientes,   color:"#E8853B", bg:"#FFF4EC" },
+          { label:"Rechazados",  val:rechazados,   color:"#C0392B", bg:"#FDECEC" },
         ].map((s,i) => (
           <div key={i} style={{ background:s.bg, borderRadius:14, padding:"14px 16px", textAlign:"center" }}>
             <p style={{ fontFamily:"Georgia,serif", fontSize:28, fontWeight:700, color:s.color, margin:0 }}>{s.val}</p>
@@ -165,9 +167,9 @@ function TabDocumentos({ userId }) {
       </div>
 
       {/* Lista */}
-      <div style={{ background:"#fff", borderRadius:20, border:"1px solid #f0dde2", overflow:"hidden" }}>
-        <div style={{ padding:"14px 20px", borderBottom:"1px solid #fce8ed", background:"#fff8f9" }}>
-          <p style={{ fontSize:13, fontWeight:700, color:"#2d1a22", margin:0 }}>
+      <div style={{ background:"#fff", borderRadius:20, border:"1px solid #F5E1E7", overflow:"hidden" }}>
+        <div style={{ padding:"14px 20px", borderBottom:"1px solid #FCE8EE", background:"#FBF4F6" }}>
+          <p style={{ fontSize:13, fontWeight:700, color:"#4A2A38", margin:0 }}>
             {docs.length} documento{docs.length!==1?"s":""} subido{docs.length!==1?"s":""}
           </p>
         </div>
@@ -181,49 +183,49 @@ function TabDocumentos({ userId }) {
           const enEdit  = editando === doc.id;
 
           return (
-            <div key={doc.id} style={{ padding:"18px 20px", borderBottom:i<docs.length-1?"1px solid #fff0f3":"none" }}>
+            <div key={doc.id} style={{ padding:"18px 20px", borderBottom:i<docs.length-1?"1px solid #FBEEF1":"none" }}>
               <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
 
                 {/* Ícono tipo */}
                 <div style={{ width:48, height:48, borderRadius:14, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-                  background: isPDF?"#fce7f3":isImg?"#dbeafe":"#f3f4f6",
+                  background: isPDF?"#fce7f3":isImg?"#FCE8EE":"#F3F4F6",
                 }}>
                   {isPDF
-                    ? <FileTextIcon size={22} style={{ color:"#a0435f" }}/>
+                    ? <FileTextIcon size={22} style={{ color:"#A0435F" }}/>
                     : isImg
-                    ? <ImageIcon size={22} style={{ color:"#1d4ed8" }}/>
-                    : <FileTextIcon size={22} style={{ color:"#6b7280" }}/>}
+                    ? <ImageIcon size={22} style={{ color:"#A0435F" }}/>
+                    : <FileTextIcon size={22} style={{ color:"#6B7280" }}/>}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
-                    <p style={{ fontSize:14, fontWeight:600, color:"#1e1033", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:280 }}>
+                    <p style={{ fontSize:14, fontWeight:600, color:"#4A2A38", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:280 }}>
                       {doc.nombre}
                     </p>
                     <span style={{ background:cfg.bg, color:cfg.color, fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:99, display:"inline-flex", alignItems:"center", gap:4 }}>
                       <EstIcon size={11}/>{cfg.label}
                     </span>
-                    <span style={{ fontSize:10, color:"#9a7080", background:"#f5f0ff", padding:"2px 8px", borderRadius:99 }}>
+                    <span style={{ fontSize:10, color:"#9C8790", background:"#FBF4F6", padding:"2px 8px", borderRadius:99 }}>
                       {doc.tipo_doc}
                     </span>
                   </div>
                   <div style={{ display:"flex", gap:12 }}>
-                    <span style={{ fontSize:11, color:"#9a7080" }}>📎 {doc.tamano_kb ? `${doc.tamano_kb} KB` : "—"}</span>
-                    <span style={{ fontSize:11, color:"#9a7080" }}>📅 {doc.created_at ? new Date(doc.created_at).toLocaleDateString("es-CO") : "—"}</span>
+                    <span style={{ fontSize:11, color:"#9C8790", display:"inline-flex", alignItems:"center", gap:4 }}><Paperclip size={11}/>{doc.tamano_kb ? `${doc.tamano_kb} KB` : "—"}</span>
+                    <span style={{ fontSize:11, color:"#9C8790", display:"inline-flex", alignItems:"center", gap:4 }}><CalendarDays size={11}/>{doc.created_at ? new Date(doc.created_at).toLocaleDateString("es-CO") : "—"}</span>
                   </div>
                   {/* Archivo perdido del almacenamiento */}
                   {doc.disponible === false && (
-                    <div style={{ marginTop:8, background:"#fee2e2", border:"1px solid #fca5a5", borderRadius:8, padding:"8px 12px" }}>
+                    <div style={{ marginTop:8, background:"#FDECEC", border:"1px solid #C0392B", borderRadius:8, padding:"8px 12px" }}>
                       <p style={{ fontSize:11, color:"#991b1b", margin:0 }}>
-                        ⚠️ <strong>Archivo no disponible.</strong> El registro existe pero el archivo no está en el servidor. Pídele a la candidata que lo vuelva a cargar.
+                        <AlertTriangle size={12} style={{ display:"inline", verticalAlign:"-2px", marginRight:4 }}/><strong>Archivo no disponible.</strong> El registro existe pero el archivo no está en el servidor. Pídele a la candidata que lo vuelva a cargar.
                       </p>
                     </div>
                   )}
                   {/* Nota admin existente */}
                   {doc.nota_admin && !enEdit && (
-                    <div style={{ marginTop:8, background:"#fef3c7", border:"1px solid #fde68a", borderRadius:8, padding:"8px 12px" }}>
-                      <p style={{ fontSize:11, color:"#92400e", margin:0 }}>💬 <strong>Nota:</strong> {doc.nota_admin}</p>
+                    <div style={{ marginTop:8, background:"#FFF4EC", border:"1px solid #FFF4EC", borderRadius:8, padding:"8px 12px" }}>
+                      <p style={{ fontSize:11, color:"#E8853B", margin:0 }}><MessageSquare size={11} style={{ display:"inline", verticalAlign:"-1px", marginRight:4 }}/><strong>Nota:</strong> {doc.nota_admin}</p>
                     </div>
                   )}
                   {/* Editor nota */}
@@ -233,14 +235,14 @@ function TabDocumentos({ userId }) {
                         value={notaTemp} onChange={e=>setNotaTemp(e.target.value)}
                         placeholder="Nota para la aplicante (ella la verá en su dashboard)..."
                         rows={3} autoFocus
-                        style={{ width:"100%", border:"1.5px solid #f0dde2", borderRadius:10, padding:"9px 12px", fontSize:12, color:"#1e1033", fontFamily:"inherit", resize:"vertical", boxSizing:"border-box", outline:"none" }}/>
+                        style={{ width:"100%", border:"1.5px solid #F5E1E7", borderRadius:10, padding:"9px 12px", fontSize:12, color:"#4A2A38", fontFamily:"inherit", resize:"vertical", boxSizing:"border-box", outline:"none" }}/>
                       <div style={{ display:"flex", gap:8, marginTop:8 }}>
                         <button onClick={() => guardarNota(doc.id)} disabled={guardando}
-                          style={{ padding:"7px 16px", borderRadius:10, border:"none", background:"#a0435f", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                          style={{ padding:"7px 16px", borderRadius:10, border:"none", background:"#A0435F", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
                           {guardando?"Guardando…":"Guardar nota"}
                         </button>
                         <button onClick={() => setEditando(null)}
-                          style={{ padding:"7px 14px", borderRadius:10, border:"1.5px solid #f0dde2", background:"#fff", color:"#9a7080", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                          style={{ padding:"7px 14px", borderRadius:10, border:"1.5px solid #F5E1E7", background:"#fff", color:"#9C8790", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
                           Cancelar
                         </button>
                       </div>
@@ -252,46 +254,46 @@ function TabDocumentos({ userId }) {
                 <div style={{ display:"flex", gap:6, flexShrink:0, alignItems:"flex-start" }}>
                   {doc.url && doc.disponible !== false && (
                     <a href={doc.url} target="_blank" rel="noopener noreferrer" title="Ver documento"
-                      style={{ width:34, height:34, borderRadius:10, background:"#f5f0ff", display:"flex", alignItems:"center", justifyContent:"center", textDecoration:"none" }}>
-                      <EyeIcon size={15} style={{ color:"#7c3aed" }}/>
+                      style={{ width:34, height:34, borderRadius:10, background:"#FBF4F6", display:"flex", alignItems:"center", justifyContent:"center", textDecoration:"none" }}>
+                      <EyeIcon size={15} style={{ color:"#A0435F" }}/>
                     </a>
                   )}
                   {doc.disponible === false && (
                     <span title="El archivo no está en el servidor. Pídele a la candidata que lo vuelva a cargar."
-                      style={{ width:34, height:34, borderRadius:10, background:"#fee2e2", display:"flex", alignItems:"center", justifyContent:"center", cursor:"help" }}>
-                      <EyeIcon size={15} style={{ color:"#dc2626" }}/>
+                      style={{ width:34, height:34, borderRadius:10, background:"#FDECEC", display:"flex", alignItems:"center", justifyContent:"center", cursor:"help" }}>
+                      <EyeIcon size={15} style={{ color:"#C0392B" }}/>
                     </span>
                   )}
                   <button onClick={() => { setEditando(enEdit?null:doc.id); setNotaTemp(doc.nota_admin||""); }}
                     title="Agregar nota"
-                    style={{ width:34, height:34, borderRadius:10, background:doc.nota_admin?"#fef3c7":"#f3f4f6", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <MessageSquareIcon size={15} style={{ color:doc.nota_admin?"#d97706":"#9a7080" }}/>
+                    style={{ width:34, height:34, borderRadius:10, background:doc.nota_admin?"#FFF4EC":"#F3F4F6", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <MessageSquareIcon size={15} style={{ color:doc.nota_admin?"#E8853B":"#9C8790" }}/>
                   </button>
                   <button onClick={() => actualizarEstado(doc.id,"aprobado")} disabled={guardando||doc.estado==="aprobado"}
                     title="Aprobar"
-                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="aprobado"?"#d1fae5":"#fff", border:`1.5px solid ${doc.estado==="aprobado"?"#6ee7b7":"#e5e7eb"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="aprobado"?.5:1 }}>
-                    <CheckCircle2Icon size={15} style={{ color:"#059669" }}/>
+                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="aprobado"?"#E6F9F0":"#fff", border:`1.5px solid ${doc.estado==="aprobado"?"#6ee7b7":"#E5E7EB"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="aprobado"?.5:1 }}>
+                    <CheckCircle2Icon size={15} style={{ color:"#12A46B" }}/>
                   </button>
                   <button onClick={() => actualizarEstado(doc.id,"rechazado")} disabled={guardando||doc.estado==="rechazado"}
                     title="Rechazar"
-                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="rechazado"?"#fee2e2":"#fff", border:`1.5px solid ${doc.estado==="rechazado"?"#fca5a5":"#e5e7eb"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="rechazado"?.5:1 }}>
-                    <XCircleIcon size={15} style={{ color:"#dc2626" }}/>
+                    style={{ width:34, height:34, borderRadius:10, background:doc.estado==="rechazado"?"#FDECEC":"#fff", border:`1.5px solid ${doc.estado==="rechazado"?"#C0392B":"#E5E7EB"}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:doc.estado==="rechazado"?.5:1 }}>
+                    <XCircleIcon size={15} style={{ color:"#C0392B" }}/>
                   </button>
                   {confirmDelete===doc.id ? (
                     <div style={{ display:"flex", gap:4 }}>
                       <button onClick={() => eliminar(doc.id)}
-                        style={{ padding:"6px 10px", borderRadius:8, border:"none", background:"#dc2626", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                        style={{ padding:"6px 10px", borderRadius:8, border:"none", background:"#C0392B", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
                         Sí
                       </button>
                       <button onClick={() => setConfirmDelete(null)}
-                        style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>
+                        style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #E5E7EB", background:"#fff", color:"#6B7280", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>
                         No
                       </button>
                     </div>
                   ) : (
                     <button onClick={() => setConfirmDelete(doc.id)} title="Eliminar"
-                      style={{ width:34, height:34, borderRadius:10, background:"#fff", border:"1.5px solid #fee2e2", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <Trash2Icon size={14} style={{ color:"#dc2626" }}/>
+                      style={{ width:34, height:34, borderRadius:10, background:"#fff", border:"1.5px solid #FDECEC", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <Trash2Icon size={14} style={{ color:"#C0392B" }}/>
                     </button>
                   )}
                 </div>
@@ -357,16 +359,16 @@ export default function AdminPerfilIdPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:36, height:36, border:"3px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
+    <div style={{ minHeight:"100vh", background:"#FBF4F6", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ width:36, height:36, border:"3px solid #C77D93", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   if (!form.id) return (
-    <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12 }}>
-      <p style={{ color:"#9a7080", fontSize:14 }}>Perfil no encontrado.</p>
-      <Link href="/admin/perfiles" style={{ color:"#a0435f", fontSize:13, textDecoration:"none", fontWeight:600 }}>← Volver a perfiles</Link>
+    <div style={{ minHeight:"100vh", background:"#FBF4F6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12 }}>
+      <p style={{ color:"#9C8790", fontSize:14 }}>Perfil no encontrado.</p>
+      <Link href="/admin/perfiles" style={{ color:"#A0435F", fontSize:13, textDecoration:"none", fontWeight:600 }}>← Volver a perfiles</Link>
     </div>
   );
 
@@ -378,56 +380,56 @@ export default function AdminPerfilIdPage() {
     : null;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#faf5f6", fontFamily:"system-ui,-apple-system,sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"#FBF4F6", fontFamily:"system-ui,-apple-system,sans-serif" }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
-        input:focus,textarea:focus,select:focus{border-color:#a0435f!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);}
+        input:focus,textarea:focus,select:focus{border-color:#A0435F!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);}
       `}</style>
 
       {toast && (
-        <div style={{ position:"fixed", top:20, right:20, zIndex:2000, background:toast.tipo==="error"?"#dc2626":"#1e1033", color:"#fff", padding:"12px 20px", borderRadius:14, fontSize:13, fontWeight:600, boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>
+        <div style={{ position:"fixed", top:20, right:20, zIndex:2000, background:toast.tipo==="error"?"#C0392B":"#4A2A38", color:"#fff", padding:"12px 20px", borderRadius:14, fontSize:13, fontWeight:600, boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>
           {toast.msg}
         </div>
       )}
 
       {/* ── HEADER ── */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #f0dde2", padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, position:"sticky", top:0, zIndex:20 }}>
+      <div style={{ background:"#fff", borderBottom:"1px solid #F5E1E7", padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, position:"sticky", top:0, zIndex:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <Link href="/admin/perfiles"
-            style={{ display:"flex", alignItems:"center", gap:6, color:"#9a7080", textDecoration:"none", fontSize:13, border:"1px solid #f0dde2", padding:"7px 12px", borderRadius:10 }}>
+            style={{ display:"flex", alignItems:"center", gap:6, color:"#9C8790", textDecoration:"none", fontSize:13, border:"1px solid #F5E1E7", padding:"7px 12px", borderRadius:10 }}>
             <ChevronLeftIcon size={14}/> Perfiles
           </Link>
-          <span style={{ color:"#f0dde2" }}>›</span>
-          <span style={{ fontSize:13, color:"#a0435f", fontWeight:600 }}>{form.nombre} {form.apellido}</span>
+          <span style={{ color:"#F5E1E7" }}>›</span>
+          <span style={{ fontSize:13, color:"#A0435F", fontWeight:600 }}>{form.nombre} {form.apellido}</span>
         </div>
 
         <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, maxWidth:320 }}>
           <div style={{ flex:1 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-              <span style={{ fontSize:11, color:"#9a7080" }}>Progreso del perfil</span>
-              <span style={{ fontSize:11, fontWeight:700, color:"#a0435f" }}>{progreso}% completado</span>
+              <span style={{ fontSize:11, color:"#9C8790" }}>Progreso del perfil</span>
+              <span style={{ fontSize:11, fontWeight:700, color:"#A0435F" }}>{progreso}% completado</span>
             </div>
-            <div style={{ height:6, background:"#f0dde2", borderRadius:99, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${progreso}%`, background:"linear-gradient(90deg,#a0435f,#e8849a)", borderRadius:99, transition:"width .5s" }}/>
+            <div style={{ height:6, background:"#F5E1E7", borderRadius:99, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${progreso}%`, background:"linear-gradient(90deg,#A0435F,#C77D93)", borderRadius:99, transition:"width .5s" }}/>
             </div>
           </div>
           {tab==="evaluacion" && (
-            <span style={{ fontSize:11, color:"#9a7080", flexShrink:0, whiteSpace:"nowrap" }}>{seccion+1} de {SECCIONES.length} páginas</span>
+            <span style={{ fontSize:11, color:"#9C8790", flexShrink:0, whiteSpace:"nowrap" }}>{seccion+1} de {SECCIONES.length} páginas</span>
           )}
         </div>
 
         <div style={{ display:"flex", gap:10, flexShrink:0 }}>
           <Link href={`/admin/perfiles/${id}/agencia`}
-            style={{ display:"flex", alignItems:"center", gap:6, border:"1.5px solid #f0dde2", background:"#fff", color:"#2d1a22", fontSize:13, fontWeight:600, padding:"9px 16px", borderRadius:10, textDecoration:"none" }}>
-            🏢 Perfil agencia
+            style={{ display:"flex", alignItems:"center", gap:6, border:"1.5px solid #F5E1E7", background:"#fff", color:"#4A2A38", fontSize:13, fontWeight:600, padding:"9px 16px", borderRadius:10, textDecoration:"none" }}>
+            <Building2 size={14}/> Perfil agencia
           </Link>
           <button onClick={() => router.push("/admin/perfiles")}
-            style={{ padding:"9px 18px", borderRadius:10, border:"1.5px solid #f0dde2", background:"#fff", color:"#9a7080", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ padding:"9px 18px", borderRadius:10, border:"1.5px solid #F5E1E7", background:"#fff", color:"#9C8790", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
             Cancelar
           </button>
           {tab==="evaluacion" && (
             <button onClick={() => guardar(false)} disabled={guardando}
-              style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 20px", borderRadius:10, border:"none", background:"#a0435f", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+              style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 20px", borderRadius:10, border:"none", background:"#A0435F", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
               {guardando
                 ? <><div style={{ width:13, height:13, border:"2px solid rgba(255,255,255,.3)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>Guardando…</>
                 : <><SaveIcon size={13}/> Guardar cambios</>}
@@ -437,24 +439,24 @@ export default function AdminPerfilIdPage() {
       </div>
 
       {/* ── HERO con foto grande ── */}
-      <div style={{ background:"linear-gradient(135deg,#2d1a22 0%,#a0435f 100%)", padding:"32px 32px 40px", display:"flex", alignItems:"flex-end", gap:28, flexWrap:"wrap", position:"relative", overflow:"hidden" }}>
+      <div style={{ background:"linear-gradient(135deg,#4A2A38 0%,#A0435F 100%)", padding:"32px 32px 40px", display:"flex", alignItems:"flex-end", gap:28, flexWrap:"wrap", position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", top:-40, right:-40, width:200, height:200, borderRadius:"50%", background:"rgba(255,255,255,.04)" }}/>
         <div style={{ position:"absolute", bottom:-60, right:80, width:160, height:160, borderRadius:"50%", background:"rgba(255,255,255,.03)" }}/>
 
         <div style={{ position:"relative", flexShrink:0 }}>
-          <div style={{ width:120, height:120, borderRadius:28, overflow:"hidden", border:"4px solid rgba(255,255,255,.25)", background:"#fce8ed", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 12px 32px rgba(0,0,0,.3)" }}>
+          <div style={{ width:120, height:120, borderRadius:28, overflow:"hidden", border:"4px solid rgba(255,255,255,.25)", background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 12px 32px rgba(0,0,0,.3)" }}>
             {form.foto_url
               ? <img src={form.foto_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
               : <span style={{ fontFamily:"Georgia,serif", fontSize:48, color:"rgba(255,255,255,.8)", fontWeight:700 }}>{form.nombre?.[0]||"?"}</span>}
           </div>
-          <div style={{ position:"absolute", bottom:-10, right:-10, width:36, height:36, borderRadius:"50%", background:progreso>=90?"#10b981":progreso>=50?"#d97706":"#9ca3af", border:"3px solid #2d1a22", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ position:"absolute", bottom:-10, right:-10, width:36, height:36, borderRadius:"50%", background:progreso>=90?"#12A46B":progreso>=50?"#E8853B":"#C9A9B4", border:"3px solid #4A2A38", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <span style={{ fontSize:9, fontWeight:800, color:"#fff" }}>{progreso}%</span>
           </div>
         </div>
 
         <div style={{ flex:1, minWidth:0, paddingBottom:4 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6, flexWrap:"wrap" }}>
-            <span style={{ background:progreso>=90?"#10b981":progreso>=50?"#d97706":"#6b7280", color:"#fff", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:99, textTransform:"uppercase", letterSpacing:".5px" }}>
+            <span style={{ background:progreso>=90?"#12A46B":progreso>=50?"#E8853B":"#6B7280", color:"#fff", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:99, textTransform:"uppercase", letterSpacing:".5px" }}>
               {progreso>=90?"Completo":progreso>=50?"En revisión":progreso>0?"Incompleto":"Pendiente"}
             </span>
             {form.tiene_acceso
@@ -483,24 +485,24 @@ export default function AdminPerfilIdPage() {
           <select value={form.estado_perfil||"Pendiente"} onChange={e => set("estado_perfil", e.target.value)}
             style={{ background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.25)", borderRadius:10, padding:"7px 12px", fontSize:12, color:"#fff", outline:"none", fontFamily:"inherit", cursor:"pointer", minWidth:140 }}>
             {["Pendiente","En revisión","Completo","Verificado","Incompleto"].map(e => (
-              <option key={e} style={{ color:"#1e1033", background:"#fff" }}>{e}</option>
+              <option key={e} style={{ color:"#4A2A38", background:"#fff" }}>{e}</option>
             ))}
           </select>
         </div>
       </div>
 
       {/* ── TABS ← NUEVO ── */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #f0dde2", padding:"0 28px", display:"flex", gap:0 }}>
+      <div style={{ background:"#fff", borderBottom:"1px solid #F5E1E7", padding:"0 28px", display:"flex", gap:0 }}>
         {[
-          { id:"evaluacion", emoji:"🗂️", label:"Evaluación de Perfil" },
-          { id:"documentos", emoji:"📎", label:"Documentos" },
+          { id:"evaluacion", Icono:ClipboardList, label:"Evaluación de perfil" },
+          { id:"documentos", Icono:Paperclip, label:"Documentos" },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             style={{ padding:"14px 22px", border:"none", background:"none", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"inherit", transition:"all .12s",
-              color:     tab===t.id ? "#a0435f" : "#9a7080",
-              borderBottom: tab===t.id ? "2px solid #a0435f" : "2px solid transparent",
+              color:     tab===t.id ? "#A0435F" : "#9C8790",
+              borderBottom: tab===t.id ? "2px solid #A0435F" : "2px solid transparent",
             }}>
-            {t.emoji} {t.label}
+            <t.Icono size={15}/> {t.label}
           </button>
         ))}
       </div>
@@ -517,7 +519,7 @@ export default function AdminPerfilIdPage() {
 
             {/* Sidebar */}
             <div style={{ width:220, flexShrink:0 }}>
-              <p style={{ fontSize:10, fontWeight:700, color:"#9a7080", textTransform:"uppercase", letterSpacing:".8px", margin:"0 0 10px" }}>Secciones</p>
+              <p style={{ fontSize:10, fontWeight:700, color:"#9C8790", textTransform:"uppercase", letterSpacing:".8px", margin:"0 0 10px" }}>Secciones</p>
               {SECCIONES.map((s,i) => {
                 const SIcon  = s.icon;
                 const active = i === seccion;
@@ -527,8 +529,8 @@ export default function AdminPerfilIdPage() {
                       background:active ? s.bg : "transparent",
                       boxShadow:active ? `0 0 0 1.5px ${s.color}` : "none",
                     }}>
-                    <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:active?s.bg:"#f3f4f6" }}>
-                      <SIcon size={14} style={{ color:active?s.color:"#9ca3af" }}/>
+                    <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:active?s.bg:"#F3F4F6" }}>
+                      <SIcon size={14} style={{ color:active?s.color:"#C9A9B4" }}/>
                     </div>
                     <p style={{ fontSize:11.5, fontWeight:active?700:500, color:active?s.color:"#555", margin:0 }}>{s.titulo}</p>
                   </button>
@@ -544,11 +546,11 @@ export default function AdminPerfilIdPage() {
                 </div>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, color:sec.color, textTransform:"uppercase", letterSpacing:".7px", margin:"0 0 2px" }}>Sección {seccion+1} de {SECCIONES.length}</p>
-                  <h2 style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#1e1033", margin:0 }}>{sec.titulo}</h2>
+                  <h2 style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#4A2A38", margin:0 }}>{sec.titulo}</h2>
                 </div>
               </div>
 
-              <div style={{ background:"#fff", borderRadius:20, border:"1px solid #ece4f0", padding:"28px", display:"flex", flexDirection:"column", gap:20 }}>
+              <div style={{ background:"#fff", borderRadius:20, border:"1px solid #F5E1E7", padding:"28px", display:"flex", flexDirection:"column", gap:20 }}>
 
                 {/* ── 0: Personal ── */}
                 {seccion===0 && (<>
@@ -563,7 +565,7 @@ export default function AdminPerfilIdPage() {
                   <div>
                     <label style={LC}>URL foto de perfil</label>
                     <input name="foto_url" value={form.foto_url?.startsWith("data:")?"[Imagen subida ✓]":form.foto_url||""} onChange={hi} style={IC} placeholder="https://..." readOnly={form.foto_url?.startsWith("data:")}/>
-                    {form.foto_url && <img src={form.foto_url} alt="" onError={e=>{e.target.style.display="none"}} style={{ width:80, height:80, borderRadius:12, objectFit:"cover", marginTop:8, border:"2px solid #f0dde2" }}/>}
+                    {form.foto_url && <img src={form.foto_url} alt="" onError={e=>{e.target.style.display="none"}} style={{ width:80, height:80, borderRadius:12, objectFit:"cover", marginTop:8, border:"2px solid #F5E1E7" }}/>}
                   </div>
                   <div><label style={LC}>Descripción personal</label><textarea name="bio" rows={4} value={form.bio||""} onChange={hi} style={{ ...IC, resize:"vertical" }} placeholder="Descripción de la aplicante..."/></div>
                 </>)}
@@ -620,8 +622,8 @@ export default function AdminPerfilIdPage() {
                 {seccion===4 && (<>
                   <div><label style={LC}>¿Tiene experiencia con niños externos a la familia?</label><Radio name="exp_ninos_externos" options={["Si","No","La estoy haciendo"]} value={form.exp_ninos_externos||""} onChange={set}/></div>
                   <div><label style={LC}>¿Cuántas horas de experiencia tiene?</label><Radio name="horas_exp_ninos" options={["Menos de 500 horas","Entre 501 y 800 horas","Entre 801 y 1500 horas","Más de 1500"]} value={form.horas_exp_ninos||""} onChange={set}/></div>
-                  <div style={{ background:"#fff8f9", borderRadius:16, border:"1px solid #f0dde2", padding:"20px", marginTop:4 }}>
-                    <p style={{ fontSize:11, fontWeight:700, color:"#a0435f", textTransform:"uppercase", letterSpacing:".7px", margin:"0 0 14px" }}>📊 Datos para la agencia</p>
+                  <div style={{ background:"#FBF4F6", borderRadius:16, border:"1px solid #F5E1E7", padding:"20px", marginTop:4 }}>
+                    <p style={{ fontSize:11, fontWeight:700, color:"#A0435F", textTransform:"uppercase", letterSpacing:".7px", margin:"0 0 14px" }}>📊 Datos para la agencia</p>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14 }}>
                       <div><label style={LC}>Horas childcare</label><input name="horas_childcare" type="number" min="0" value={form.horas_childcare||""} onChange={hi} style={IC} placeholder="0"/></div>
                       <div><label style={LC}>Estado agencia</label><select name="estado_agencia" value={form.estado_agencia||"En progreso"} onChange={hi} style={IC}>{["En progreso","En revisión","Lista para agencia","Incompleto"].map(o=><option key={o}>{o}</option>)}</select></div>
@@ -667,17 +669,17 @@ export default function AdminPerfilIdPage() {
               {/* Navegación */}
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20 }}>
                 <button onClick={() => setSeccion(s => Math.max(0,s-1))} disabled={seccion===0}
-                  style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 18px", borderRadius:12, border:"1.5px solid #f0dde2", background:"#fff", color:"#9a7080", fontSize:13, fontWeight:600, cursor:seccion===0?"not-allowed":"pointer", opacity:seccion===0?.4:1, fontFamily:"inherit" }}>
+                  style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 18px", borderRadius:12, border:"1.5px solid #F5E1E7", background:"#fff", color:"#9C8790", fontSize:13, fontWeight:600, cursor:seccion===0?"not-allowed":"pointer", opacity:seccion===0?.4:1, fontFamily:"inherit" }}>
                   <ChevronLeftIcon size={15}/> Anterior
                 </button>
                 <div style={{ display:"flex", gap:6, alignItems:"center" }}>
                   {SECCIONES.map((_,i) => (
                     <button key={i} onClick={() => setSeccion(i)}
-                      style={{ width:i===seccion?28:10, height:10, borderRadius:99, border:"none", cursor:"pointer", transition:"all .2s", background:i===seccion?"#a0435f":"#f0dde2" }}/>
+                      style={{ width:i===seccion?28:10, height:10, borderRadius:99, border:"none", cursor:"pointer", transition:"all .2s", background:i===seccion?"#A0435F":"#F5E1E7" }}/>
                   ))}
                 </div>
                 <button onClick={() => guardar(true)} disabled={guardando}
-                  style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 22px", borderRadius:12, border:"none", background:"#a0435f", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                  style={{ display:"flex", alignItems:"center", gap:6, padding:"10px 22px", borderRadius:12, border:"none", background:"#A0435F", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
                   {guardando
                     ? <><div style={{ width:13, height:13, border:"2px solid rgba(255,255,255,.3)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>Guardando…</>
                     : seccion < SECCIONES.length-1

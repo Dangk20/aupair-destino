@@ -8,7 +8,7 @@ import {
   ClockIcon, UsersIcon, ArrowUpIcon, CheckCircleIcon,
 } from "lucide-react";
 
-const COLORES_DONA = ["#e8849a", "#c9973a", "#a0435f"];
+const COLORES_DONA = ["#C77D93", "#E8853B", "#A0435F"];
 
 /* ── Dona estatus comisiones ── */
 function DonaEstatus({ pendientes, programadas, vencidas }) {
@@ -16,9 +16,9 @@ function DonaEstatus({ pendientes, programadas, vencidas }) {
   const r = 60, cx = 80, cy = 80, stroke = 20;
   const circ = 2 * Math.PI * r;
   const datos = [
-    { val: pendientes,  color: "#e8849a" },
-    { val: programadas, color: "#c9973a" },
-    { val: vencidas,    color: "#a0435f" },
+    { val: pendientes,  color: "#C77D93" },
+    { val: programadas, color: "#E8853B" },
+    { val: vencidas,    color: "#A0435F" },
   ];
   let offset = 0;
   const arcos = datos.map(d => {
@@ -31,7 +31,7 @@ function DonaEstatus({ pendientes, programadas, vencidas }) {
     <div className="flex items-center gap-6">
       <div className="relative shrink-0">
         <svg width="160" height="160" viewBox="0 0 160 160">
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f0dde2" strokeWidth={stroke}/>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F5E1E7" strokeWidth={stroke}/>
           {arcos.map((a, i) => (
             <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={a.color}
               strokeWidth={stroke} strokeDasharray={`${a.dash} ${circ - a.dash}`}
@@ -39,33 +39,33 @@ function DonaEstatus({ pendientes, programadas, vencidas }) {
           ))}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-serif font-bold text-[18px] text-[#2d1a22]">
+          <span className="font-serif font-bold text-[18px] text-[#4A2A38]">
             ${(pendientes + programadas + vencidas).toLocaleString("es-CO")}
           </span>
-          <span className="font-bold text-[12px] text-[#2d1a22]">USD</span>
-          <span className="text-[8px] text-[#9a6672] text-center mt-0.5 leading-tight">Total por<br/>pagar</span>
+          <span className="font-bold text-[12px] text-[#4A2A38]">USD</span>
+          <span className="text-[8px] text-[#9C8790] text-center mt-0.5 leading-tight">Total por<br/>pagar</span>
         </div>
       </div>
       <div className="space-y-2.5">
         {[
-          { color:"bg-[#e8849a]", label:"Pendientes",  val:`$${pendientes.toLocaleString("es-CO")} USD`,  pct: Math.round(pendientes/total*100) },
-          { color:"bg-[#c9973a]", label:"Programadas", val:`$${programadas.toLocaleString("es-CO")} USD`, pct: Math.round(programadas/total*100) },
-          { color:"bg-[#a0435f]", label:"Vencidas",    val:`$${vencidas.toLocaleString("es-CO")} USD`,    pct: Math.round(vencidas/total*100) },
+          { color:"bg-[#C77D93]", label:"Pendientes",  val:`$${pendientes.toLocaleString("es-CO")} USD`,  pct: Math.round(pendientes/total*100) },
+          { color:"bg-[#E8853B]", label:"Programadas", val:`$${programadas.toLocaleString("es-CO")} USD`, pct: Math.round(programadas/total*100) },
+          { color:"bg-[#A0435F]", label:"Vencidas",    val:`$${vencidas.toLocaleString("es-CO")} USD`,    pct: Math.round(vencidas/total*100) },
         ].map((l, i) => (
           <div key={i} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${l.color}`}/>
-              <span className="text-[11px] text-[#2d1a22]">{l.label}</span>
+              <span className="text-[11px] text-[#4A2A38]">{l.label}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-[#2d1a22]">{l.val}</span>
-              <span className="text-[10px] text-[#9a6672]">{l.pct}%</span>
+              <span className="text-[11px] font-bold text-[#4A2A38]">{l.val}</span>
+              <span className="text-[10px] text-[#9C8790]">{l.pct}%</span>
             </div>
           </div>
         ))}
-        <div className="pt-2 border-t border-[#f0dde2]">
-          <p className="text-[10px] text-[#9a6672]">Próximos pagos programados</p>
-          <p className="text-[12px] font-bold text-[#a0435f] mt-0.5">31 may, 2024 · ${programadas.toLocaleString("es-CO")} USD</p>
+        <div className="pt-2 border-t border-[#F5E1E7]">
+          <p className="text-[10px] text-[#9C8790]">Próximos pagos programados</p>
+          <p className="text-[12px] font-bold text-[#A0435F] mt-0.5">31 may, 2024 · ${programadas.toLocaleString("es-CO")} USD</p>
         </div>
       </div>
     </div>
@@ -79,9 +79,9 @@ function GraficaIngresos({ datos }) {
     <div className="flex items-end gap-2 h-28">
       {(datos || []).map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <div className="w-full rounded-t-md bg-gradient-to-t from-[#a0435f] to-[#e8849a]"
+          <div className="w-full rounded-t-md bg-gradient-to-t from-[#A0435F] to-[#C77D93]"
                style={{ height: `${Math.max((d.monto / max) * 96, d.monto > 0 ? 6 : 2)}px` }}/>
-          <span className="text-[8px] text-[#9a6672] text-center leading-tight">{d.label}</span>
+          <span className="text-[8px] text-[#9C8790] text-center leading-tight">{d.label}</span>
         </div>
       ))}
     </div>
@@ -93,13 +93,13 @@ function ModalVerPago({ pago, onClose }) {
   if (!pago) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#e8849a] to-[#a0435f]"/>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0dde2]">
-          <h3 className="font-bold text-[16px] text-[#2d1a22]">Detalle del movimiento</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] hover:bg-[#f0b8c4] flex items-center justify-center">
-            <XIcon size={14} className="text-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F5E1E7]">
+          <h3 className="font-bold text-[16px] text-[#4A2A38]">Detalle del movimiento</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] hover:bg-[#C77D93] flex items-center justify-center">
+            <XIcon size={14} className="text-[#A0435F]"/>
           </button>
         </div>
         <div className="px-6 py-5 space-y-3">
@@ -114,20 +114,20 @@ function ModalVerPago({ pago, onClose }) {
             { label:"Estado",             val: pago.estado      },
             { label:"Fecha",              val: pago.fecha       },
           ].map((s, i) => (
-            <div key={i} className="flex items-center justify-between py-2 border-b border-[#fff0f3] last:border-0">
-              <span className="text-[11px] text-[#9a6672] uppercase tracking-wide">{s.label}</span>
+            <div key={i} className="flex items-center justify-between py-2 border-b border-[#FBEEF1] last:border-0">
+              <span className="text-[11px] text-[#9C8790] uppercase tracking-wide">{s.label}</span>
               <span className={`text-[12px] font-semibold ${
-                s.label === "Estado" && pago.estado === "Completado" ? "text-[#5a8a3a]"
-                : s.label === "Estado" && pago.estado === "Pendiente" ? "text-[#c9973a]"
-                : s.label === "Monto" ? (pago.tipo === "Ingreso" ? "text-[#5a8a3a]" : "text-[#a0435f]")
-                : "text-[#2d1a22]"
+                s.label === "Estado" && pago.estado === "Completado" ? "text-[#12A46B]"
+                : s.label === "Estado" && pago.estado === "Pendiente" ? "text-[#E8853B]"
+                : s.label === "Monto" ? (pago.tipo === "Ingreso" ? "text-[#12A46B]" : "text-[#A0435F]")
+                : "text-[#4A2A38]"
               }`}>{s.val || "—"}</span>
             </div>
           ))}
         </div>
         <div className="px-6 pb-5">
           <button onClick={onClose}
-            className="w-full bg-[#a0435f] hover:bg-[#8a3550] text-white font-semibold text-[13px] py-3 rounded-xl transition">
+            className="w-full bg-[#A0435F] hover:bg-[#7D2F47] text-white font-semibold text-[13px] py-3 rounded-xl transition">
             Cerrar
           </button>
         </div>
@@ -152,43 +152,43 @@ function ModalConfirmarPago({ onClose, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#2d1a22]/50 backdrop-blur-sm" onClick={onClose}/>
+      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#5a8a3a] via-[#90d060] to-[#5a8a3a]"/>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0dde2]">
-          <h3 className="font-bold text-[16px] text-[#2d1a22]">Confirmar pago recibido</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#fce8ed] flex items-center justify-center">
-            <XIcon size={14} className="text-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#12A46B] via-[#90d060] to-[#12A46B]"/>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F5E1E7]">
+          <h3 className="font-bold text-[16px] text-[#4A2A38]">Confirmar pago recibido</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center">
+            <XIcon size={14} className="text-[#A0435F]"/>
           </button>
         </div>
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wide text-[#2d1a22] mb-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1.5">
               ID del usuario
             </label>
             <input type="number" placeholder="Ej. 42" value={usuarioId}
               onChange={e => setUsuarioId(e.target.value)}
-              className="w-full border border-[#f0dde2] rounded-xl px-4 py-2.5 text-[13px]
-                         focus:outline-none focus:ring-2 focus:ring-[#5a8a3a]/30 focus:border-[#5a8a3a] bg-[#fff8f9]"/>
-            <p className="text-[10px] text-[#9a6672] mt-1">Puedes ver el ID en la sección Usuarios</p>
+              className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px]
+                         focus:outline-none focus:ring-2 focus:ring-[#12A46B]/30 focus:border-[#12A46B] bg-[#FBF4F6]"/>
+            <p className="text-[10px] text-[#9C8790] mt-1">Puedes ver el ID en la sección Usuarios</p>
           </div>
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wide text-[#2d1a22] mb-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1.5">
               Monto pagado (USD)
             </label>
             <div className="flex gap-2">
               {["29","35"].map(v => (
                 <button key={v} onClick={() => setMonto(v)}
                   className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-2 transition ${
-                    monto === v ? "bg-[#a0435f] border-[#a0435f] text-white" : "border-[#f0dde2] text-[#2d1a22] hover:border-[#e8849a]"
+                    monto === v ? "bg-[#A0435F] border-[#A0435F] text-white" : "border-[#F5E1E7] text-[#4A2A38] hover:border-[#C77D93]"
                   }`}>${v} USD</button>
               ))}
               <input type="number" value={monto} onChange={e => setMonto(e.target.value)}
-                className="flex-1 border-2 border-[#f0dde2] rounded-xl px-3 py-2.5 text-[13px]
-                           focus:outline-none focus:border-[#a0435f] text-center" placeholder="Otro"/>
+                className="flex-1 border-2 border-[#F5E1E7] rounded-xl px-3 py-2.5 text-[13px]
+                           focus:outline-none focus:border-[#A0435F] text-center" placeholder="Otro"/>
             </div>
           </div>
-          <div className="bg-[#e8f0e0] border border-[#b8d4a0] rounded-xl px-4 py-3">
+          <div className="bg-[#E6F9F0] border border-[#b8d4a0] rounded-xl px-4 py-3">
             <p className="text-[12px] text-[#3a7a50] font-medium">
               ✓ Esto activará el acceso del usuario y registrará la comisión del referente si aplica.
             </p>
@@ -196,11 +196,11 @@ function ModalConfirmarPago({ onClose, onConfirm }) {
         </div>
         <div className="px-6 pb-5 flex gap-3">
           <button onClick={onClose}
-            className="flex-1 border-2 border-[#f0dde2] text-[#9a6672] font-semibold text-[13px] py-3 rounded-xl hover:bg-[#fff0f3] transition">
+            className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl hover:bg-[#FBEEF1] transition">
             Cancelar
           </button>
           <button onClick={handleSubmit} disabled={!usuarioId || loading}
-            className="flex-1 bg-[#5a8a3a] hover:bg-[#4a7a2a] disabled:opacity-40 text-white font-semibold text-[13px] py-3 rounded-xl transition">
+            className="flex-1 bg-[#12A46B] hover:bg-[#4a7a2a] disabled:opacity-40 text-white font-semibold text-[13px] py-3 rounded-xl transition">
             {loading ? "Confirmando..." : "Confirmar pago ✓"}
           </button>
         </div>
@@ -310,18 +310,18 @@ export default function PagosPage() {
 
   if (cargando) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-2 border-[#e8849a] border-t-transparent rounded-full animate-spin"/>
+      <div className="w-8 h-8 border-2 border-[#C77D93] border-t-transparent rounded-full animate-spin"/>
     </div>
   );
 
   return (
-    <div className="p-5 xl:p-7 bg-[#fff8f9] min-h-full space-y-5">
+    <div className="p-5 xl:p-7 bg-[#FBF4F6] min-h-full space-y-5">
 
       {/* Toast */}
       {toast && (
         <div className={`fixed top-5 right-5 z-[100] flex items-center gap-2.5 px-4 py-3
                          rounded-2xl shadow-xl text-[13px] font-medium text-white ${
-          toast.tipo === "error" ? "bg-red-500" : "bg-[#a0435f]"
+          toast.tipo === "error" ? "bg-red-500" : "bg-[#A0435F]"
         }`}>
           <CheckIcon size={15}/>{toast.msg}
         </div>
@@ -331,32 +331,32 @@ export default function PagosPage() {
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="font-serif font-bold text-[#2d1a22] text-[24px] xl:text-[26px]">
+            <h1 className="font-serif font-bold text-[#4A2A38] text-[24px] xl:text-[26px]">
               Pagos y comisiones
             </h1>
-            <div className="w-6 h-6 rounded-full bg-[#fce8ed] flex items-center justify-center">
-              <span className="text-[10px] text-[#a0435f] font-bold">ⓘ</span>
+            <div className="w-6 h-6 rounded-full bg-[#FCE8EE] flex items-center justify-center">
+              <span className="text-[10px] text-[#A0435F] font-bold">ⓘ</span>
             </div>
           </div>
-          <p className="text-[12px] text-[#9a6672]">
+          <p className="text-[12px] text-[#9C8790]">
             Gestiona los pagos recibidos del programa y el pago de comisiones a tus referidos.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="flex items-center gap-2 bg-white border border-[#f0dde2] rounded-xl
-                             px-3 py-2 text-[12px] text-[#2d1a22] shadow-sm hover:border-[#e8849a] transition">
-            <CalendarIcon size={13} className="text-[#a0435f]"/>
+          <button className="flex items-center gap-2 bg-white border border-[#F5E1E7] rounded-xl
+                             px-3 py-2 text-[12px] text-[#4A2A38] shadow-sm hover:border-[#C77D93] transition">
+            <CalendarIcon size={13} className="text-[#A0435F]"/>
             {fechaRango}
-            <ChevronDownIcon size={11} className="text-[#9a6672]"/>
+            <ChevronDownIcon size={11} className="text-[#9C8790]"/>
           </button>
-          <button className="flex items-center gap-1.5 bg-white border border-[#f0dde2] text-[#9a6672]
-                             text-[12px] font-semibold px-4 py-2 rounded-xl hover:bg-[#fce8ed] transition shadow-sm">
+          <button className="flex items-center gap-1.5 bg-white border border-[#F5E1E7] text-[#9C8790]
+                             text-[12px] font-semibold px-4 py-2 rounded-xl hover:bg-[#FCE8EE] transition shadow-sm">
             <FilterIcon size={13}/>
             Filtros avanzados
           </button>
           <button onClick={exportar}
-            className="flex items-center gap-1.5 bg-[#a0435f] hover:bg-[#8a3550] text-white
-                       text-[12px] font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-[#a0435f]/20">
+            className="flex items-center gap-1.5 bg-[#A0435F] hover:bg-[#7D2F47] text-white
+                       text-[12px] font-semibold px-4 py-2 rounded-xl transition shadow-md shadow-[#A0435F]/20">
             <DownloadIcon size={13}/>
             Exportar reporte
           </button>
@@ -366,49 +366,49 @@ export default function PagosPage() {
       {/* ── STATS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { icon:DollarSignIcon,  color:"bg-[#fce8ed] text-[#a0435f]", label:"Ingresos totales (programa)", val:`$${s.ingresos?.toLocaleString("es-CO")||0} USD`, change:"+24%" },
-          { icon:CreditCardIcon,  color:"bg-[#fdf3e3] text-[#c9973a]", label:"Comisiones por pagar",        val:`$${s.comisionesPagar?.toLocaleString("es-CO")||0} USD`, change:"+12%" },
-          { icon:CheckCircleIcon, color:"bg-[#e8f0e0] text-[#5a8a3a]", label:"Comisiones pagadas",          val:`$${s.comisionesPagadas?.toLocaleString("es-CO")||0} USD`, change:"+18%" },
-          { icon:TrendingUpIcon,  color:"bg-[#e8f0ff] text-[#2a4a7f]", label:"Ganancia neta",               val:`$${s.gananciaNeta?.toLocaleString("es-CO")||0} USD`, change:"+28%" },
-          { icon:ClockIcon,       color:"bg-[#fff0f8] text-[#a0435f]", label:"Pagos pendientes de referidos", val: s.pagosPendientes||0,
+          { icon:DollarSignIcon,  color:"bg-[#FCE8EE] text-[#A0435F]", label:"Ingresos totales (programa)", val:`$${s.ingresos?.toLocaleString("es-CO")||0} USD`, change:"+24%" },
+          { icon:CreditCardIcon,  color:"bg-[#FFF4EC] text-[#E8853B]", label:"Comisiones por pagar",        val:`$${s.comisionesPagar?.toLocaleString("es-CO")||0} USD`, change:"+12%" },
+          { icon:CheckCircleIcon, color:"bg-[#E6F9F0] text-[#12A46B]", label:"Comisiones pagadas",          val:`$${s.comisionesPagadas?.toLocaleString("es-CO")||0} USD`, change:"+18%" },
+          { icon:TrendingUpIcon,  color:"bg-[#FCE8EE] text-[#4A2A38]", label:"Ganancia neta",               val:`$${s.gananciaNeta?.toLocaleString("es-CO")||0} USD`, change:"+28%" },
+          { icon:ClockIcon,       color:"bg-[#fff0f8] text-[#A0435F]", label:"Pagos pendientes de referidos", val: s.pagosPendientes||0,
             sub:`$${s.montoPendiente?.toLocaleString("es-CO")||0} USD` },
         ].map((st, i) => {
           const Icon = st.icon;
           return (
-            <div key={i} className="bg-white border border-[#f0dde2] rounded-2xl px-4 py-4 shadow-sm">
+            <div key={i} className="bg-white border border-[#F5E1E7] rounded-2xl px-4 py-4 shadow-sm">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${st.color}`}>
                 <Icon size={16} strokeWidth={1.6}/>
               </div>
-              <p className="text-[10px] text-[#9a6672] leading-snug mb-1">{st.label}</p>
-              <p className="font-serif font-bold text-[20px] text-[#2d1a22] leading-none">{st.val}</p>
+              <p className="text-[10px] text-[#9C8790] leading-snug mb-1">{st.label}</p>
+              <p className="font-serif font-bold text-[20px] text-[#4A2A38] leading-none">{st.val}</p>
               {st.change && (
                 <div className="flex items-center gap-1 mt-1">
-                  <span className="text-[10px] text-[#9a6672]">Este mes</span>
-                  <span className="text-[10px] font-bold text-[#5a8a3a] flex items-center gap-0.5">
+                  <span className="text-[10px] text-[#9C8790]">Este mes</span>
+                  <span className="text-[10px] font-bold text-[#12A46B] flex items-center gap-0.5">
                     <ArrowUpIcon size={8}/>{st.change}
                   </span>
-                  <span className="text-[10px] text-[#9a6672]">vs abril</span>
+                  <span className="text-[10px] text-[#9C8790]">vs abril</span>
                 </div>
               )}
-              {st.sub && <p className="text-[11px] text-[#c9973a] font-bold mt-1">{st.sub}</p>}
+              {st.sub && <p className="text-[11px] text-[#E8853B] font-bold mt-1">{st.sub}</p>}
             </div>
           );
         })}
       </div>
 
       {/* ── TABLA ── */}
-      <div className="bg-white border border-[#f0dde2] rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-[#F5E1E7] rounded-2xl shadow-sm overflow-hidden">
 
         {/* Tabs + filtros */}
-        <div className="px-5 py-4 border-b border-[#fce8ed] flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex items-center gap-1 bg-[#fff8f9] rounded-xl p-1 border border-[#f0dde2]">
+        <div className="px-5 py-4 border-b border-[#FCE8EE] flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex items-center gap-1 bg-[#FBF4F6] rounded-xl p-1 border border-[#F5E1E7]">
             {[
               { id:"flujo",    label:"Flujo de pagos"       },
               { id:"historial",label:"Historial de comisiones" },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`px-4 py-2 rounded-lg text-[12px] font-medium transition ${
-                  tab === t.id ? "bg-white text-[#a0435f] font-semibold shadow-sm border border-[#f0dde2]" : "text-[#9a6672] hover:text-[#2d1a22]"
+                  tab === t.id ? "bg-white text-[#A0435F] font-semibold shadow-sm border border-[#F5E1E7]" : "text-[#9C8790] hover:text-[#4A2A38]"
                 }`}>{t.label}</button>
             ))}
           </div>
@@ -421,22 +421,22 @@ export default function PagosPage() {
               { label:"Método: Todos",  opts:["Todos","Tarjeta","PayPal","Transferencia","Nequi","Daviplata"], val:filtroMetodo, set:setFiltroMetodo },
             ].map((f, i) => (
               <select key={i} value={f.val} onChange={e => f.set(e.target.value)}
-                className="border border-[#f0dde2] rounded-xl px-3 py-2 text-[11px]
-                           text-[#2d1a22] bg-white focus:outline-none cursor-pointer">
+                className="border border-[#F5E1E7] rounded-xl px-3 py-2 text-[11px]
+                           text-[#4A2A38] bg-white focus:outline-none cursor-pointer">
                 {f.opts.map(o => <option key={o} value={o}>{o === "Todos" ? f.label : o}</option>)}
               </select>
             ))}
             {/* Buscar */}
             <div className="relative">
-              <SearchIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c0909a]"/>
+              <SearchIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C9A9B4]"/>
               <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar por referente, código o transacción..."
-                className="pl-9 pr-4 py-2 border border-[#f0dde2] rounded-xl text-[12px] w-64
-                           focus:outline-none focus:ring-2 focus:ring-[#e8849a]/30 focus:border-[#e8849a] bg-[#fff8f9]"/>
+                className="pl-9 pr-4 py-2 border border-[#F5E1E7] rounded-xl text-[12px] w-64
+                           focus:outline-none focus:ring-2 focus:ring-[#C77D93]/30 focus:border-[#C77D93] bg-[#FBF4F6]"/>
             </div>
             {/* Confirmar pago */}
             <button onClick={() => setModalConfirmar(true)}
-              className="flex items-center gap-1.5 bg-[#5a8a3a] hover:bg-[#4a7a2a] text-white
+              className="flex items-center gap-1.5 bg-[#12A46B] hover:bg-[#4a7a2a] text-white
                          text-[12px] font-semibold px-4 py-2 rounded-xl transition shadow-md">
               <CheckIcon size={13}/>
               Confirmar pago
@@ -448,59 +448,59 @@ export default function PagosPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#fce8ed]">
+              <tr className="border-b border-[#FCE8EE]">
                 {["Fecha","Tipo","Descripción","Referencia / Código","Referente / Estudiante","Método","Monto","Estado","Acciones"].map((h, i) => (
-                  <th key={i} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-[#9a6672] whitespace-nowrap">{h}</th>
+                  <th key={i} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-[#9C8790] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#fff0f3]">
+            <tbody className="divide-y divide-[#FBEEF1]">
               {paginados.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-12 text-[13px] text-[#9a6672]">
+                <tr><td colSpan={9} className="text-center py-12 text-[13px] text-[#9C8790]">
                   No hay movimientos aún.
                 </td></tr>
               ) : paginados.map((m, i) => (
-                <tr key={i} className="hover:bg-[#fff8f9] transition">
+                <tr key={i} className="hover:bg-[#FBF4F6] transition">
                   {/* Fecha */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    <p className="text-[11px] font-semibold text-[#2d1a22]">{m.fecha?.split(" ")[0]}</p>
-                    <p className="text-[10px] text-[#9a6672]">{m.fecha?.split(" ")[1]}</p>
+                    <p className="text-[11px] font-semibold text-[#4A2A38]">{m.fecha?.split(" ")[0]}</p>
+                    <p className="text-[10px] text-[#9C8790]">{m.fecha?.split(" ")[1]}</p>
                   </td>
                   {/* Tipo */}
                   <td className="px-4 py-3.5">
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${
-                      m.tipo === "Ingreso" ? "bg-[#e8f0e0] text-[#5a8a3a]" : "bg-[#fdf3e3] text-[#c9973a]"
+                      m.tipo === "Ingreso" ? "bg-[#E6F9F0] text-[#12A46B]" : "bg-[#FFF4EC] text-[#E8853B]"
                     }`}>{m.tipo}</span>
                   </td>
                   {/* Descripción */}
                   <td className="px-4 py-3.5">
-                    <p className="text-[12px] font-semibold text-[#2d1a22]">{m.descripcion}</p>
-                    <p className="text-[10px] text-[#9a6672]">{m.subdescripcion}</p>
+                    <p className="text-[12px] font-semibold text-[#4A2A38]">{m.descripcion}</p>
+                    <p className="text-[10px] text-[#9C8790]">{m.subdescripcion}</p>
                   </td>
                   {/* Referencia */}
                   <td className="px-4 py-3.5">
-                    <span className="text-[11px] font-bold text-[#a0435f]">{m.referencia}</span>
+                    <span className="text-[11px] font-bold text-[#A0435F]">{m.referencia}</span>
                   </td>
                   {/* Referente/Estudiante */}
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#fce8ed] flex items-center justify-center shrink-0">
-                        <span className="text-[#a0435f] text-[10px] font-bold">{m.inicial}</span>
+                      <div className="w-7 h-7 rounded-full bg-[#FCE8EE] flex items-center justify-center shrink-0">
+                        <span className="text-[#A0435F] text-[10px] font-bold">{m.inicial}</span>
                       </div>
                       <div>
-                        <p className="text-[11px] font-semibold text-[#2d1a22]">{m.estudiante}</p>
-                        <p className="text-[10px] text-[#9a6672]">{m.emailEstudiante}</p>
+                        <p className="text-[11px] font-semibold text-[#4A2A38]">{m.estudiante}</p>
+                        <p className="text-[10px] text-[#9C8790]">{m.emailEstudiante}</p>
                       </div>
                     </div>
                   </td>
                   {/* Método */}
                   <td className="px-4 py-3.5">
-                    <p className="text-[11px] text-[#2d1a22]">{m.metodo}</p>
+                    <p className="text-[11px] text-[#4A2A38]">{m.metodo}</p>
                   </td>
                   {/* Monto */}
                   <td className="px-4 py-3.5">
                     <span className={`text-[12px] font-bold ${
-                      m.tipo === "Ingreso" ? "text-[#5a8a3a]" : "text-[#a0435f]"
+                      m.tipo === "Ingreso" ? "text-[#12A46B]" : "text-[#A0435F]"
                     }`}>
                       {m.tipo === "Ingreso" ? "+" : "-"}{m.monto}
                     </span>
@@ -508,16 +508,16 @@ export default function PagosPage() {
                   {/* Estado */}
                   <td className="px-4 py-3.5">
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                      m.estado === "Completado" ? "bg-[#e8f0e0] text-[#5a8a3a]"
-                      : m.estado === "Pagado"   ? "bg-[#e8f0e0] text-[#5a8a3a]"
-                      : "bg-[#fdf3e3] text-[#c9973a]"
+                      m.estado === "Completado" ? "bg-[#E6F9F0] text-[#12A46B]"
+                      : m.estado === "Pagado"   ? "bg-[#E6F9F0] text-[#12A46B]"
+                      : "bg-[#FFF4EC] text-[#E8853B]"
                     }`}>{m.estado}</span>
                   </td>
                   {/* Acciones */}
                   <td className="px-4 py-3.5">
                     <button onClick={() => setModalVer(m)}
-                      className="w-7 h-7 rounded-lg bg-[#fce8ed] hover:bg-[#f0b8c4] flex items-center justify-center transition">
-                      <EyeIcon size={12} className="text-[#a0435f]"/>
+                      className="w-7 h-7 rounded-lg bg-[#FCE8EE] hover:bg-[#C77D93] flex items-center justify-center transition">
+                      <EyeIcon size={12} className="text-[#A0435F]"/>
                     </button>
                   </td>
                 </tr>
@@ -527,28 +527,28 @@ export default function PagosPage() {
         </div>
 
         {/* Paginación */}
-        <div className="px-5 py-3 border-t border-[#fce8ed] flex items-center justify-between">
-          <p className="text-[11px] text-[#9a6672]">
+        <div className="px-5 py-3 border-t border-[#FCE8EE] flex items-center justify-between">
+          <p className="text-[11px] text-[#9C8790]">
             Mostrando {Math.min((pagina-1)*POR_PAGINA+1, filtrados.length)} a {Math.min(pagina*POR_PAGINA, filtrados.length)} de {filtrados.length} movimientos
           </p>
           <div className="flex items-center gap-1">
             <button onClick={() => setPagina(p => Math.max(1, p-1))}
-              className="w-7 h-7 rounded-lg text-[11px] text-[#9a6672] hover:bg-[#fce8ed] transition">‹</button>
+              className="w-7 h-7 rounded-lg text-[11px] text-[#9C8790] hover:bg-[#FCE8EE] transition">‹</button>
             {Array.from({ length: Math.min(totalPags, 5) }, (_, i) => i + 1).map(p => (
               <button key={p} onClick={() => setPagina(p)}
                 className={`w-7 h-7 rounded-lg text-[11px] font-medium transition ${
-                  p === pagina ? "bg-[#a0435f] text-white" : "text-[#9a6672] hover:bg-[#fce8ed]"
+                  p === pagina ? "bg-[#A0435F] text-white" : "text-[#9C8790] hover:bg-[#FCE8EE]"
                 }`}>{p}</button>
             ))}
-            {totalPags > 5 && <span className="text-[#9a6672] text-[11px]">...</span>}
+            {totalPags > 5 && <span className="text-[#9C8790] text-[11px]">...</span>}
             {totalPags > 5 && (
               <button onClick={() => setPagina(totalPags)}
                 className={`w-7 h-7 rounded-lg text-[11px] font-medium transition ${
-                  pagina === totalPags ? "bg-[#a0435f] text-white" : "text-[#9a6672] hover:bg-[#fce8ed]"
+                  pagina === totalPags ? "bg-[#A0435F] text-white" : "text-[#9C8790] hover:bg-[#FCE8EE]"
                 }`}>{totalPags}</button>
             )}
             <button onClick={() => setPagina(p => Math.min(totalPags, p+1))}
-              className="w-7 h-7 rounded-lg text-[11px] text-[#9a6672] hover:bg-[#fce8ed] transition">›</button>
+              className="w-7 h-7 rounded-lg text-[11px] text-[#9C8790] hover:bg-[#FCE8EE] transition">›</button>
           </div>
         </div>
       </div>
@@ -557,41 +557,41 @@ export default function PagosPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Resumen ingresos */}
-        <div className="bg-white border border-[#f0dde2] rounded-2xl p-5 shadow-sm">
+        <div className="bg-white border border-[#F5E1E7] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-bold text-[#2d1a22]">Resumen de ingresos del programa</h2>
-            <select className="border border-[#f0dde2] rounded-xl px-2 py-1 text-[10px] text-[#9a6672] bg-white focus:outline-none">
+            <h2 className="text-[13px] font-bold text-[#4A2A38]">Resumen de ingresos del programa</h2>
+            <select className="border border-[#F5E1E7] rounded-xl px-2 py-1 text-[10px] text-[#9C8790] bg-white focus:outline-none">
               <option>Este mes</option>
             </select>
           </div>
-          <p className="font-serif font-bold text-[28px] text-[#2d1a22] mb-4">
+          <p className="font-serif font-bold text-[28px] text-[#4A2A38] mb-4">
             ${s.ingresos?.toLocaleString("es-CO") || 0} USD
           </p>
           <GraficaIngresos datos={s.graficaIngresos}/>
-          <div className="mt-4 space-y-2 pt-3 border-t border-[#f0dde2]">
+          <div className="mt-4 space-y-2 pt-3 border-t border-[#F5E1E7]">
             {(s.metodoPagos || []).map((m, i) => (
               <div key={i} className="flex items-center justify-between">
-                <span className="text-[11px] text-[#2d1a22]">{m.metodo}</span>
+                <span className="text-[11px] text-[#4A2A38]">{m.metodo}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-[#2d1a22]">${m.monto?.toLocaleString("es-CO")} USD</span>
-                  <span className="text-[10px] text-[#9a6672]">{m.pct}%</span>
+                  <span className="text-[11px] font-bold text-[#4A2A38]">${m.monto?.toLocaleString("es-CO")} USD</span>
+                  <span className="text-[10px] text-[#9C8790]">{m.pct}%</span>
                 </div>
               </div>
             ))}
-            <div className="flex items-center justify-between pt-2 border-t border-[#f0dde2]">
-              <span className="text-[11px] font-semibold text-[#2d1a22]">Total transacciones</span>
-              <span className="text-[11px] font-bold text-[#2d1a22]">{s.totalTransacciones || 0}</span>
+            <div className="flex items-center justify-between pt-2 border-t border-[#F5E1E7]">
+              <span className="text-[11px] font-semibold text-[#4A2A38]">Total transacciones</span>
+              <span className="text-[11px] font-bold text-[#4A2A38]">{s.totalTransacciones || 0}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-[#2d1a22]">Ticket promedio</span>
-              <span className="text-[11px] font-bold text-[#2d1a22]">${s.ticketPromedio?.toLocaleString("es-CO") || 0} USD</span>
+              <span className="text-[11px] font-semibold text-[#4A2A38]">Ticket promedio</span>
+              <span className="text-[11px] font-bold text-[#4A2A38]">${s.ticketPromedio?.toLocaleString("es-CO") || 0} USD</span>
             </div>
           </div>
         </div>
 
         {/* Estatus comisiones */}
-        <div className="bg-white border border-[#f0dde2] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[13px] font-bold text-[#2d1a22] mb-4">Estatus de comisiones</h2>
+        <div className="bg-white border border-[#F5E1E7] rounded-2xl p-5 shadow-sm">
+          <h2 className="text-[13px] font-bold text-[#4A2A38] mb-4">Estatus de comisiones</h2>
           <DonaEstatus
             pendientes={s.pendientes || 0}
             programadas={s.programadas || 0}
@@ -600,30 +600,30 @@ export default function PagosPage() {
         </div>
 
         {/* Top referentes */}
-        <div className="bg-white border border-[#f0dde2] rounded-2xl p-5 shadow-sm">
+        <div className="bg-white border border-[#F5E1E7] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[13px] font-bold text-[#2d1a22]">Top referentes por comisiones generadas</h2>
-            <select className="border border-[#f0dde2] rounded-xl px-2 py-1 text-[10px] text-[#9a6672] bg-white focus:outline-none">
+            <h2 className="text-[13px] font-bold text-[#4A2A38]">Top referentes por comisiones generadas</h2>
+            <select className="border border-[#F5E1E7] rounded-xl px-2 py-1 text-[10px] text-[#9C8790] bg-white focus:outline-none">
               <option>Este mes</option>
             </select>
           </div>
           <div className="space-y-3">
             {(s.topReferentes || []).map((r, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-[11px] font-bold text-[#9a6672] w-4">{i+1}</span>
+                <span className="text-[11px] font-bold text-[#9C8790] w-4">{i+1}</span>
                 <div className="flex-1">
-                  <p className="text-[12px] font-semibold text-[#2d1a22]">{r.nombre}</p>
-                  <p className="text-[10px] font-bold text-[#a0435f]">{r.codigo}</p>
+                  <p className="text-[12px] font-semibold text-[#4A2A38]">{r.nombre}</p>
+                  <p className="text-[10px] font-bold text-[#A0435F]">{r.codigo}</p>
                 </div>
-                <span className="text-[12px] font-bold text-[#2d1a22]">${r.comision?.toLocaleString("es-CO")} USD</span>
+                <span className="text-[12px] font-bold text-[#4A2A38]">${r.comision?.toLocaleString("es-CO")} USD</span>
               </div>
             ))}
             {(!s.topReferentes || s.topReferentes.length === 0) && (
-              <p className="text-center text-[12px] text-[#9a6672] py-4">Sin datos aún.</p>
+              <p className="text-center text-[12px] text-[#9C8790] py-4">Sin datos aún.</p>
             )}
           </div>
-          <button className="w-full mt-4 border border-[#f0dde2] text-[#a0435f] text-[12px] font-semibold
-                             py-2.5 rounded-xl hover:bg-[#fce8ed] transition">
+          <button className="w-full mt-4 border border-[#F5E1E7] text-[#A0435F] text-[12px] font-semibold
+                             py-2.5 rounded-xl hover:bg-[#FCE8EE] transition">
             Ver todos los referentes →
           </button>
         </div>

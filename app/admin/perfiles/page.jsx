@@ -18,9 +18,9 @@ function EstadoBadge({ estado }) {
     "Incompleto":        { bg:"#FDECEC", color:"#C0392B" },
     "Lista para agencia":{ bg:"#E6F9F0", color:"#12A46B" },
     "En progreso":       { bg:"#FFF4EC", color:"#E8853B" },
-    "Sin acceso":        { bg:"#f3f4f6", color:"#6b7280" },
+    "Sin acceso":        { bg:"#F3F4F6", color:"#6B7280" },
   };
-  const c = CFG[estado] || { bg:"#f3f4f6", color:"#6b7280" };
+  const c = CFG[estado] || { bg:"#F3F4F6", color:"#6B7280" };
   return (
     <span style={{ background:c.bg, color:c.color, fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:99, display:"inline-flex", alignItems:"center", gap:5, whiteSpace:"nowrap" }}>
       <span style={{ width:6, height:6, borderRadius:"50%", background:c.color, flexShrink:0 }}/>
@@ -33,7 +33,7 @@ function BarraProgreso({ pct=0 }) {
   const color = pct>=80?"#12A46B":pct>=50?"#A0435F":pct>=25?"#E8853B":"#C0392B";
   return (
     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-      <div style={{ flex:1, height:6, background:"#f0e8f0", borderRadius:99, overflow:"hidden", minWidth:60 }}>
+      <div style={{ flex:1, height:6, background:"#FBF4F6", borderRadius:99, overflow:"hidden", minWidth:60 }}>
         <div style={{ height:"100%", width:`${pct}%`, background:color, borderRadius:99, transition:"width .5s" }}/>
       </div>
       <span style={{ fontSize:11, fontWeight:700, color, flexShrink:0 }}>{pct}%</span>
@@ -119,8 +119,8 @@ export default function AdminPerfilesPage() {
   const sa = statsAgencia;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#faf5f6", fontFamily:"system-ui,-apple-system,sans-serif" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} .row-h:hover{background:#fff8f9!important;}`}</style>
+    <div style={{ minHeight:"100vh", background:"#FBF4F6", fontFamily:"system-ui,-apple-system,sans-serif" }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} .row-h:hover{background:#FBF4F6!important;}`}</style>
 
       {toast && <div style={{ position:"fixed", top:20, right:20, zIndex:3000, background:"#4A2A38", color:"#fff", padding:"10px 18px", borderRadius:12, fontSize:13, fontWeight:600 }}>{toast}</div>}
 
@@ -132,7 +132,7 @@ export default function AdminPerfilesPage() {
             <p style={{ fontSize:13, color:"#9C8790", margin:"4px 0 0" }}>Revisa y aprueba los perfiles de las candidatas</p>
           </div>
           <button onClick={exportarLista}
-            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #F5E1E7", background:"#fff", color:"#2d1a22", fontSize:13, fontWeight:600, padding:"10px 18px", borderRadius:12, cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #F5E1E7", background:"#fff", color:"#4A2A38", fontSize:13, fontWeight:600, padding:"10px 18px", borderRadius:12, cursor:"pointer", fontFamily:"inherit" }}>
             <DownloadIcon size={14}/> Exportar
           </button>
         </div>
@@ -141,8 +141,8 @@ export default function AdminPerfilesPage() {
           {[{id:1,label:"1. Evaluación de perfil"},{id:2,label:"2. Perfil con la agencia"}].map(t=>(
             <button key={t.id} onClick={()=>{setTab(t.id);setPagina(1);setFiltroEstado("");}}
               style={{ display:"flex", alignItems:"center", gap:8, padding:"12px 24px", border:"none", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"inherit",
-                background:tab===t.id?"#FCE8EE":"#fff", color:tab===t.id?"#a0435f":"#9C8790",
-                borderBottom:tab===t.id?"2px solid #a0435f":"2px solid transparent",
+                background:tab===t.id?"#FCE8EE":"#fff", color:tab===t.id?"#A0435F":"#9C8790",
+                borderBottom:tab===t.id?"2px solid #A0435F":"2px solid transparent",
               }}>
               {t.label}
             </button>
@@ -181,7 +181,7 @@ export default function AdminPerfilesPage() {
 
         <div style={{ background:"#fff", borderRadius:16, border:"1px solid #F5E1E7", padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"center", flexWrap:"wrap" }}>
           <div style={{ flex:1, minWidth:200, position:"relative" }}>
-            <SearchIcon size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#c0909a" }}/>
+            <SearchIcon size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"#C9A9B4" }}/>
             <input type="text" placeholder="Buscar por nombre, correo o país..." value={search}
               onChange={e=>{setSearch(e.target.value);setPagina(1);}}
               style={{ width:"100%", paddingLeft:36, paddingRight:12, height:38, border:"1.5px solid #F5E1E7", borderRadius:10, fontSize:13, color:"#4A2A38", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }}/>
@@ -207,13 +207,13 @@ export default function AdminPerfilesPage() {
 
         <div style={{ background:"#fff", borderRadius:20, border:"1px solid #F5E1E7", overflow:"hidden" }}>
           {tab===1 ? (
-            <div style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"12px 20px", borderBottom:"1px solid #FCE8EE", background:"#fff8f9" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"12px 20px", borderBottom:"1px solid #FCE8EE", background:"#FBF4F6" }}>
               {["Usuario","Ubicación","Estado","Progreso","Última actividad","Acciones"].map(h=>(
                 <p key={h} style={{ fontSize:10, fontWeight:700, color:"#9C8790", textTransform:"uppercase", letterSpacing:".7px", margin:0 }}>{h}</p>
               ))}
             </div>
           ) : (
-            <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"12px 20px", borderBottom:"1px solid #FCE8EE", background:"#fff8f9" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"12px 20px", borderBottom:"1px solid #FCE8EE", background:"#FBF4F6" }}>
               {["Aplicante","Ciudad","Inglés","Licencia","Horas childcare","Progreso agencia","Estado agencia","Acciones"].map(h=>(
                 <p key={h} style={{ fontSize:10, fontWeight:700, color:"#9C8790", textTransform:"uppercase", letterSpacing:".7px", margin:0 }}>{h}</p>
               ))}
@@ -222,7 +222,7 @@ export default function AdminPerfilesPage() {
 
           {loading ? (
             <div style={{ padding:"48px", display:"flex", justifyContent:"center" }}>
-              <div style={{ width:32, height:32, border:"2px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
+              <div style={{ width:32, height:32, border:"2px solid #C77D93", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
             </div>
           ) : visibles.length===0 ? (
             <p style={{ textAlign:"center", padding:"48px", fontSize:13, color:"#9C8790" }}>No se encontraron perfiles.</p>
@@ -230,10 +230,10 @@ export default function AdminPerfilesPage() {
             <div>
               {visibles.map((p,i) => {
                 const avatar = (
-                  <div style={{ width:40, height:40, borderRadius:12, background:"#FCE8EE", border:"2px solid #f0b8c4", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <div style={{ width:40, height:40, borderRadius:12, background:"#FCE8EE", border:"2px solid #C77D93", overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     {p.foto_url
                       ? <img src={p.foto_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
-                      : <span style={{ color:"#a0435f", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
+                      : <span style={{ color:"#A0435F", fontWeight:700, fontFamily:"Georgia,serif", fontSize:16 }}>{p.nombre?.[0]}</span>}
                   </div>
                 );
 
@@ -245,7 +245,7 @@ export default function AdminPerfilesPage() {
                     style={{
                       width:32, height:32, borderRadius:9, border:"none", cursor: p.perfil_completo ? "pointer" : "not-allowed",
                       display:"flex", alignItems:"center", justifyContent:"center",
-                      background: p.evaluacion_aprobada ? "#E6F9F0" : p.perfil_completo ? "#FFF4EC" : "#f3f4f6",
+                      background: p.evaluacion_aprobada ? "#E6F9F0" : p.perfil_completo ? "#FFF4EC" : "#F3F4F6",
                       opacity: aprobando===p.id ? .5 : 1,
                     }}>
                     {p.evaluacion_aprobada
@@ -259,18 +259,18 @@ export default function AdminPerfilesPage() {
                     {botonAprobar}
                     <button onClick={() => irAPerfil(p.id)} title="Ver perfil"
                       style={{ width:32, height:32, borderRadius:9, background:"#FCE8EE", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <EyeIcon size={14} style={{ color:"#a0435f" }}/>
+                      <EyeIcon size={14} style={{ color:"#A0435F" }}/>
                     </button>
                     <button onClick={() => irAPerfil(p.id)} title="Editar"
                       style={{ width:32, height:32, borderRadius:9, background:"#FCE8EE", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <PencilIcon size={14} style={{ color:"#a0435f" }}/>
+                      <PencilIcon size={14} style={{ color:"#A0435F" }}/>
                     </button>
                   </div>
                 );
 
                 return tab===1 ? (
                   <div key={p.id} className="row-h"
-                    style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
+                    style={{ display:"grid", gridTemplateColumns:"2fr 1.2fr 1fr 1.2fr 1.2fr 140px", gap:12, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #FBEEF1":"none", alignItems:"center", background:"#fff" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
                       {avatar}
                       <div style={{ minWidth:0 }}>
@@ -286,19 +286,19 @@ export default function AdminPerfilesPage() {
                   </div>
                 ) : (
                   <div key={p.id} className="row-h"
-                    style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #fff0f3":"none", alignItems:"center", background:"#fff" }}>
+                    style={{ display:"grid", gridTemplateColumns:"1.8fr 1fr .8fr .8fr 1.1fr 1.2fr 1fr 100px", gap:10, padding:"14px 20px", borderBottom:i<visibles.length-1?"1px solid #FBEEF1":"none", alignItems:"center", background:"#fff" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
                       {avatar}
                       <div style={{ minWidth:0 }}>
                         <p style={{ fontSize:13, fontWeight:600, color:"#4A2A38", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.nombre} {p.apellido}</p>
                         <p style={{ fontSize:11, color:"#9C8790", margin:0 }}>{p.email}</p>
-                        {p.cedula && <p style={{ fontSize:10, color:"#c0909a", margin:0 }}>{p.cedula}</p>}
+                        {p.cedula && <p style={{ fontSize:10, color:"#C9A9B4", margin:0 }}>{p.cedula}</p>}
                       </div>
                     </div>
                     <p style={{ fontSize:12, color:"#9C8790", margin:0, display:"flex", alignItems:"center", gap:4 }}><MapPin size={12}/>{p.ciudad||"—"}</p>
                     {p.nivel_ingles
                       ? <span style={{ background:"#e8f4fd", color:"#A0435F", fontSize:11, fontWeight:600, padding:"4px 9px", borderRadius:99, whiteSpace:"nowrap" }}>{p.nivel_ingles}</span>
-                      : <span style={{ color:"#c0909a", fontSize:12 }}>—</span>}
+                      : <span style={{ color:"#C9A9B4", fontSize:12 }}>—</span>}
                     {p.licencia_conduccion==="Si"
                       ? <span style={{ background:"#E6F9F0", color:"#12A46B", fontSize:11, fontWeight:600, padding:"4px 9px", borderRadius:99 }}>Sí</span>
                       : p.licencia_conduccion==="No"
@@ -330,14 +330,14 @@ export default function AdminPerfilesPage() {
               </button>
               {Array.from({length:Math.min(totalPags,5)},(_,i)=>i+1).map(n=>(
                 <button key={n} onClick={()=>setPagina(n)}
-                  style={{ width:30, height:30, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:n===pagina?"#a0435f":"#fff", color:n===pagina?"#fff":"#6b7280" }}>
+                  style={{ width:30, height:30, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:n===pagina?"#A0435F":"#fff", color:n===pagina?"#fff":"#6B7280" }}>
                   {n}
                 </button>
               ))}
               {totalPags>5&&<span style={{ display:"flex", alignItems:"center", fontSize:12, color:"#9C8790", padding:"0 4px" }}>...</span>}
               {totalPags>5&&(
                 <button onClick={()=>setPagina(totalPags)}
-                  style={{ width:30, height:30, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:pagina===totalPags?"#a0435f":"#fff", color:pagina===totalPags?"#fff":"#6b7280" }}>
+                  style={{ width:30, height:30, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:pagina===totalPags?"#A0435F":"#fff", color:pagina===totalPags?"#fff":"#6B7280" }}>
                   {totalPags}
                 </button>
               )}

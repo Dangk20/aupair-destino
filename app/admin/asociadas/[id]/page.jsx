@@ -145,7 +145,7 @@ export default function AsociadaDetallePage() {
       <div className="flex items-center gap-4 mb-6">
         <Link
           href="/admin/asociadas"
-          className="text-[#7c5cc4] hover:underline flex items-center gap-2"
+          className="text-[#A0435F] hover:underline flex items-center gap-2"
         >
           <ArrowLeftIcon size={18} />
           Volver
@@ -215,12 +215,12 @@ export default function AsociadaDetallePage() {
             <div>
               <h2 className="text-lg font-bold text-gray-900">Usuarias Asignadas</h2>
               <p className="text-sm text-gray-600 mt-1">
-                Total: <span className="font-bold text-[#7c5cc4]">{usuarias.length}</span>
+                Total: <span className="font-bold text-[#A0435F]">{usuarias.length}</span>
               </p>
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#7c5cc4] hover:bg-[#6a4ab0] text-white rounded-lg font-medium transition"
+              className="flex items-center gap-2 px-4 py-2 bg-[#A0435F] hover:bg-[#A0435F] text-white rounded-lg font-medium transition"
             >
               <PlusIcon size={18} />
               Asignar Usuaria
@@ -235,7 +235,7 @@ export default function AsociadaDetallePage() {
               placeholder="Buscar usuaria..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
             />
           </div>
 
@@ -298,7 +298,7 @@ export default function AsociadaDetallePage() {
                         onClick={() => setSelectedUsuaria(u)}
                         className={`w-full text-left p-3 rounded-lg border-2 transition ${
                           selectedUsuaria?.id === u.id
-                            ? "border-[#7c5cc4] bg-[#7c5cc4]/10"
+                            ? "border-[#A0435F] bg-[#A0435F]/10"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
@@ -318,7 +318,7 @@ export default function AsociadaDetallePage() {
                     <button
                       onClick={handleAssign}
                       disabled={!selectedUsuaria}
-                      className="flex-1 px-4 py-2 bg-[#7c5cc4] hover:bg-[#6a4ab0] disabled:opacity-50 text-white rounded-lg font-medium transition"
+                      className="flex-1 px-4 py-2 bg-[#A0435F] hover:bg-[#A0435F] disabled:opacity-50 text-white rounded-lg font-medium transition"
                     >
                       Asignar
                     </button>

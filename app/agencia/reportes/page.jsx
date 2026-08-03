@@ -47,31 +47,31 @@ export default function AgenciaReportesPage() {
   ).sort((a,b)=>b[1]-a[1]);
 
   const fases = [
-    { label:"Lista para conectar", val:stats.listas,      color:"#7c5cc4", pct:stats.total?Math.round(stats.listas/stats.total*100):0 },
-    { label:"En match",            val:stats.enMatch,     color:"#c9973a", pct:stats.total?Math.round(stats.enMatch/stats.total*100):0 },
-    { label:"Visa en proceso",     val:stats.visaProceso, color:"#dc2626", pct:stats.total?Math.round(stats.visaProceso/stats.total*100):0 },
-    { label:"Completado",          val:stats.completadas, color:"#5a8a3a", pct:stats.total?Math.round(stats.completadas/stats.total*100):0 },
+    { label:"Lista para conectar", val:stats.listas,      color:"#A0435F", pct:stats.total?Math.round(stats.listas/stats.total*100):0 },
+    { label:"En match",            val:stats.enMatch,     color:"#E8853B", pct:stats.total?Math.round(stats.enMatch/stats.total*100):0 },
+    { label:"Visa en proceso",     val:stats.visaProceso, color:"#C0392B", pct:stats.total?Math.round(stats.visaProceso/stats.total*100):0 },
+    { label:"Completado",          val:stats.completadas, color:"#12A46B", pct:stats.total?Math.round(stats.completadas/stats.total*100):0 },
   ];
 
   if (loading) return (
-    <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f5f3ff" }}>
-      <div style={{ width:36,height:36,border:"3px solid #7c5cc4",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
+    <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#FBF4F6" }}>
+      <div style={{ width:36,height:36,border:"3px solid #A0435F",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   return (
-    <div style={{ minHeight:"100vh",background:"#f5f3ff",fontFamily:"system-ui,-apple-system,sans-serif" }}>
+    <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* HEADER */}
       <div style={{ background:"#fff",borderBottom:"1px solid #e9e3f8",padding:isMobile?"14px 16px":"20px 28px" }}>
         <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
           <div>
-            <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#1e1033",margin:0 }}>Reportes</h1>
-            <p style={{ fontSize:13,color:"#9a7080",margin:"4px 0 0" }}>Resumen de actividad y estadísticas de tus candidatas.</p>
+            <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?20:24,fontWeight:700,color:"#4A2A38",margin:0 }}>Reportes</h1>
+            <p style={{ fontSize:13,color:"#9C8790",margin:"4px 0 0" }}>Resumen de actividad y estadísticas de tus candidatas.</p>
           </div>
-          <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:7,background:"#7c5cc4",color:"#fff",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
+          <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:7,background:"#A0435F",color:"#fff",fontSize:13,fontWeight:600,padding:"9px 18px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
             <DownloadIcon size={14}/> Exportar reporte
           </button>
         </div>
@@ -82,15 +82,15 @@ export default function AgenciaReportesPage() {
         {/* Stats */}
         <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:12 }}>
           {[
-            { icon:UsersIcon,       label:"Total candidatas",  val:stats.total,       color:"#7c5cc4", emoji:"👥" },
-            { icon:CheckCircleIcon, label:"Listas para match", val:stats.listas,      color:"#5a8a3a", emoji:"✅" },
-            { icon:TrendingUpIcon,  label:"En proceso",        val:stats.enMatch,     color:"#c9973a", emoji:"📈" },
-            { icon:CheckCircleIcon, label:"Completadas",       val:stats.completadas, color:"#5a8a3a", emoji:"🏆" },
+            { icon:UsersIcon,       label:"Total candidatas",  val:stats.total,       color:"#A0435F", emoji:"👥" },
+            { icon:CheckCircleIcon, label:"Listas para match", val:stats.listas,      color:"#12A46B", emoji:"✅" },
+            { icon:TrendingUpIcon,  label:"En proceso",        val:stats.enMatch,     color:"#E8853B", emoji:"📈" },
+            { icon:CheckCircleIcon, label:"Completadas",       val:stats.completadas, color:"#12A46B", emoji:"🏆" },
           ].map((s,i)=>(
             <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:"18px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ fontSize:24,marginBottom:8 }}>{s.emoji}</div>
-              <p style={{ fontSize:11,color:"#9a7080",margin:"0 0 2px",textTransform:"uppercase",fontWeight:600,letterSpacing:".5px" }}>{s.label}</p>
-              <p style={{ fontFamily:"Georgia,serif",fontSize:28,fontWeight:700,color:"#1e1033",margin:0 }}>{s.val}</p>
+              <p style={{ fontSize:11,color:"#9C8790",margin:"0 0 2px",textTransform:"uppercase",fontWeight:600,letterSpacing:".5px" }}>{s.label}</p>
+              <p style={{ fontFamily:"Georgia,serif",fontSize:28,fontWeight:700,color:"#4A2A38",margin:0 }}>{s.val}</p>
             </div>
           ))}
         </div>
@@ -99,16 +99,16 @@ export default function AgenciaReportesPage() {
 
           {/* Distribución por fase */}
           <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 16px" }}>Distribución por fase</h3>
+            <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px" }}>Distribución por fase</h3>
             <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
               {fases.map((f,i)=>(
                 <div key={i}>
                   <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
                     <div style={{ display:"flex",alignItems:"center",gap:7 }}>
                       <div style={{ width:8,height:8,borderRadius:"50%",background:f.color }}/>
-                      <span style={{ fontSize:12,color:"#374151" }}>{f.label}</span>
+                      <span style={{ fontSize:12,color:"#6B7280" }}>{f.label}</span>
                     </div>
-                    <span style={{ fontSize:12,fontWeight:700,color:"#1e1033" }}>{f.val} ({f.pct}%)</span>
+                    <span style={{ fontSize:12,fontWeight:700,color:"#4A2A38" }}>{f.val} ({f.pct}%)</span>
                   </div>
                   <div style={{ height:8,background:"#e9e3f8",borderRadius:99,overflow:"hidden" }}>
                     <div style={{ height:"100%",width:`${f.pct}%`,background:f.color,borderRadius:99,transition:"width .3s" }}/>
@@ -120,15 +120,15 @@ export default function AgenciaReportesPage() {
 
           {/* Por país */}
           <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",padding:20,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:"0 0 16px" }}>Candidatas por país</h3>
+            <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:"0 0 16px" }}>Candidatas por país</h3>
             {paises.length===0 ? (
-              <p style={{ fontSize:12,color:"#9a7080",textAlign:"center",padding:"20px 0" }}>Sin datos aún</p>
+              <p style={{ fontSize:12,color:"#9C8790",textAlign:"center",padding:"20px 0" }}>Sin datos aún</p>
             ) : (
               <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
                 {paises.slice(0,6).map(([pais,count],i)=>(
-                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"#f9f7ff",borderRadius:10,border:"1px solid #e9e3f8" }}>
-                    <span style={{ fontSize:13,color:"#374151" }}>{pais}</span>
-                    <span style={{ fontSize:13,fontWeight:700,color:"#7c5cc4" }}>{count}</span>
+                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"#FBF4F6",borderRadius:10,border:"1px solid #e9e3f8" }}>
+                    <span style={{ fontSize:13,color:"#6B7280" }}>{pais}</span>
+                    <span style={{ fontSize:13,fontWeight:700,color:"#A0435F" }}>{count}</span>
                   </div>
                 ))}
               </div>
@@ -139,29 +139,29 @@ export default function AgenciaReportesPage() {
         {/* Tabla resumen */}
         <div style={{ background:"#fff",borderRadius:16,border:"1px solid #e9e3f8",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
           <div style={{ padding:"14px 20px",borderBottom:"1px solid #e9e3f8" }}>
-            <h3 style={{ fontSize:14,fontWeight:700,color:"#1e1033",margin:0 }}>Detalle de candidatas</h3>
+            <h3 style={{ fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>Detalle de candidatas</h3>
           </div>
           {!isMobile && (
             <div style={{ display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:12,padding:"8px 20px",background:"#faf8ff",borderBottom:"1px solid #e9e3f8" }}>
               {["Candidata","País","Edad","Estado"].map((h,i)=>(
-                <p key={i} style={{ fontSize:10,fontWeight:700,color:"#9a7080",margin:0,textTransform:"uppercase",letterSpacing:".5px" }}>{h}</p>
+                <p key={i} style={{ fontSize:10,fontWeight:700,color:"#9C8790",margin:0,textTransform:"uppercase",letterSpacing:".5px" }}>{h}</p>
               ))}
             </div>
           )}
           {candidatas.slice(0,10).map((c,i)=>(
-            <div key={c.id} style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"2fr 1fr 1fr 1fr",gap:12,padding:"12px 20px",borderBottom:i<Math.min(10,candidatas.length)-1?"1px solid #f0edff":"none",alignItems:"center" }}>
+            <div key={c.id} style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"2fr 1fr 1fr 1fr",gap:12,padding:"12px 20px",borderBottom:i<Math.min(10,candidatas.length)-1?"1px solid #FBF4F6":"none",alignItems:"center" }}>
               <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                <div style={{ width:32,height:32,borderRadius:"50%",background:"#ede9f8",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                  {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:12,fontWeight:700,color:"#7c5cc4" }}>{c.nombre?.[0]}</span>}
+                <div style={{ width:32,height:32,borderRadius:"50%",background:"#FCE8EE",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  {c.foto_url?<img src={c.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ fontSize:12,fontWeight:700,color:"#A0435F" }}>{c.nombre?.[0]}</span>}
                 </div>
                 <div>
-                  <p style={{ fontSize:12,fontWeight:600,color:"#1e1033",margin:0 }}>{c.nombre} {c.apellido}</p>
-                  <p style={{ fontSize:10,color:"#9a7080",margin:0 }}>{c.email}</p>
+                  <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0 }}>{c.nombre} {c.apellido}</p>
+                  <p style={{ fontSize:10,color:"#9C8790",margin:0 }}>{c.email}</p>
                 </div>
               </div>
-              <p style={{ fontSize:12,color:"#6b7280",margin:0 }}>{c.pais||"—"}</p>
-              <p style={{ fontSize:12,color:"#6b7280",margin:0 }}>{c.edad||"—"} años</p>
-              <span style={{ fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:99,background:"#ede9f8",color:"#7c5cc4",display:"inline-block" }}>
+              <p style={{ fontSize:12,color:"#6B7280",margin:0 }}>{c.pais||"—"}</p>
+              <p style={{ fontSize:12,color:"#6B7280",margin:0 }}>{c.edad||"—"} años</p>
+              <span style={{ fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:99,background:"#FCE8EE",color:"#A0435F",display:"inline-block" }}>
                 {c.estado_agencia||"Lista para conectar"}
               </span>
             </div>

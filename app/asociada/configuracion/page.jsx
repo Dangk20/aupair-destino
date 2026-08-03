@@ -100,7 +100,7 @@ export default function AsociadaConfiguracionPage() {
                   name="nombre"
                   value={formData.nombre}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
                 />
               </div>
               <div>
@@ -112,7 +112,7 @@ export default function AsociadaConfiguracionPage() {
                   name="apellido"
                   value={formData.apellido}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
                 />
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function AsociadaConfiguracionPage() {
                 value={formData.telefono}
                 onChange={handleChange}
                 placeholder="+1 234 567 8900"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
               />
             </div>
 
@@ -158,7 +158,7 @@ export default function AsociadaConfiguracionPage() {
                 value={formData.ciudad}
                 onChange={handleChange}
                 placeholder="Ej: Medellín"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
               />
             </div>
 
@@ -173,7 +173,7 @@ export default function AsociadaConfiguracionPage() {
                 value={formData.pais}
                 onChange={handleChange}
                 placeholder="Ej: Colombia"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
               />
             </div>
 
@@ -182,7 +182,7 @@ export default function AsociadaConfiguracionPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 bg-[#7c5cc4] hover:bg-[#6a4ab0] disabled:opacity-50 text-white rounded-lg font-medium transition"
+                className="flex items-center gap-2 px-6 py-3 bg-[#A0435F] hover:bg-[#A0435F] disabled:opacity-50 text-white rounded-lg font-medium transition"
               >
                 <SaveIcon size={18} />
                 {saving ? "Guardando..." : "Guardar cambios"}

@@ -67,7 +67,7 @@ export default function AsociadaReunionesPage() {
           onClick={() => setFiltro("proximas")}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             filtro === "proximas"
-              ? "bg-[#7c5cc4] text-white"
+              ? "bg-[#A0435F] text-white"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
           }`}
         >
@@ -77,7 +77,7 @@ export default function AsociadaReunionesPage() {
           onClick={() => setFiltro("completadas")}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             filtro === "completadas"
-              ? "bg-[#7c5cc4] text-white"
+              ? "bg-[#A0435F] text-white"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
           }`}
         >
@@ -87,7 +87,7 @@ export default function AsociadaReunionesPage() {
           onClick={() => setFiltro("todas")}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             filtro === "todas"
-              ? "bg-[#7c5cc4] text-white"
+              ? "bg-[#A0435F] text-white"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
           }`}
         >
@@ -118,8 +118,8 @@ export default function AsociadaReunionesPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#7c5cc4]/10 rounded-lg flex items-center justify-center">
-                      <CalendarIcon size={20} className="text-[#7c5cc4]" />
+                    <div className="w-12 h-12 bg-[#A0435F]/10 rounded-lg flex items-center justify-center">
+                      <CalendarIcon size={20} className="text-[#A0435F]" />
                     </div>
                     <div>
                       <h3 className="font-bold text-lg text-gray-900">
@@ -180,7 +180,7 @@ export default function AsociadaReunionesPage() {
                   {esFutura && !r.confirmada && (
                     <button
                       onClick={() => handleConfirmarAsistencia(r.id)}
-                      className="flex-1 px-4 py-2 bg-[#7c5cc4] hover:bg-[#6a4ab0] text-white rounded-lg font-medium transition"
+                      className="flex-1 px-4 py-2 bg-[#A0435F] hover:bg-[#A0435F] text-white rounded-lg font-medium transition"
                     >
                       Confirmar asistencia
                     </button>

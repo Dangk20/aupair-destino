@@ -60,11 +60,11 @@ export default function VerificadorBDPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <DatabaseIcon size={32} className="text-[#7c5cc4]" />
+          <DatabaseIcon size={32} className="text-[#A0435F]" />
           Verificador de Base de Datos
         </h1>
         <p className="text-gray-600 mt-2">
-          Total de tablas: <span className="font-bold text-lg text-[#7c5cc4]">{bdInfo.total_tablas}</span>
+          Total de tablas: <span className="font-bold text-lg text-[#A0435F]">{bdInfo.total_tablas}</span>
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default function VerificadorBDPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <p className="text-sm text-gray-600 mb-1">Total de Tablas</p>
-          <p className="text-3xl font-bold text-[#7c5cc4]">{bdInfo.total_tablas}</p>
+          <p className="text-3xl font-bold text-[#A0435F]">{bdInfo.total_tablas}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <p className="text-sm text-gray-600 mb-1">Tablas Esperadas</p>
@@ -94,7 +94,7 @@ export default function VerificadorBDPage() {
             key={idx}
             className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
           >
-            <div className="bg-gradient-to-r from-[#7c5cc4] to-[#5a3a90] px-6 py-4 text-white">
+            <div className="bg-gradient-to-r from-[#A0435F] to-[#5a3a90] px-6 py-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold">{tabla.nombre}</h3>

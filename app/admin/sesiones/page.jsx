@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  FileText, FileEdit, Folder, Lock, Paperclip, Users, Search, Eye,
+  PlayCircle, CheckCircle2, Timer, Trash2,
+} from "lucide-react";
 
 const STYLES = `
   .ses-page { min-height:100vh; background:#faf6f7; font-family:system-ui,-apple-system,sans-serif; }
@@ -17,49 +21,49 @@ const STYLES = `
   @media(max-width:580px){ .ses-sidebar{ grid-template-columns:1fr; } }
   .ses-filters { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #f8f0f2; flex-wrap:wrap; }
   .ses-search { position:relative; flex:1 1 160px; min-width:130px; }
-  .ses-search input { width:100%; padding:0 12px 0 34px; height:36px; border:1.5px solid #f0dde2; border-radius:10px; font-size:13px; color:#2d1a22; background:#fff; outline:none; box-sizing:border-box; font-family:inherit; }
-  .ses-search .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#c0909a; pointer-events:none; }
+  .ses-search input { width:100%; padding:0 12px 0 34px; height:36px; border:1.5px solid #F5E1E7; border-radius:10px; font-size:13px; color:#4A2A38; background:#fff; outline:none; box-sizing:border-box; font-family:inherit; }
+  .ses-search .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#C9A9B4; pointer-events:none; }
   .ses-table-wrap { overflow-x:auto; }
   .ses-table { width:100%; border-collapse:collapse; font-size:13px; min-width:740px; }
-  .ses-table th { padding:11px 13px; text-align:left; color:#9a6672; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid #f0dde2; white-space:nowrap; background:#fff8f9; }
+  .ses-table th { padding:11px 13px; text-align:left; color:#9C8790; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid #F5E1E7; white-space:nowrap; background:#FBF4F6; }
   .ses-table th.c { text-align:center; }
   .ses-table td { padding:11px 13px; border-bottom:1px solid #fdf0f2; vertical-align:middle; }
   .ses-table tr:last-child td { border-bottom:none; }
-  .ses-table tbody tr:hover td { background:#fff8f9; }
-  .btn-ghost { height:36px; padding:0 14px; border-radius:10px; border:1.5px solid #f0dde2; background:#fff; font-size:13px; color:#9a6672; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; transition:all .12s; }
-  .btn-ghost:hover { background:#fff8f9; border-color:#e8b0bc; color:#a0435f; }
-  .btn-primary { height:36px; padding:0 18px; border-radius:10px; border:none; background:#a0435f; color:#fff; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; transition:background .12s; }
-  .btn-primary:hover { background:#8a3550; }
-  .ses-select { height:36px; border:1.5px solid #f0dde2; border-radius:10px; padding:0 10px; font-size:13px; color:#2d1a22; background:#fff; cursor:pointer; outline:none; font-family:inherit; }
-  .act-btn { width:30px; height:30px; border-radius:8px; border:1px solid #f0dde2; background:#fff; color:#9a6672; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; justify-content:center; transition:all .12s; }
-  .act-btn:hover, .act-btn.accent { background:#fce8ed; border-color:#e8b0bc; color:#a0435f; }
+  .ses-table tbody tr:hover td { background:#FBF4F6; }
+  .btn-ghost { height:36px; padding:0 14px; border-radius:10px; border:1.5px solid #F5E1E7; background:#fff; font-size:13px; color:#9C8790; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; transition:all .12s; }
+  .btn-ghost:hover { background:#FBF4F6; border-color:#C77D93; color:#A0435F; }
+  .btn-primary { height:36px; padding:0 18px; border-radius:10px; border:none; background:#A0435F; color:#fff; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; transition:background .12s; }
+  .btn-primary:hover { background:#7D2F47; }
+  .ses-select { height:36px; border:1.5px solid #F5E1E7; border-radius:10px; padding:0 10px; font-size:13px; color:#4A2A38; background:#fff; cursor:pointer; outline:none; font-family:inherit; }
+  .act-btn { width:30px; height:30px; border-radius:8px; border:1px solid #F5E1E7; background:#fff; color:#9C8790; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; justify-content:center; transition:all .12s; }
+  .act-btn:hover, .act-btn.accent { background:#FCE8EE; border-color:#C77D93; color:#A0435F; }
   .act-btn.danger:hover { background:#fee8e8; border-color:#f0b0b0; color:#c03030; }
   .modal-overlay { position:fixed; inset:0; background:rgba(45,26,34,.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px; box-sizing:border-box; }
   .modal-box { background:#fff; border-radius:20px; width:100%; max-width:580px; box-shadow:0 20px 60px rgba(160,67,95,.18); animation:modalIn .2s ease; max-height:92vh; overflow-y:auto; display:flex; flex-direction:column; }
-  .modal-input { width:100%; border:1.5px solid #f0dde2; border-radius:12px; padding:10px 14px; font-size:13px; color:#2d1a22; background:#fff; outline:none; font-family:inherit; resize:vertical; box-sizing:border-box; transition:border-color .15s; }
-  .modal-input:focus { border-color:#e8849a; }
-  .modal-tabs { display:flex; border-bottom:1px solid #f0dde2; margin:0 24px; }
-  .modal-tab { padding:11px 16px; font-size:13px; font-weight:600; color:#9a6672; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:inherit; transition:all .12s; }
-  .modal-tab.active { color:#a0435f; border-bottom-color:#a0435f; }
-  .upload-zone { border:2px dashed #f0dde2; border-radius:14px; padding:24px; text-align:center; cursor:pointer; transition:all .15s; background:#fff8f9; }
-  .upload-zone:hover, .upload-zone.drag { border-color:#e8849a; }
+  .modal-input { width:100%; border:1.5px solid #F5E1E7; border-radius:12px; padding:10px 14px; font-size:13px; color:#4A2A38; background:#fff; outline:none; font-family:inherit; resize:vertical; box-sizing:border-box; transition:border-color .15s; }
+  .modal-input:focus { border-color:#C77D93; }
+  .modal-tabs { display:flex; border-bottom:1px solid #F5E1E7; margin:0 24px; }
+  .modal-tab { padding:11px 16px; font-size:13px; font-weight:600; color:#9C8790; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:inherit; transition:all .12s; }
+  .modal-tab.active { color:#A0435F; border-bottom-color:#A0435F; }
+  .upload-zone { border:2px dashed #F5E1E7; border-radius:14px; padding:24px; text-align:center; cursor:pointer; transition:all .15s; background:#FBF4F6; }
+  .upload-zone:hover, .upload-zone.drag { border-color:#C77D93; }
   .upload-zone input[type=file] { display:none; }
-  .recurso-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff8f9; border:1px solid #f0dde2; border-radius:12px; }
+  .recurso-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#FBF4F6; border:1px solid #F5E1E7; border-radius:12px; }
   .sv-overlay { position:fixed; inset:0; background:rgba(20,8,14,.6); display:flex; align-items:stretch; justify-content:flex-end; z-index:1000; animation:fadeIn .2s ease; }
   .sv-panel { width:100%; max-width:860px; background:#f9f4f5; overflow-y:auto; animation:slideIn .25s ease; }
-  .sv-header { background:linear-gradient(135deg,#2d1a22,#5a2a3a); color:#fff; padding:28px 28px 24px; position:sticky; top:0; z-index:10; }
+  .sv-header { background:linear-gradient(135deg,#4A2A38,#5a2a3a); color:#fff; padding:28px 28px 24px; position:sticky; top:0; z-index:10; }
   .sv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; padding:24px 28px; }
   @media(max-width:640px){ .sv-grid{ grid-template-columns:1fr; } }
-  .sv-card { background:#fff; border-radius:16px; border:1px solid #f0dde2; overflow:hidden; cursor:pointer; transition:transform .15s, box-shadow .15s; }
+  .sv-card { background:#fff; border-radius:16px; border:1px solid #F5E1E7; overflow:hidden; cursor:pointer; transition:transform .15s, box-shadow .15s; }
   .sv-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(160,67,95,.12); }
-  .sv-card.active { border-color:#e8849a; box-shadow:0 0 0 2px #fce8ed; }
-  .toast { position:fixed; top:20px; right:20px; z-index:2000; background:#2d1a22; color:#fff; padding:12px 20px; border-radius:14px; font-size:13px; font-weight:600; box-shadow:0 8px 30px rgba(0,0,0,.2); animation:fadeIn .2s ease; }
-  .video-toggle { display:flex; border:1.5px solid #f0dde2; border-radius:12px; overflow:hidden; }
+  .sv-card.active { border-color:#C77D93; box-shadow:0 0 0 2px #FCE8EE; }
+  .toast { position:fixed; top:20px; right:20px; z-index:2000; background:#4A2A38; color:#fff; padding:12px 20px; border-radius:14px; font-size:13px; font-weight:600; box-shadow:0 8px 30px rgba(0,0,0,.2); animation:fadeIn .2s ease; }
+  .video-toggle { display:flex; border:1.5px solid #F5E1E7; border-radius:12px; overflow:hidden; }
   .video-toggle button { flex:1; padding:9px 12px; border:none; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
-  .video-toggle button.active { background:#a0435f; color:#fff; }
-  .video-toggle button:not(.active) { background:#fff; color:#9a6672; }
-  .video-toggle button:not(.active):hover { background:#fff8f9; color:#a0435f; }
-  .info-box { background:#f0f8ff; border:1px solid #b8d8f0; border-radius:10px; padding:10px 14px; font-size:12px; color:#3060a0; line-height:1.6; }
+  .video-toggle button.active { background:#A0435F; color:#fff; }
+  .video-toggle button:not(.active) { background:#fff; color:#9C8790; }
+  .video-toggle button:not(.active):hover { background:#FBF4F6; color:#A0435F; }
+  .info-box { background:#f0f8ff; border:1px solid #b8d8f0; border-radius:10px; padding:10px 14px; font-size:12px; color:#A0435F; line-height:1.6; }
   @keyframes spin { to{ transform:rotate(360deg); } }
   @keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
   @keyframes slideIn { from{ transform:translateX(40px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
@@ -67,7 +71,7 @@ const STYLES = `
 `;
 
 const MOD_C = {
-  "Modulo 1":["#fce8ed","#a0435f"],"Modulo 2":["#fce0d0","#9a4020"],
+  "Modulo 1":["#FCE8EE","#A0435F"],"Modulo 2":["#fce0d0","#9a4020"],
   "Modulo 3":["#fdf0d0","#8a6010"],"Modulo 4":["#e0f0e0","#306030"],
   "Modulo 5":["#e0eafa","#2040a0"],"Modulo 6":["#ede0fc","#5030a0"],
 };
@@ -77,13 +81,13 @@ const ModBadge = ({ m }) => {
 };
 const StatusBadge = ({ estado }) => {
   const pub = !estado || /publicada/i.test(estado);
-  return <span style={{background:pub?"#e8f4e8":"#f8f0e0",color:pub?"#2a7a2a":"#8a6010",fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:999}}>{pub?"Publicada":"Borrador"}</span>;
+  return <span style={{background:pub?"#e8f4e8":"#f8f0e0",color:pub?"#12A46B":"#8a6010",fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:999}}>{pub?"Publicada":"Borrador"}</span>;
 };
-const GRADS=[["#fce8ed","#f0c0cc"],["#e8f0fc","#c0ccf0"],["#e8fce8","#b0e0b0"],["#fce8fc","#e0b0e0"],["#fce8d0","#f0c090"],["#e0f0f8","#a0d0e8"]];
-const Thumb = ({ orden }) => { const [g1,g2]=GRADS[(orden-1)%GRADS.length]; return <div style={{width:44,height:34,borderRadius:8,flexShrink:0,background:`linear-gradient(135deg,${g1},${g2})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#a0435f"}}>{orden}</div>; };
+const GRADS=[["#FCE8EE","#f0c0cc"],["#e8f0fc","#c0ccf0"],["#e8fce8","#b0e0b0"],["#fce8fc","#e0b0e0"],["#fce8d0","#f0c090"],["#e0f0f8","#a0d0e8"]];
+const Thumb = ({ orden }) => { const [g1,g2]=GRADS[(orden-1)%GRADS.length]; return <div style={{width:44,height:34,borderRadius:8,flexShrink:0,background:`linear-gradient(135deg,${g1},${g2})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#A0435F"}}>{orden}</div>; };
 
-const TIPO_ICON  = { pdf:"📄", docx:"📝", otro:"📁" };
-const TIPO_COLOR = { pdf:["#fce8ed","#a0435f"], docx:["#e8effe","#3060c0"], otro:["#f0eaff","#6030a0"] };
+const TIPO_ICON  = { pdf:FileText, docx:FileEdit, otro:Folder };
+const TIPO_COLOR = { pdf:["#FCE8EE","#A0435F"], docx:["#FCE8EE","#3060c0"], otro:["#FBF4F6","#6030a0"] };
 function formatBytes(kb) { if(!kb)return""; return kb<1024?`${kb} KB`:`${(kb/1024).toFixed(1)} MB`; }
 function extractYoutubeId(url) {
   if (!url) return "";
@@ -93,15 +97,15 @@ function extractYoutubeId(url) {
 
 function DonutChart({ completadas=0, enProgreso=0, sinIniciar=100 }) {
   const r=54,cx=70,cy=70,sw=14,circ=2*Math.PI*r;
-  const slices=[{pct:completadas,color:"#c0435f"},{pct:enProgreso,color:"#e8b0bc"},{pct:sinIniciar,color:"#f5e0e5"}];
+  const slices=[{pct:completadas,color:"#A0435F"},{pct:enProgreso,color:"#C77D93"},{pct:sinIniciar,color:"#f5e0e5"}];
   let off=0;
   return (
     <svg viewBox="0 0 140 140" width={130} height={130} style={{flexShrink:0}}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#fce8ed" strokeWidth={sw}/>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#FCE8EE" strokeWidth={sw}/>
       {slices.map((s)=>{ const d=(s.pct/100)*circ; const el=<circle key={s.color} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={sw} strokeDasharray={`${d} ${circ-d}`} strokeDashoffset={-off*circ/100+circ*.25}/>; off+=s.pct; return el; })}
-      <text x={cx} y={cy-8}  textAnchor="middle" fill="#2d1a22" fontSize="22" fontWeight="700" fontFamily="Georgia,serif">{completadas}%</text>
-      <text x={cx} y={cy+12} textAnchor="middle" fill="#9a6672" fontSize="11">Promedio</text>
-      <text x={cx} y={cy+26} textAnchor="middle" fill="#9a6672" fontSize="11">general</text>
+      <text x={cx} y={cy-8}  textAnchor="middle" fill="#4A2A38" fontSize="22" fontWeight="700" fontFamily="Georgia,serif">{completadas}%</text>
+      <text x={cx} y={cy+12} textAnchor="middle" fill="#9C8790" fontSize="11">Promedio</text>
+      <text x={cx} y={cy+26} textAnchor="middle" fill="#9C8790" fontSize="11">general</text>
     </svg>
   );
 }
@@ -110,9 +114,9 @@ function DonutChart({ completadas=0, enProgreso=0, sinIniciar=100 }) {
 function VideoFields({ form, setForm, videoTipo, setVideoTipo }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Video</span>
+      <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Video</span>
       <div className="video-toggle">
-        <button className={videoTipo==="drive"?"active":""} onClick={()=>setVideoTipo("drive")}>🔒 Google Drive (pago)</button>
+        <button className={videoTipo==="drive"?"active":""} onClick={()=>setVideoTipo("drive")}><Lock size={12} style={{display:"inline",verticalAlign:"-1px",marginRight:4}}/>Google Drive (pago)</button>
         <button className={videoTipo==="youtube"?"active":""} onClick={()=>setVideoTipo("youtube")}>▶ YouTube (gratis)</button>
       </div>
       {videoTipo==="drive" ? (
@@ -231,56 +235,56 @@ function EditModal({ sesion, onClose, onSaved }) {
       <div className="modal-box">
         <div style={{padding:"20px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0}}>
           <div>
-            <div style={{fontSize:11,fontWeight:700,color:"#c0909a",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Sesion {sesion.orden}</div>
-            <h2 style={{margin:0,fontSize:18,fontWeight:700,color:"#2d1a22",fontFamily:"Georgia,serif"}}>{sesion.titulo}</h2>
+            <div style={{fontSize:11,fontWeight:700,color:"#C9A9B4",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Sesion {sesion.orden}</div>
+            <h2 style={{margin:0,fontSize:18,fontWeight:700,color:"#4A2A38",fontFamily:"Georgia,serif"}}>{sesion.titulo}</h2>
           </div>
-          <button onClick={onClose} style={{background:"#fce8ed",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:20,color:"#a0435f",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>x</button>
+          <button onClick={onClose} style={{background:"#FCE8EE",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:20,color:"#A0435F",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>x</button>
         </div>
         <div className="modal-tabs" style={{marginTop:14}}>
           <button className={`modal-tab${tab==="info"?" active":""}`} onClick={()=>setTab("info")}>Info</button>
           <button className={`modal-tab${tab==="video"?" active":""}`} onClick={()=>setTab("video")}>Video</button>
           <button className={`modal-tab${tab==="recursos"?" active":""}`} onClick={()=>setTab("recursos")}>
-            Recursos {recursos.length>0&&<span style={{background:"#fce8ed",color:"#a0435f",borderRadius:99,fontSize:10,fontWeight:700,padding:"1px 6px",marginLeft:4}}>{recursos.length}</span>}
+            Recursos {recursos.length>0&&<span style={{background:"#FCE8EE",color:"#A0435F",borderRadius:99,fontSize:10,fontWeight:700,padding:"1px 6px",marginLeft:4}}>{recursos.length}</span>}
           </button>
         </div>
 
         {tab==="info" && (
           <div style={{padding:"18px 24px",display:"flex",flexDirection:"column",gap:14,overflowY:"auto"}}>
-            {err&&<div style={{background:"#fce8ed",border:"1px solid #e8b0bc",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#a0435f"}}>{err}</div>}
+            {err&&<div style={{background:"#FCE8EE",border:"1px solid #C77D93",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#A0435F"}}>{err}</div>}
             <label style={{display:"flex",flexDirection:"column",gap:5}}>
-              <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Titulo *</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Titulo *</span>
               <input className="modal-input" type="text" value={form.titulo} onChange={e=>setForm({...form,titulo:e.target.value})}/>
             </label>
             <label style={{display:"flex",flexDirection:"column",gap:5}}>
-              <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Descripcion</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Descripcion</span>
               <textarea className="modal-input" rows={3} value={form.descripcion} onChange={e=>setForm({...form,descripcion:e.target.value})}/>
             </label>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <label style={{display:"flex",flexDirection:"column",gap:5}}>
-                <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Duracion (min)</span>
+                <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Duracion (min)</span>
                 <input className="modal-input" type="number" min="1" placeholder="45" value={form.duracion_min} onChange={e=>setForm({...form,duracion_min:e.target.value})}/>
               </label>
               <label style={{display:"flex",flexDirection:"column",gap:5}}>
-                <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Modulo</span>
+                <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Modulo</span>
                 <input className="modal-input" type="text" placeholder="Modulo 1" value={form.modulo} onChange={e=>setForm({...form,modulo:e.target.value})}/>
               </label>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <label style={{display:"flex",flexDirection:"column",gap:5}}>
-                <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Estado</span>
+                <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Estado</span>
                 <select className="modal-input" value={form.estado} onChange={e=>setForm({...form,estado:e.target.value})} style={{cursor:"pointer"}}>
                   <option value="Publicada">Publicada</option>
                   <option value="Borrador">Borrador</option>
                 </select>
               </label>
-              <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#fff8f9",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px",marginTop:18}}>
+              <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#FBF4F6",border:"1.5px solid #F5E1E7",borderRadius:12,padding:"10px 14px",marginTop:18}}>
                 <div onClick={()=>setForm({...form,es_gratis:!form.es_gratis})}
-                  style={{width:20,height:20,borderRadius:6,border:`2px solid ${form.es_gratis?"#a0435f":"#e8b0bc"}`,background:form.es_gratis?"#a0435f":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+                  style={{width:20,height:20,borderRadius:6,border:`2px solid ${form.es_gratis?"#A0435F":"#C77D93"}`,background:form.es_gratis?"#A0435F":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
                   {form.es_gratis&&<span style={{color:"#fff",fontSize:12,fontWeight:700}}>v</span>}
                 </div>
                 <div>
-                  <span style={{fontSize:13,fontWeight:600,color:"#2d1a22"}}>Sesion gratuita</span>
-                  <p style={{margin:0,fontSize:11,color:"#9a6672"}}>Visible sin pago</p>
+                  <span style={{fontSize:13,fontWeight:600,color:"#4A2A38"}}>Sesion gratuita</span>
+                  <p style={{margin:0,fontSize:11,color:"#9C8790"}}>Visible sin pago</p>
                 </div>
               </label>
             </div>
@@ -296,7 +300,7 @@ function EditModal({ sesion, onClose, onSaved }) {
         {tab==="recursos" && (
           <div style={{padding:"18px 24px",display:"flex",flexDirection:"column",gap:16,overflowY:"auto"}}>
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>Subir documento</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>Subir documento</div>
               <div className={`upload-zone${drag?" drag":""}`}
                 onClick={()=>!selectedFile&&fileRef.current?.click()}
                 onDragOver={e=>{e.preventDefault();setDrag(true);}}
@@ -304,56 +308,56 @@ function EditModal({ sesion, onClose, onSaved }) {
                 onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}}>
                 <input ref={fileRef} type="file" accept=".pdf,.doc,.docx" onChange={e=>handleFile(e.target.files[0])}/>
                 {!selectedFile ? (
-                  <><div style={{fontSize:32,marginBottom:8}}>📎</div>
-                  <div style={{fontSize:13,fontWeight:600,color:"#a0435f",marginBottom:4}}>Arrastra o haz clic</div>
-                  <div style={{fontSize:11,color:"#c0909a"}}>PDF, Word - max. 20 MB</div></>
+                  <><Paperclip size={28} style={{color:"#C77D93",marginBottom:8}}/>
+                  <div style={{fontSize:13,fontWeight:600,color:"#A0435F",marginBottom:4}}>Arrastra o haz clic</div>
+                  <div style={{fontSize:11,color:"#C9A9B4"}}>PDF, Word - max. 20 MB</div></>
                 ) : (
                   <div style={{display:"flex",flexDirection:"column",gap:10}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center"}}>
-                      <span style={{fontSize:24}}>{selectedFile.name.endsWith(".pdf")?"📄":"📝"}</span>
+                      {selectedFile.name.endsWith(".pdf")?<FileText size={22}/>:<FileEdit size={22}/>}
                       <div style={{textAlign:"left"}}>
-                        <div style={{fontSize:13,fontWeight:600,color:"#2d1a22"}}>{selectedFile.name}</div>
-                        <div style={{fontSize:11,color:"#9a6672"}}>{formatBytes(Math.round(selectedFile.size/1024))}</div>
+                        <div style={{fontSize:13,fontWeight:600,color:"#4A2A38"}}>{selectedFile.name}</div>
+                        <div style={{fontSize:11,color:"#9C8790"}}>{formatBytes(Math.round(selectedFile.size/1024))}</div>
                       </div>
-                      <button onClick={e=>{e.stopPropagation();setSelectedFile(null);setNombreEdit("");}} style={{background:"#fce8ed",border:"none",borderRadius:8,padding:"4px 8px",fontSize:11,color:"#a0435f",cursor:"pointer",marginLeft:"auto"}}>x</button>
+                      <button onClick={e=>{e.stopPropagation();setSelectedFile(null);setNombreEdit("");}} style={{background:"#FCE8EE",border:"none",borderRadius:8,padding:"4px 8px",fontSize:11,color:"#A0435F",cursor:"pointer",marginLeft:"auto"}}>x</button>
                     </div>
                     <div style={{textAlign:"left"}}>
-                      <div style={{fontSize:11,fontWeight:600,color:"#9a6672",marginBottom:4}}>Nombre para estudiantes:</div>
+                      <div style={{fontSize:11,fontWeight:600,color:"#9C8790",marginBottom:4}}>Nombre para estudiantes:</div>
                       <input className="modal-input" value={nombreEdit} onChange={e=>setNombreEdit(e.target.value)} placeholder="Guia de documentos"/>
                     </div>
                   </div>
                 )}
               </div>
-              {uploadErr&&<div style={{marginTop:8,fontSize:12,color:"#c0435f"}}>{uploadErr}</div>}
+              {uploadErr&&<div style={{marginTop:8,fontSize:12,color:"#A0435F"}}>{uploadErr}</div>}
               {selectedFile&&(
                 <button onClick={uploadFile} disabled={uploading}
-                  style={{marginTop:10,width:"100%",padding:"10px",borderRadius:12,border:"none",background:uploading?"#c0909a":"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:uploading?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                  style={{marginTop:10,width:"100%",padding:"10px",borderRadius:12,border:"none",background:uploading?"#C9A9B4":"#A0435F",color:"#fff",fontSize:13,fontWeight:600,cursor:uploading?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
                   {uploading?<><div style={{width:14,height:14,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>Subiendo...</>:"Subir documento"}
                 </button>
               )}
             </div>
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>Documentos en esta sesion</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>Documentos en esta sesion</div>
               {loadingRec ? (
-                <div style={{textAlign:"center",padding:20}}><div style={{width:24,height:24,border:"3px solid #fce8ed",borderTopColor:"#a0435f",borderRadius:"50%",margin:"0 auto",animation:"spin 1s linear infinite"}}/></div>
+                <div style={{textAlign:"center",padding:20}}><div style={{width:24,height:24,border:"3px solid #FCE8EE",borderTopColor:"#A0435F",borderRadius:"50%",margin:"0 auto",animation:"spin 1s linear infinite"}}/></div>
               ) : recursos.length===0 ? (
-                <div style={{textAlign:"center",padding:"20px 0",color:"#c0909a",fontSize:13}}>Sin documentos aun.</div>
+                <div style={{textAlign:"center",padding:"20px 0",color:"#C9A9B4",fontSize:13}}>Sin documentos aun.</div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {recursos.map((r)=>{
                     const [bg,fg]=TIPO_COLOR[r.tipo]||TIPO_COLOR.otro;
                     return (
                       <div key={r.id} className="recurso-item">
-                        <div style={{width:34,height:34,borderRadius:9,background:bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{TIPO_ICON[r.tipo]||"📁"}</div>
+                        <div style={{width:34,height:34,borderRadius:9,background:bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:"#A0435F"}}>{(() => { const I = TIPO_ICON[r.tipo] || Folder; return <I size={16}/>; })()}</div>
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:13,fontWeight:600,color:"#2d1a22",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nombre}</div>
-                          <div style={{fontSize:11,color:"#c0909a"}}>
+                          <div style={{fontSize:13,fontWeight:600,color:"#4A2A38",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.nombre}</div>
+                          <div style={{fontSize:11,color:"#C9A9B4"}}>
                             <span style={{background:bg,color:fg,borderRadius:99,padding:"1px 7px",fontSize:10,fontWeight:600,marginRight:6}}>{r.tipo?.toUpperCase()}</span>
                             {formatBytes(r.tamano_kb)}
                           </div>
                         </div>
-                        <a href={r.url} target="_blank" rel="noopener noreferrer" style={{padding:"5px 10px",borderRadius:8,border:"1px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:12,textDecoration:"none"}}>Abrir</a>
-                        <button onClick={()=>deleteRecurso(r.id)} style={{padding:"5px 10px",borderRadius:8,border:"1px solid #fce8ed",background:"#fce8ed",color:"#a0435f",fontSize:12,cursor:"pointer"}}>Borrar</button>
+                        <a href={r.url} target="_blank" rel="noopener noreferrer" style={{padding:"5px 10px",borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:12,textDecoration:"none"}}>Abrir</a>
+                        <button onClick={()=>deleteRecurso(r.id)} style={{padding:"5px 10px",borderRadius:8,border:"1px solid #FCE8EE",background:"#FCE8EE",color:"#A0435F",fontSize:12,cursor:"pointer"}}>Borrar</button>
                       </div>
                     );
                   })}
@@ -364,9 +368,9 @@ function EditModal({ sesion, onClose, onSaved }) {
         )}
 
         <div style={{padding:"0 24px 20px",display:"flex",gap:10,justifyContent:"flex-end",flexShrink:0}}>
-          <button onClick={onClose} style={{padding:"9px 18px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
+          <button onClick={onClose} style={{padding:"9px 18px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
           {tab!=="recursos"&&(
-            <button onClick={save} disabled={saving} style={{padding:"9px 22px",borderRadius:12,border:"none",background:saving?"#c0909a":"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+            <button onClick={save} disabled={saving} style={{padding:"9px 22px",borderRadius:12,border:"none",background:saving?"#C9A9B4":"#A0435F",color:"#fff",fontSize:13,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
               {saving?<><div style={{width:14,height:14,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>Guardando...</>:"Guardar cambios"}
             </button>
           )}
@@ -405,42 +409,42 @@ function NuevaModal({ onClose, onSaved }) {
     <div className="modal-overlay" onClick={(e)=>e.target===e.currentTarget&&onClose()}>
       <div className="modal-box">
         <div style={{padding:"20px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <h2 style={{margin:0,fontSize:18,fontWeight:700,color:"#2d1a22",fontFamily:"Georgia,serif"}}>Nueva sesion</h2>
-          <button onClick={onClose} style={{background:"#fce8ed",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:20,color:"#a0435f",display:"flex",alignItems:"center",justifyContent:"center"}}>x</button>
+          <h2 style={{margin:0,fontSize:18,fontWeight:700,color:"#4A2A38",fontFamily:"Georgia,serif"}}>Nueva sesion</h2>
+          <button onClick={onClose} style={{background:"#FCE8EE",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:20,color:"#A0435F",display:"flex",alignItems:"center",justifyContent:"center"}}>x</button>
         </div>
         <div style={{padding:"18px 24px",display:"flex",flexDirection:"column",gap:14,overflowY:"auto"}}>
-          {err&&<div style={{background:"#fce8ed",border:"1px solid #e8b0bc",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#a0435f"}}>{err}</div>}
+          {err&&<div style={{background:"#FCE8EE",border:"1px solid #C77D93",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#A0435F"}}>{err}</div>}
           <label style={{display:"flex",flexDirection:"column",gap:5}}>
-            <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Titulo *</span>
+            <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Titulo *</span>
             <input className="modal-input" type="text" placeholder="Como preparar tu visa" value={form.titulo} onChange={e=>setForm({...form,titulo:e.target.value})}/>
           </label>
           <label style={{display:"flex",flexDirection:"column",gap:5}}>
-            <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Descripcion</span>
+            <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Descripcion</span>
             <textarea className="modal-input" rows={2} value={form.descripcion} onChange={e=>setForm({...form,descripcion:e.target.value})}/>
           </label>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <label style={{display:"flex",flexDirection:"column",gap:5}}>
-              <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Duracion (min)</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Duracion (min)</span>
               <input className="modal-input" type="number" min="1" placeholder="45" value={form.duracion_min} onChange={e=>setForm({...form,duracion_min:e.target.value})}/>
             </label>
             <label style={{display:"flex",flexDirection:"column",gap:5}}>
-              <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Modulo</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Modulo</span>
               <input className="modal-input" type="text" placeholder="Modulo 1" value={form.modulo} onChange={e=>setForm({...form,modulo:e.target.value})}/>
             </label>
           </div>
           <VideoFields form={form} setForm={setForm} videoTipo={videoTipo} setVideoTipo={setVideoTipo}/>
-          <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#fff8f9",border:"1.5px solid #f0dde2",borderRadius:12,padding:"10px 14px"}}>
+          <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#FBF4F6",border:"1.5px solid #F5E1E7",borderRadius:12,padding:"10px 14px"}}>
             <div onClick={()=>setForm({...form,es_gratis:!form.es_gratis})}
-              style={{width:20,height:20,borderRadius:6,border:`2px solid ${form.es_gratis?"#a0435f":"#e8b0bc"}`,background:form.es_gratis?"#a0435f":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+              style={{width:20,height:20,borderRadius:6,border:`2px solid ${form.es_gratis?"#A0435F":"#C77D93"}`,background:form.es_gratis?"#A0435F":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
               {form.es_gratis&&<span style={{color:"#fff",fontSize:12,fontWeight:700}}>v</span>}
             </div>
             <div>
-              <span style={{fontSize:13,fontWeight:600,color:"#2d1a22"}}>Sesion gratuita</span>
-              <p style={{margin:0,fontSize:11,color:"#9a6672"}}>Visible para todas sin pago</p>
+              <span style={{fontSize:13,fontWeight:600,color:"#4A2A38"}}>Sesion gratuita</span>
+              <p style={{margin:0,fontSize:11,color:"#9C8790"}}>Visible para todas sin pago</p>
             </div>
           </label>
           <label style={{display:"flex",flexDirection:"column",gap:5}}>
-            <span style={{fontSize:11,fontWeight:700,color:"#2d1a22",textTransform:"uppercase",letterSpacing:.7}}>Estado</span>
+            <span style={{fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.7}}>Estado</span>
             <select className="modal-input" value={form.estado} onChange={e=>setForm({...form,estado:e.target.value})} style={{cursor:"pointer"}}>
               <option value="Publicada">Publicada</option>
               <option value="Borrador">Borrador</option>
@@ -448,8 +452,8 @@ function NuevaModal({ onClose, onSaved }) {
           </label>
         </div>
         <div style={{padding:"0 24px 20px",display:"flex",gap:10,justifyContent:"flex-end",flexShrink:0}}>
-          <button onClick={onClose} style={{padding:"9px 18px",borderRadius:12,border:"1.5px solid #f0dde2",background:"#fff",color:"#9a6672",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
-          <button onClick={save} disabled={saving} style={{padding:"9px 22px",borderRadius:12,border:"none",background:saving?"#c0909a":"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+          <button onClick={onClose} style={{padding:"9px 18px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
+          <button onClick={save} disabled={saving} style={{padding:"9px 22px",borderRadius:12,border:"none",background:saving?"#C9A9B4":"#A0435F",color:"#fff",fontSize:13,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
             {saving?<><div style={{width:14,height:14,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>Creando...</>:"Crear sesion"}
           </button>
         </div>
@@ -487,35 +491,35 @@ function StudentView({ sesiones, onClose }) {
           <p style={{margin:0,fontSize:13,color:"rgba(255,255,255,.65)"}}>{published.length} sesiones</p>
           <div style={{marginTop:14,display:"flex",alignItems:"center",gap:12}}>
             <div style={{flex:1,height:6,background:"rgba(255,255,255,.2)",borderRadius:99}}>
-              <div style={{height:"100%",width:`${Math.round(done/Math.max(published.length,1)*100)}%`,background:"#e8849a",borderRadius:99}}/>
+              <div style={{height:"100%",width:`${Math.round(done/Math.max(published.length,1)*100)}%`,background:"#C77D93",borderRadius:99}}/>
             </div>
             <span style={{fontSize:12,color:"rgba(255,255,255,.75)"}}>{done}/{published.length} completadas</span>
           </div>
         </div>
 
         {selected && (
-          <div style={{background:"#fff",margin:"24px 28px 0",borderRadius:16,border:"1px solid #f0dde2",overflow:"hidden"}}>
+          <div style={{background:"#fff",margin:"24px 28px 0",borderRadius:16,border:"1px solid #F5E1E7",overflow:"hidden"}}>
             <div style={{position:"relative",width:"100%",paddingTop:"56.25%",background:"#1a0a10"}}>
               {embedUrl ? (
                 <iframe src={embedUrl} allowFullScreen allow="autoplay; fullscreen"
                   style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}/>
               ) : (
-                <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"#e8849a",gap:10}}>
+                <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:"#C77D93",gap:10}}>
                   <span style={{fontSize:48}}>play</span>
                   <span style={{fontSize:14}}>Sin video asignado</span>
                 </div>
               )}
             </div>
             <div style={{padding:"16px 20px"}}>
-              <div style={{fontSize:11,color:"#c0909a",fontWeight:600,textTransform:"uppercase",marginBottom:4}}>Sesion {selected.orden}</div>
-              <h3 style={{margin:"0 0 6px",fontSize:18,fontWeight:700,color:"#2d1a22",fontFamily:"Georgia,serif"}}>{selected.titulo}</h3>
+              <div style={{fontSize:11,color:"#C9A9B4",fontWeight:600,textTransform:"uppercase",marginBottom:4}}>Sesion {selected.orden}</div>
+              <h3 style={{margin:"0 0 6px",fontSize:18,fontWeight:700,color:"#4A2A38",fontFamily:"Georgia,serif"}}>{selected.titulo}</h3>
               {selected.descripcion&&<p style={{margin:0,fontSize:13,color:"#7a5060",lineHeight:1.6}}>{selected.descripcion}</p>}
             </div>
           </div>
         )}
 
         <div style={{padding:"20px 28px 8px"}}>
-          <h4 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#9a6672",textTransform:"uppercase",letterSpacing:.6}}>Todas las sesiones</h4>
+          <h4 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#9C8790",textTransform:"uppercase",letterSpacing:.6}}>Todas las sesiones</h4>
         </div>
         <div className="sv-grid">
           {published.map((s,i)=>{
@@ -528,17 +532,17 @@ function StudentView({ sesiones, onClose }) {
                   <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <span style={{fontSize:30,fontWeight:800,color:"rgba(160,67,95,.3)",fontFamily:"Georgia,serif"}}>{s.orden}</span>
                   </div>
-                  {(s.es_gratis===1||s.es_gratis===true)&&<div style={{position:"absolute",top:8,left:8,background:"#a0435f",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:99}}>GRATIS</div>}
-                  {isDone&&<div style={{position:"absolute",top:8,right:8,width:22,height:22,borderRadius:"50%",background:"#2a7a2a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#fff"}}>ok</div>}
-                  {active&&<div style={{position:"absolute",bottom:8,right:8,background:"#a0435f",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:99}}>VIENDO</div>}
+                  {(s.es_gratis===1||s.es_gratis===true)&&<div style={{position:"absolute",top:8,left:8,background:"#A0435F",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:99}}>GRATIS</div>}
+                  {isDone&&<div style={{position:"absolute",top:8,right:8,width:22,height:22,borderRadius:"50%",background:"#12A46B",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#fff"}}>ok</div>}
+                  {active&&<div style={{position:"absolute",bottom:8,right:8,background:"#A0435F",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:99}}>VIENDO</div>}
                 </div>
                 <div style={{padding:"12px 14px 14px"}}>
-                  <div style={{fontSize:10,color:"#c0909a",fontWeight:600,textTransform:"uppercase",marginBottom:3}}>Sesion {s.orden}</div>
-                  <div style={{fontSize:13,fontWeight:600,color:"#2d1a22",lineHeight:1.35,marginBottom:4}}>{s.titulo}</div>
+                  <div style={{fontSize:10,color:"#C9A9B4",fontWeight:600,textTransform:"uppercase",marginBottom:3}}>Sesion {s.orden}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:"#4A2A38",lineHeight:1.35,marginBottom:4}}>{s.titulo}</div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                    {s.video_drive_id&&<span style={{fontSize:10,color:"#a0435f",background:"#fce8ed",padding:"2px 6px",borderRadius:99}}>Drive</span>}
-                    {s.video_youtube_id&&<span style={{fontSize:10,color:"#3060a0",background:"#e8effe",padding:"2px 6px",borderRadius:99}}>YouTube</span>}
-                    {isDone?<span style={{fontSize:11,color:"#2a7a2a"}}>Completada</span>:<span style={{fontSize:11,color:"#9a6672"}}>Pendiente</span>}
+                    {s.video_drive_id&&<span style={{fontSize:10,color:"#A0435F",background:"#FCE8EE",padding:"2px 6px",borderRadius:99}}>Drive</span>}
+                    {s.video_youtube_id&&<span style={{fontSize:10,color:"#A0435F",background:"#FCE8EE",padding:"2px 6px",borderRadius:99}}>YouTube</span>}
+                    {isDone?<span style={{fontSize:11,color:"#12A46B"}}>Completada</span>:<span style={{fontSize:11,color:"#9C8790"}}>Pendiente</span>}
                   </div>
                 </div>
               </div>
@@ -607,18 +611,19 @@ export default function AdminSesionesPage() {
     })
     .sort((a,b)=>sortAsc?a.orden-b.orden:b.orden-a.orden);
 
+  // Antes eran una mezcla de emoji, una letra suelta ("T") y la palabra "ok".
   const statCards = [
-    { icon:"▶",  bg:"#fce8ed",label:"Total sesiones",     val:total },
-    { icon:"👥", bg:"#e8f0fe",label:"Completadas (prom.)",val:`${promedio}%`,bar:true,barVal:promedio },
-    { icon:"ok", bg:"#e8f4e8",label:"Publicadas",         val:publicadas },
-    { icon:"T",  bg:"#fff4e0",label:"Tiempo promedio",    val:tiempoP },
-    { icon:"📎", bg:"#f0eaff",label:"Recursos",           val:totalRec },
+    { Icono:PlayCircle,   bg:"#FCE8EE", color:"#A0435F", label:"Total sesiones",      val:total },
+    { Icono:Users,        bg:"#FCE8EE", color:"#A0435F", label:"Completadas (prom.)", val:`${promedio}%`, bar:true, barVal:promedio },
+    { Icono:CheckCircle2, bg:"#E6F9F0", color:"#12A46B", label:"Publicadas",          val:publicadas },
+    { Icono:Timer,        bg:"#FFF4EC", color:"#E8853B", label:"Tiempo promedio",     val:tiempoP },
+    { Icono:Paperclip,    bg:"#FBF4F6", color:"#A0435F", label:"Recursos",            val:totalRec },
   ];
 
   return (
     <div className="ses-page">
       <style>{STYLES}</style>
-      {toast&&<div className="toast">ok {toast}</div>}
+      {toast&&<div className="toast"><CheckCircle2 size={14} style={{display:"inline",verticalAlign:"-2px",marginRight:6}}/>{toast}</div>}
       {editModal&&<EditModal  sesion={editModal} onClose={()=>setEditModal(null)}  onSaved={()=>{ cargar(); showToast("Sesion actualizada"); }}/>}
       {nuevaModal&&<NuevaModal                   onClose={()=>setNuevaModal(false)} onSaved={()=>{ cargar(); showToast("Sesion creada"); }}/>}
       {studentView&&<StudentView sesiones={sesiones} onClose={()=>setStudentView(false)}/>}
@@ -627,35 +632,35 @@ export default function AdminSesionesPage() {
         <div className="ses-header">
           <div>
             <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-              <h1 style={{margin:0,fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:"#2d1a22",fontFamily:"Georgia,serif"}}>Sesiones del programa</h1>
-              <span style={{background:"#fce8ed",color:"#a0435f",borderRadius:8,padding:"2px 9px",fontSize:12,fontWeight:700}}>{total}</span>
+              <h1 style={{margin:0,fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:"#4A2A38",fontFamily:"Georgia,serif"}}>Sesiones del programa</h1>
+              <span style={{background:"#FCE8EE",color:"#A0435F",borderRadius:8,padding:"2px 9px",fontSize:12,fontWeight:700}}>{total}</span>
             </div>
-            <p style={{margin:"4px 0 0",fontSize:13,color:"#9a6672"}}>Gestiona el contenido, videos y recursos de cada sesion.</p>
+            <p style={{margin:"4px 0 0",fontSize:13,color:"#9C8790"}}>Gestiona el contenido, videos y recursos de cada sesion.</p>
           </div>
           <div className="ses-header-actions">
-            <button className="btn-ghost" onClick={()=>setStudentView(true)} style={{borderColor:"#e8b0bc",color:"#a0435f"}}>Vista de estudiante</button>
+            <button className="btn-ghost" onClick={()=>setStudentView(true)} style={{borderColor:"#C77D93",color:"#A0435F"}}>Vista de estudiante</button>
             <button className="btn-primary" onClick={()=>setNuevaModal(true)}>+ Nueva sesion</button>
           </div>
         </div>
 
         <div className="ses-stats">
           {statCards.map(c=>(
-            <div key={c.label} style={{background:"#fff",borderRadius:16,border:"1px solid #f0dde2",padding:"14px 16px",display:"flex",alignItems:"flex-start",gap:12}}>
-              <div style={{width:38,height:38,borderRadius:11,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,flexShrink:0}}>{c.icon}</div>
+            <div key={c.label} style={{background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:"14px 16px",display:"flex",alignItems:"flex-start",gap:12}}>
+              <div style={{width:38,height:38,borderRadius:11,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:c.color}}><c.Icono size={18}/></div>
               <div style={{minWidth:0}}>
-                <div style={{fontSize:11,color:"#9a6672",marginBottom:1}}>{c.label}</div>
-                <div style={{fontSize:22,fontWeight:700,color:"#2d1a22",lineHeight:1.1}}>{loading?"—":c.val}</div>
-                {c.bar&&<div style={{height:3,background:"#fce8ed",borderRadius:99,margin:"5px 0 2px",width:80}}><div style={{height:"100%",width:`${c.barVal||0}%`,background:"#a0435f",borderRadius:99}}/></div>}
+                <div style={{fontSize:11,color:"#9C8790",marginBottom:1}}>{c.label}</div>
+                <div style={{fontSize:22,fontWeight:700,color:"#4A2A38",lineHeight:1.1}}>{loading?"—":c.val}</div>
+                {c.bar&&<div style={{height:3,background:"#FCE8EE",borderRadius:99,margin:"5px 0 2px",width:80}}><div style={{height:"100%",width:`${c.barVal||0}%`,background:"#A0435F",borderRadius:99}}/></div>}
               </div>
             </div>
           ))}
         </div>
 
         <div className="ses-main">
-          <div style={{background:"#fff",borderRadius:20,border:"1px solid #f0dde2",overflow:"hidden"}}>
+          <div style={{background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden"}}>
             <div className="ses-filters">
               <div className="ses-search">
-                <span className="ico">🔍</span>
+                <Search size={14} className="ico"/>
                 <input type="text" placeholder="Buscar sesion…" value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <select className="ses-select" value={filterMod} onChange={e=>setFilterMod(e.target.value)}>
@@ -678,18 +683,18 @@ export default function AdminSesionesPage() {
                 </thead>
                 <tbody>
                   {loading?(
-                    <tr><td colSpan={8} style={{padding:48,textAlign:"center"}}><div style={{width:28,height:28,border:"3px solid #fce8ed",borderTopColor:"#a0435f",borderRadius:"50%",margin:"0 auto",animation:"spin 1s linear infinite"}}/></td></tr>
+                    <tr><td colSpan={8} style={{padding:48,textAlign:"center"}}><div style={{width:28,height:28,border:"3px solid #FCE8EE",borderTopColor:"#A0435F",borderRadius:"50%",margin:"0 auto",animation:"spin 1s linear infinite"}}/></td></tr>
                   ):visible.length===0?(
-                    <tr><td colSpan={8} style={{padding:48,textAlign:"center",color:"#c0909a"}}>Sin resultados.</td></tr>
+                    <tr><td colSpan={8} style={{padding:48,textAlign:"center",color:"#C9A9B4"}}>Sin resultados.</td></tr>
                   ):visible.map(s=>(
                     <tr key={s.id}>
-                      <td style={{textAlign:"center"}}><span style={{fontSize:12,fontWeight:600,color:"#c0909a"}}>{s.orden}</span></td>
+                      <td style={{textAlign:"center"}}><span style={{fontSize:12,fontWeight:600,color:"#C9A9B4"}}>{s.orden}</span></td>
                       <td style={{minWidth:180}}>
                         <div style={{display:"flex",alignItems:"center",gap:10}}>
                           <Thumb orden={s.orden}/>
                           <div style={{minWidth:0}}>
-                            <div style={{fontWeight:600,color:"#2d1a22",fontSize:13}}>{s.titulo}</div>
-                            <div style={{fontSize:11,color:"#c0909a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:220}}>
+                            <div style={{fontWeight:600,color:"#4A2A38",fontSize:13}}>{s.titulo}</div>
+                            <div style={{fontSize:11,color:"#C9A9B4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:220}}>
                               {(s.descripcion||"Sin descripcion").slice(0,50)}{(s.descripcion||"").length>50?"...":""}
                             </div>
                           </div>
@@ -699,22 +704,22 @@ export default function AdminSesionesPage() {
                       <td style={{color:"#555",whiteSpace:"nowrap"}}>{s.duracion_min?`${s.duracion_min} min`:"—"}</td>
                       <td style={{textAlign:"center"}}>
                         {s.video_drive_id
-                          ? <span style={{fontSize:10,background:"#fce8ed",color:"#a0435f",padding:"3px 8px",borderRadius:99,fontWeight:600}}>Drive</span>
+                          ? <span style={{fontSize:10,background:"#FCE8EE",color:"#A0435F",padding:"3px 8px",borderRadius:99,fontWeight:600}}>Drive</span>
                           : s.video_youtube_id
-                          ? <span style={{fontSize:10,background:"#e8effe",color:"#3060a0",padding:"3px 8px",borderRadius:99,fontWeight:600}}>YouTube</span>
-                          : <span style={{fontSize:10,color:"#c0909a"}}>Sin video</span>
+                          ? <span style={{fontSize:10,background:"#FCE8EE",color:"#A0435F",padding:"3px 8px",borderRadius:99,fontWeight:600}}>YouTube</span>
+                          : <span style={{fontSize:10,color:"#C9A9B4"}}>Sin video</span>
                         }
                       </td>
                       <td style={{textAlign:"center"}}>
                         {(s.es_gratis===1||s.es_gratis===true)
-                          ? <span style={{color:"#2a7a2a",fontWeight:700,fontSize:12}}>Si</span>
-                          : <span style={{color:"#c0909a",fontSize:12}}>No</span>
+                          ? <span style={{color:"#12A46B",fontWeight:700,fontSize:12}}>Si</span>
+                          : <span style={{color:"#C9A9B4",fontSize:12}}>No</span>
                         }
                       </td>
                       <td><StatusBadge estado={s.estado}/></td>
                       <td>
                         <div style={{display:"flex",gap:4,justifyContent:"center"}}>
-                          <button className="act-btn" title="Vista estudiante" onClick={()=>setStudentView(true)}>👁</button>
+                          <button className="act-btn" title="Vista estudiante" onClick={()=>setStudentView(true)}><Eye size={14}/></button>
                           <button className="act-btn accent" title="Editar" onClick={()=>setEditModal(s)}>✏️</button>
                           <button className="act-btn danger" title="Eliminar" onClick={()=>eliminarSesion(s.id,s.titulo)}>🗑</button>
                         </div>
@@ -724,44 +729,44 @@ export default function AdminSesionesPage() {
                 </tbody>
               </table>
             </div>
-            {!loading&&<div style={{padding:"10px 18px",borderTop:"1px solid #f8f0f2",fontSize:12,color:"#c0909a"}}>Mostrando {visible.length} de {total} sesiones</div>}
+            {!loading&&<div style={{padding:"10px 18px",borderTop:"1px solid #f8f0f2",fontSize:12,color:"#C9A9B4"}}>Mostrando {visible.length} de {total} sesiones</div>}
           </div>
 
           <div className="ses-sidebar">
-            <div style={{background:"#fff",borderRadius:20,border:"1px solid #f0dde2",padding:20}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#2d1a22",marginBottom:16}}>Progreso general</div>
+            <div style={{background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:20}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#4A2A38",marginBottom:16}}>Progreso general</div>
               <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
                 <DonutChart completadas={cPct} enProgreso={ePct} sinIniciar={sPct}/>
                 <div style={{display:"flex",flexDirection:"column",gap:10,flex:1,minWidth:90}}>
-                  {[["Completadas",`${cPct}%`,"#c0435f"],["En progreso",`${ePct}%`,"#e8b0bc"],["Sin iniciar",`${sPct}%`,"#f0dde2"]].map(([l,p,c])=>(
+                  {[["Completadas",`${cPct}%`,"#A0435F"],["En progreso",`${ePct}%`,"#C77D93"],["Sin iniciar",`${sPct}%`,"#F5E1E7"]].map(([l,p,c])=>(
                     <div key={l} style={{display:"flex",alignItems:"center",gap:8}}>
                       <div style={{width:10,height:10,borderRadius:3,background:c,flexShrink:0}}/>
-                      <span style={{fontSize:12,color:"#9a6672",flex:1}}>{l}</span>
-                      <span style={{fontSize:12,fontWeight:700,color:"#2d1a22"}}>{loading?"—":p}</span>
+                      <span style={{fontSize:12,color:"#9C8790",flex:1}}>{l}</span>
+                      <span style={{fontSize:12,fontWeight:700,color:"#4A2A38"}}>{loading?"—":p}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div style={{background:"#fff",borderRadius:20,border:"1px solid #f0dde2",padding:20}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#2d1a22",marginBottom:14}}>Actividad reciente</div>
+            <div style={{background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:20}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#4A2A38",marginBottom:14}}>Actividad reciente</div>
               {actividad.length===0 ? (
-                <div style={{textAlign:"center",padding:"12px 0",color:"#c0909a",fontSize:12}}>Sin actividad reciente.</div>
+                <div style={{textAlign:"center",padding:"12px 0",color:"#C9A9B4",fontSize:12}}>Sin actividad reciente.</div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",gap:12}}>
                   {actividad.slice(0,5).map((a,i)=>{
-                    const bgs=["#fce8ed","#e8effe","#e8fee8","#fef8e0","#f8e8fe"];
+                    const bgs=["#FCE8EE","#FCE8EE","#e8fee8","#fef8e0","#f8e8fe"];
                     return (
                       <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                        <div style={{width:30,height:30,borderRadius:9,background:bgs[i%bgs.length],display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#a0435f",flexShrink:0}}>
+                        <div style={{width:30,height:30,borderRadius:9,background:bgs[i%bgs.length],display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#A0435F",flexShrink:0}}>
                           {(a.ini_nombre||"?")}
                         </div>
                         <div>
-                          <div style={{fontSize:12,color:"#2d1a22"}}>
+                          <div style={{fontSize:12,color:"#4A2A38"}}>
                             <b style={{fontWeight:600}}>{a.nombre}</b> {a.tipo_evento==="completado"?"completo":"inicio"} {a.sesion_titulo}
                           </div>
-                          <div style={{fontSize:11,color:"#c0909a"}}>
+                          <div style={{fontSize:11,color:"#C9A9B4"}}>
                             {new Date(a.fecha).toLocaleDateString("es-CO",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
                           </div>
                         </div>
@@ -772,25 +777,25 @@ export default function AdminSesionesPage() {
               )}
             </div>
 
-            <div style={{background:"#fff",borderRadius:20,border:"1px solid #f0dde2",padding:20}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#2d1a22",marginBottom:14}}>Tipos de recursos</div>
+            <div style={{background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",padding:20}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#4A2A38",marginBottom:14}}>Tipos de recursos</div>
               {tiposRec.length===0 ? (
-                <div style={{textAlign:"center",padding:"8px 0",color:"#c0909a",fontSize:12}}>Sin recursos aun.</div>
+                <div style={{textAlign:"center",padding:"8px 0",color:"#C9A9B4",fontSize:12}}>Sin recursos aun.</div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {tiposRec.map(r=>{
                     const [bg]=TIPO_COLOR[r.tipo]||TIPO_COLOR.otro;
                     return (
                       <div key={r.tipo} style={{display:"flex",alignItems:"center",gap:10}}>
-                        <div style={{width:30,height:30,borderRadius:8,background:bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{TIPO_ICON[r.tipo]||"📁"}</div>
+                        <div style={{width:30,height:30,borderRadius:8,background:bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{(() => { const I = TIPO_ICON[r.tipo] || Folder; return <I size={15}/>; })()}</div>
                         <span style={{fontSize:13,color:"#555",flex:1}}>{TIPO_LABELS[r.tipo]||r.tipo}</span>
-                        <span style={{fontSize:13,fontWeight:700,color:"#2d1a22"}}>{r.cantidad}</span>
+                        <span style={{fontSize:13,fontWeight:700,color:"#4A2A38"}}>{r.cantidad}</span>
                       </div>
                     );
                   })}
-                  <div style={{marginTop:8,paddingTop:12,borderTop:"1px solid #f0dde2",display:"flex",justifyContent:"space-between"}}>
-                    <span style={{fontSize:12,fontWeight:700,color:"#9a6672",textTransform:"uppercase",letterSpacing:.5}}>Total</span>
-                    <span style={{fontSize:14,fontWeight:700,color:"#2d1a22"}}>{loading?"—":totalRec}</span>
+                  <div style={{marginTop:8,paddingTop:12,borderTop:"1px solid #F5E1E7",display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontSize:12,fontWeight:700,color:"#9C8790",textTransform:"uppercase",letterSpacing:.5}}>Total</span>
+                    <span style={{fontSize:14,fontWeight:700,color:"#4A2A38"}}>{loading?"—":totalRec}</span>
                   </div>
                 </div>
               )}

@@ -33,8 +33,8 @@ function calcProgresoAgencia(form) {
 }
 
 /* ══ Estilos ══════════════════════════════════════════════════════════════ */
-const IC = { width:"100%", border:"1.5px solid #e5e7eb", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#1e1033", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
-const LC = { fontSize:11, fontWeight:600, color:"#374151", display:"block", marginBottom:6 };
+const IC = { width:"100%", border:"1.5px solid #E5E7EB", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
+const LC = { fontSize:11, fontWeight:600, color:"#6B7280", display:"block", marginBottom:6 };
 
 function Select({ name, value, onChange, options, placeholder="" }) {
   return (
@@ -98,13 +98,13 @@ export default function AdminPerfilAgenciaPage() {
     const w = window.open("","_blank");
     const edad = form.fecha_nacimiento ? Math.floor((new Date()-new Date(form.fecha_nacimiento))/(365.25*24*60*60*1000)) : "";
     w.document.write(`<html><head><title>Perfil Agencia — ${form.nombre} ${form.apellido}</title>
-    <style>body{font-family:Arial,sans-serif;padding:30px;font-size:13px;color:#1e1033}
-    h1{color:#a0435f;font-size:22px;margin-bottom:4px}h2{color:#a0435f;font-size:14px;border-bottom:1px solid #f0dde2;padding-bottom:6px;margin:20px 0 10px}
+    <style>body{font-family:Arial,sans-serif;padding:30px;font-size:13px;color:#4A2A38}
+    h1{color:#A0435F;font-size:22px;margin-bottom:4px}h2{color:#A0435F;font-size:14px;border-bottom:1px solid #F5E1E7;padding-bottom:6px;margin:20px 0 10px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.campo{margin-bottom:8px}
-    .lbl{font-size:10px;font-weight:700;color:#9a7080;text-transform:uppercase;letter-spacing:.6px}.val{font-size:13px}</style></head><body>
+    .lbl{font-size:10px;font-weight:700;color:#9C8790;text-transform:uppercase;letter-spacing:.6px}.val{font-size:13px}</style></head><body>
     <h1>${form.nombre} ${form.apellido}${edad?` · ${edad} años`:""}</h1>
-    <p style="color:#9a7080;margin:0 0 4px">${form.email||""}</p>
-    <p style="color:#9a7080;margin:0 0 16px">${form.ciudad||""} ${form.nacionalidad?`· ${form.nacionalidad}`:""}</p>
+    <p style="color:#9C8790;margin:0 0 4px">${form.email||""}</p>
+    <p style="color:#9C8790;margin:0 0 16px">${form.ciudad||""} ${form.nacionalidad?`· ${form.nacionalidad}`:""}</p>
     <h2>Información personal</h2>
     <div class="grid">
       <div class="campo"><p class="lbl">Estatura</p><p class="val">${form.estatura||"—"}</p></div>
@@ -146,7 +146,7 @@ export default function AdminPerfilAgenciaPage() {
     </div>
     ${form.bio?`<h2>Personalidad</h2><p>${form.bio}</p>`:""}
     ${form.por_que_au_pair?`<h2>¿Por qué quiere ser au pair?</h2><p>${form.por_que_au_pair}</p>`:""}
-    <p style="margin-top:30px;font-size:11px;color:#9a7080;border-top:1px solid #f0dde2;padding-top:10px">
+    <p style="margin-top:30px;font-size:11px;color:#9C8790;border-top:1px solid #F5E1E7;padding-top:10px">
       Exportado el ${new Date().toLocaleDateString("es-CO")} — Destino Au Pair · Progreso: ${calcProgresoAgencia(form)}%
     </p></body></html>`);
     w.document.close();
@@ -154,8 +154,8 @@ export default function AdminPerfilAgenciaPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight:"100vh", background:"#faf5f6", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:36, height:36, border:"3px solid #e8849a", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
+    <div style={{ minHeight:"100vh", background:"#FBF4F6", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ width:36, height:36, border:"3px solid #C77D93", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -165,42 +165,42 @@ export default function AdminPerfilAgenciaPage() {
   const edad     = form.fecha_nacimiento ? Math.floor((new Date()-new Date(form.fecha_nacimiento))/(365.25*24*60*60*1000)) : null;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"system-ui,-apple-system,sans-serif" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#a0435f!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);outline:none;}`}</style>
+    <div style={{ minHeight:"100vh", background:"#F3F4F6", fontFamily:"system-ui,-apple-system,sans-serif" }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} input:focus,textarea:focus,select:focus{border-color:#A0435F!important;box-shadow:0 0 0 3px rgba(160,67,95,.1);outline:none;}`}</style>
 
       {toast && (
-        <div style={{ position:"fixed", top:20, right:20, zIndex:2000, background:toast.tipo==="error"?"#dc2626":"#1e1033", color:"#fff", padding:"12px 20px", borderRadius:14, fontSize:13, fontWeight:600, boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>
+        <div style={{ position:"fixed", top:20, right:20, zIndex:2000, background:toast.tipo==="error"?"#C0392B":"#4A2A38", color:"#fff", padding:"12px 20px", borderRadius:14, fontSize:13, fontWeight:600, boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>
           {toast.msg}
         </div>
       )}
 
       {/* ── TOPBAR ── */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"12px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, position:"sticky", top:0, zIndex:30 }}>
+      <div style={{ background:"#fff", borderBottom:"1px solid #E5E7EB", padding:"12px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, position:"sticky", top:0, zIndex:30 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <button onClick={() => router.push("/admin/perfiles")}
-            style={{ display:"flex", alignItems:"center", gap:6, color:"#6b7280", fontSize:13, border:"none", background:"none", cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ display:"flex", alignItems:"center", gap:6, color:"#6B7280", fontSize:13, border:"none", background:"none", cursor:"pointer", fontFamily:"inherit" }}>
             <ChevronLeftIcon size={14}/> Volver al listado
           </button>
         </div>
         {/* Breadcrumb */}
-        <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#6b7280" }}>
-          <span style={{ cursor:"pointer", color:"#a0435f" }} onClick={()=>router.push("/admin/perfiles")}>Perfiles</span>
+        <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#6B7280" }}>
+          <span style={{ cursor:"pointer", color:"#A0435F" }} onClick={()=>router.push("/admin/perfiles")}>Perfiles</span>
           <span>›</span>
           <span>Perfil con la agencia</span>
           <span>›</span>
-          <span style={{ color:"#a0435f", fontWeight:600 }}>Ver / Editar perfil</span>
+          <span style={{ color:"#A0435F", fontWeight:600 }}>Ver / Editar perfil</span>
         </div>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={exportPDF}
-            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #e5e7eb", background:"#fff", color:"#374151", fontSize:13, fontWeight:600, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #E5E7EB", background:"#fff", color:"#6B7280", fontSize:13, fontWeight:600, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
             <DownloadIcon size={13}/> Exportar PDF
           </button>
           <button onClick={() => router.push(`/admin/perfiles/${id}`)}
-            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #e5e7eb", background:"#fff", color:"#374151", fontSize:13, fontWeight:600, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #E5E7EB", background:"#fff", color:"#6B7280", fontSize:13, fontWeight:600, padding:"8px 16px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
             <EyeIcon size={13}/> Ver evaluación
           </button>
           <button onClick={() => guardar(false)} disabled={guardando}
-            style={{ display:"flex", alignItems:"center", gap:7, background:"#a0435f", color:"#fff", border:"none", fontSize:13, fontWeight:600, padding:"8px 20px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+            style={{ display:"flex", alignItems:"center", gap:7, background:"#A0435F", color:"#fff", border:"none", fontSize:13, fontWeight:600, padding:"8px 20px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
             {guardando
               ? <><div style={{ width:13, height:13, border:"2px solid rgba(255,255,255,.3)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>Guardando…</>
               : <><SaveIcon size={13}/> Guardar cambios</>}
@@ -210,15 +210,15 @@ export default function AdminPerfilAgenciaPage() {
       </div>
 
       {/* ── PERFIL HEADER ── */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"20px 24px", display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
+      <div style={{ background:"#fff", borderBottom:"1px solid #E5E7EB", padding:"20px 24px", display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
         {/* Foto */}
         <div style={{ position:"relative", flexShrink:0 }}>
-          <div style={{ width:80, height:80, borderRadius:20, overflow:"hidden", border:"3px solid #f0dde2", background:"#fce8ed", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ width:80, height:80, borderRadius:20, overflow:"hidden", border:"3px solid #F5E1E7", background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {form.foto_url
               ? <img src={form.foto_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"}}/>
-              : <span style={{ fontFamily:"Georgia,serif", fontSize:32, color:"#a0435f", fontWeight:700 }}>{form.nombre?.[0]||"?"}</span>}
+              : <span style={{ fontFamily:"Georgia,serif", fontSize:32, color:"#A0435F", fontWeight:700 }}>{form.nombre?.[0]||"?"}</span>}
           </div>
-          <div style={{ position:"absolute", bottom:-6, right:-6, width:24, height:24, background:"#a0435f", borderRadius:"50%", border:"2px solid #fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
+          <div style={{ position:"absolute", bottom:-6, right:-6, width:24, height:24, background:"#A0435F", borderRadius:"50%", border:"2px solid #fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
             <span style={{ color:"#fff", fontSize:11 }}>✏️</span>
           </div>
         </div>
@@ -226,43 +226,43 @@ export default function AdminPerfilAgenciaPage() {
         {/* Info */}
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4, flexWrap:"wrap" }}>
-            <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:"#1e1033", margin:0 }}>{form.nombre} {form.apellido}</h2>
-            <span style={{ background:"#fce8ed", color:"#a0435f", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99 }}>Perfil con la agencia</span>
+            <h2 style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:"#4A2A38", margin:0 }}>{form.nombre} {form.apellido}</h2>
+            <span style={{ background:"#FCE8EE", color:"#A0435F", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99 }}>Perfil con la agencia</span>
           </div>
           <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
-            <span style={{ fontSize:12, color:"#6b7280" }}>{form.email}</span>
-            {form.cedula && <span style={{ fontSize:12, color:"#6b7280" }}>📋 {form.cedula}</span>}
+            <span style={{ fontSize:12, color:"#6B7280" }}>{form.email}</span>
+            {form.cedula && <span style={{ fontSize:12, color:"#6B7280" }}>📋 {form.cedula}</span>}
           </div>
           <div style={{ display:"flex", gap:12, marginTop:6, flexWrap:"wrap" }}>
-            {form.ciudad && <span style={{ fontSize:12, color:"#6b7280" }}>📍 {form.ciudad}{form.pais?", "+form.pais:""}</span>}
-            {form.fecha_nacimiento && <span style={{ fontSize:12, color:"#6b7280" }}>📅 {new Date(form.fecha_nacimiento).toLocaleDateString("es-CO")} ({edad} años)</span>}
-            {form.nacionalidad && <span style={{ fontSize:12, color:"#6b7280" }}>🏳️ {form.nacionalidad}</span>}
+            {form.ciudad && <span style={{ fontSize:12, color:"#6B7280" }}>📍 {form.ciudad}{form.pais?", "+form.pais:""}</span>}
+            {form.fecha_nacimiento && <span style={{ fontSize:12, color:"#6B7280" }}>📅 {new Date(form.fecha_nacimiento).toLocaleDateString("es-CO")} ({edad} años)</span>}
+            {form.nacionalidad && <span style={{ fontSize:12, color:"#6B7280" }}>🏳️ {form.nacionalidad}</span>}
           </div>
         </div>
 
         {/* Fechas */}
         <div style={{ flexShrink:0, textAlign:"right" }}>
-          <p style={{ fontSize:11, color:"#9a7080", margin:"0 0 2px" }}>Fecha de registro</p>
-          <p style={{ fontSize:13, fontWeight:600, color:"#1e1033", margin:"0 0 8px" }}>
+          <p style={{ fontSize:11, color:"#9C8790", margin:"0 0 2px" }}>Fecha de registro</p>
+          <p style={{ fontSize:13, fontWeight:600, color:"#4A2A38", margin:"0 0 8px" }}>
             {form.created_at ? new Date(form.created_at).toLocaleDateString("es-CO",{day:"numeric",month:"short",year:"numeric"}) : "—"}
           </p>
-          <p style={{ fontSize:11, color:"#9a7080", margin:"0 0 2px" }}>Última actualización</p>
-          <p style={{ fontSize:13, color:"#6b7280", margin:0 }}>Hace unos momentos</p>
+          <p style={{ fontSize:11, color:"#9C8790", margin:"0 0 2px" }}>Última actualización</p>
+          <p style={{ fontSize:13, color:"#6B7280", margin:0 }}>Hace unos momentos</p>
         </div>
 
         {/* Progreso */}
-        <div style={{ background:"#fff8f9", border:"1px solid #f0dde2", borderRadius:16, padding:"14px 20px", flexShrink:0, minWidth:200 }}>
-          <p style={{ fontSize:12, fontWeight:600, color:"#1e1033", margin:"0 0 8px" }}>Progreso del perfil</p>
+        <div style={{ background:"#FBF4F6", border:"1px solid #F5E1E7", borderRadius:16, padding:"14px 20px", flexShrink:0, minWidth:200 }}>
+          <p style={{ fontSize:12, fontWeight:600, color:"#4A2A38", margin:"0 0 8px" }}>Progreso del perfil</p>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-            <div style={{ flex:1, height:8, background:"#f0dde2", borderRadius:99, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${progreso}%`, background:progreso>=80?"#10b981":"#a0435f", borderRadius:99, transition:"width .5s" }}/>
+            <div style={{ flex:1, height:8, background:"#F5E1E7", borderRadius:99, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${progreso}%`, background:progreso>=80?"#12A46B":"#A0435F", borderRadius:99, transition:"width .5s" }}/>
             </div>
-            <span style={{ fontSize:13, fontWeight:700, color:progreso>=80?"#10b981":"#a0435f", flexShrink:0 }}>{progreso}%</span>
+            <span style={{ fontSize:13, fontWeight:700, color:progreso>=80?"#12A46B":"#A0435F", flexShrink:0 }}>{progreso}%</span>
           </div>
-          <p style={{ fontSize:11, color:"#9a7080", margin:0 }}>
+          <p style={{ fontSize:11, color:"#9C8790", margin:0 }}>
             {SECCIONES.filter(s=>seccionCompleta(s,form)).length} de {SECCIONES.length} secciones completadas
           </p>
-          <button style={{ fontSize:11, color:"#a0435f", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", padding:0, marginTop:4 }}>
+          <button style={{ fontSize:11, color:"#A0435F", background:"none", border:"none", cursor:"pointer", fontFamily:"inherit", padding:0, marginTop:4 }}>
             Ver checklist completo
           </button>
         </div>
@@ -272,64 +272,64 @@ export default function AdminPerfilAgenciaPage() {
       <div style={{ display:"grid", gridTemplateColumns:"220px 1fr 260px", gap:0, minHeight:"calc(100vh - 200px)" }}>
 
         {/* ── Sidebar izquierdo — secciones ── */}
-        <div style={{ borderRight:"1px solid #e5e7eb", padding:"20px 12px", background:"#fff", position:"sticky", top:64, height:"fit-content" }}>
+        <div style={{ borderRight:"1px solid #E5E7EB", padding:"20px 12px", background:"#fff", position:"sticky", top:64, height:"fit-content" }}>
           {SECCIONES.map((s,i) => {
             const completa = seccionCompleta(s, form);
             const active   = i === seccion;
             return (
               <button key={s.id} onClick={() => setSeccion(i)}
                 style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:12, border:"none", cursor:"pointer", textAlign:"left", width:"100%", marginBottom:3, fontFamily:"inherit", transition:"all .12s",
-                  background: active ? "#fce8ed" : "transparent",
+                  background: active ? "#FCE8EE" : "transparent",
                 }}>
                 {/* Número / icono */}
                 <div style={{ width:28, height:28, borderRadius:8, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700,
-                  background: completa ? "#d1fae5" : active ? "#fce8ed" : "#f3f4f6",
-                  color: completa ? "#059669" : active ? "#a0435f" : "#6b7280",
+                  background: completa ? "#E6F9F0" : active ? "#FCE8EE" : "#F3F4F6",
+                  color: completa ? "#12A46B" : active ? "#A0435F" : "#6B7280",
                 }}>
-                  {completa ? <CheckCircle2Icon size={15} style={{ color:"#059669" }}/> : s.n}
+                  {completa ? <CheckCircle2Icon size={15} style={{ color:"#12A46B" }}/> : s.n}
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:12, fontWeight: active?700:500, color: active?"#a0435f":completa?"#059669":"#374151", margin:0, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.titulo}</p>
-                  <p style={{ fontSize:10, color: completa?"#059669":"#9ca3af", margin:0 }}>{completa?"Completada":"Pendiente"}</p>
+                  <p style={{ fontSize:12, fontWeight: active?700:500, color: active?"#A0435F":completa?"#12A46B":"#6B7280", margin:0, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.titulo}</p>
+                  <p style={{ fontSize:10, color: completa?"#12A46B":"#C9A9B4", margin:0 }}>{completa?"Completada":"Pendiente"}</p>
                 </div>
               </button>
             );
           })}
 
           {/* Notas internas */}
-          <div style={{ marginTop:20, padding:"14px 12px", background:"#f9fafb", borderRadius:12, border:"1px solid #e5e7eb" }}>
-            <p style={{ fontSize:12, fontWeight:700, color:"#374151", margin:"0 0 4px" }}>Notas internas de la agencia</p>
-            <p style={{ fontSize:11, color:"#9ca3af", margin:"0 0 10px" }}>Notas visibles solo para el equipo.</p>
+          <div style={{ marginTop:20, padding:"14px 12px", background:"#F3F4F6", borderRadius:12, border:"1px solid #E5E7EB" }}>
+            <p style={{ fontSize:12, fontWeight:700, color:"#6B7280", margin:"0 0 4px" }}>Notas internas de la agencia</p>
+            <p style={{ fontSize:11, color:"#C9A9B4", margin:"0 0 10px" }}>Notas visibles solo para el equipo.</p>
             <textarea name="notas_agencia" value={form.notas_agencia||""} onChange={hi} rows={3}
               placeholder="Agregar nota..."
-              style={{ width:"100%", border:"1.5px solid #e5e7eb", borderRadius:8, padding:"8px 10px", fontSize:12, color:"#1e1033", fontFamily:"inherit", resize:"vertical", boxSizing:"border-box", outline:"none" }}/>
+              style={{ width:"100%", border:"1.5px solid #E5E7EB", borderRadius:8, padding:"8px 10px", fontSize:12, color:"#4A2A38", fontFamily:"inherit", resize:"vertical", boxSizing:"border-box", outline:"none" }}/>
           </div>
         </div>
 
         {/* ── Contenido central ── */}
-        <div style={{ padding:"24px", background:"#f9fafb" }}>
+        <div style={{ padding:"24px", background:"#F3F4F6" }}>
           {/* Header sección */}
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:"#fce8ed", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700, color:"#a0435f" }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:"#FCE8EE", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700, color:"#A0435F" }}>
                 {sec.n}
               </div>
               <div>
-                <h2 style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#1e1033", margin:0 }}>{sec.titulo}</h2>
-                <p style={{ fontSize:12, color:"#9ca3af", margin:0 }}>Cuéntanos más sobre la aplicante.</p>
+                <h2 style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#4A2A38", margin:0 }}>{sec.titulo}</h2>
+                <p style={{ fontSize:12, color:"#C9A9B4", margin:0 }}>Cuéntanos más sobre la aplicante.</p>
               </div>
             </div>
           </div>
 
           {/* Campos */}
-          <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e5e7eb", padding:"24px", display:"flex", flexDirection:"column", gap:20 }}>
+          <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E5E7EB", padding:"24px", display:"flex", flexDirection:"column", gap:20 }}>
 
             {/* ── 1: Información personal ── */}
             {seccion===0 && (<>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
                 <div>
                   <label style={LC}>Nombre completo *</label>
-                  <input value={`${form.nombre||""} ${form.apellido||""}`} readOnly style={{ ...IC, background:"#f9fafb", color:"#6b7280" }}/>
+                  <input value={`${form.nombre||""} ${form.apellido||""}`} readOnly style={{ ...IC, background:"#F3F4F6", color:"#6B7280" }}/>
                 </div>
                 <div>
                   <label style={LC}>Fecha de nacimiento *</label>
@@ -337,7 +337,7 @@ export default function AdminPerfilAgenciaPage() {
                 </div>
                 <div>
                   <label style={LC}>Edad</label>
-                  <input value={edad ? `${edad} años` : "—"} readOnly style={{ ...IC, background:"#f9fafb", color:"#6b7280" }}/>
+                  <input value={edad ? `${edad} años` : "—"} readOnly style={{ ...IC, background:"#F3F4F6", color:"#6B7280" }}/>
                 </div>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
@@ -410,9 +410,9 @@ export default function AdminPerfilAgenciaPage() {
                   <input name="numero_sponsor" value={form.numero_sponsor||""} onChange={hi} style={IC} placeholder="Ej: P1234567"/>
                 </div>
               </div>
-              <div style={{ background:"#fef3c7", border:"1px solid #fde68a", borderRadius:12, padding:"12px 16px", display:"flex", gap:10 }}>
+              <div style={{ background:"#FFF4EC", border:"1px solid #FFF4EC", borderRadius:12, padding:"12px 16px", display:"flex", gap:10 }}>
                 <span style={{ fontSize:18 }}>📋</span>
-                <p style={{ fontSize:12, color:"#92400e", margin:0 }}>
+                <p style={{ fontSize:12, color:"#E8853B", margin:0 }}>
                   Asegúrate de que toda la información sea correcta y esté actualizada. Esta información será visible para las familias anfitrionas cuando el <strong>perfil sea aprobado.</strong>
                 </p>
               </div>
@@ -552,8 +552,8 @@ export default function AdminPerfilAgenciaPage() {
 
             {/* ── 8: Referencias ── */}
             {seccion===7 && (<>
-              <div style={{ background:"#f9fafb", borderRadius:12, padding:"16px", marginBottom:4 }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#374151", margin:"0 0 14px" }}>Referencia 1</p>
+              <div style={{ background:"#F3F4F6", borderRadius:12, padding:"16px", marginBottom:4 }}>
+                <p style={{ fontSize:13, fontWeight:700, color:"#6B7280", margin:"0 0 14px" }}>Referencia 1</p>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div><label style={LC}>Nombre completo *</label><input name="referencia_1_nombre" value={form.referencia_1_nombre||""} onChange={hi} style={IC}/></div>
                   <div><label style={LC}>Relación</label><Select name="referencia_1_relacion" value={form.referencia_1_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]}/></div>
@@ -561,8 +561,8 @@ export default function AdminPerfilAgenciaPage() {
                   <div><label style={LC}>Teléfono</label><input name="referencia_1_telefono" value={form.referencia_1_telefono||""} onChange={hi} style={IC}/></div>
                 </div>
               </div>
-              <div style={{ background:"#f9fafb", borderRadius:12, padding:"16px" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#374151", margin:"0 0 14px" }}>Referencia 2</p>
+              <div style={{ background:"#F3F4F6", borderRadius:12, padding:"16px" }}>
+                <p style={{ fontSize:13, fontWeight:700, color:"#6B7280", margin:"0 0 14px" }}>Referencia 2</p>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div><label style={LC}>Nombre completo</label><input name="referencia_2_nombre" value={form.referencia_2_nombre||""} onChange={hi} style={IC}/></div>
                   <div><label style={LC}>Relación</label><Select name="referencia_2_relacion" value={form.referencia_2_relacion} onChange={hi} placeholder="Seleccionar" options={["Empleador","Familiar","Profesor","Amigo","Otro"]}/></div>
@@ -577,14 +577,14 @@ export default function AdminPerfilAgenciaPage() {
               <div>
                 <label style={LC}>URL foto de perfil principal *</label>
                 <input name="foto_url" value={form.foto_url||""} onChange={hi} style={IC} placeholder="https://..."/>
-                {form.foto_url && <img src={form.foto_url} alt="" onError={e=>{e.target.style.display="none"}} style={{ width:100, height:100, borderRadius:14, objectFit:"cover", marginTop:10, border:"2px solid #f0dde2" }}/>}
+                {form.foto_url && <img src={form.foto_url} alt="" onError={e=>{e.target.style.display="none"}} style={{ width:100, height:100, borderRadius:14, objectFit:"cover", marginTop:10, border:"2px solid #F5E1E7" }}/>}
               </div>
               <div>
                 <label style={LC}>URL video de presentación</label>
                 <input name="video_presentacion_url" value={form.video_presentacion_url||""} onChange={hi} style={IC} placeholder="https://youtube.com/... o https://drive.google.com/..."/>
                 {form.video_presentacion_url && (
                   <a href={form.video_presentacion_url} target="_blank" rel="noopener noreferrer"
-                    style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:8, color:"#a0435f", fontSize:12, textDecoration:"none", fontWeight:600 }}>
+                    style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:8, color:"#A0435F", fontSize:12, textDecoration:"none", fontWeight:600 }}>
                     ▶ Ver video
                   </a>
                 )}
@@ -600,14 +600,14 @@ export default function AdminPerfilAgenciaPage() {
                 </div>
                 <div>
                   <label style={LC}>Progreso agencia (%)</label>
-                  <input value={progreso} readOnly style={{ ...IC, background:"#f9fafb", color:"#6b7280" }}/>
+                  <input value={progreso} readOnly style={{ ...IC, background:"#F3F4F6", color:"#6B7280" }}/>
                 </div>
               </div>
-              <div style={{ background:progreso>=80?"#d1fae5":progreso>=50?"#fef3c7":"#fee2e2", border:`1px solid ${progreso>=80?"#6ee7b7":progreso>=50?"#fde68a":"#fca5a5"}`, borderRadius:12, padding:"14px 16px" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:progreso>=80?"#065f46":progreso>=50?"#92400e":"#7f1d1d", margin:"0 0 4px" }}>
+              <div style={{ background:progreso>=80?"#E6F9F0":progreso>=50?"#FFF4EC":"#FDECEC", border:`1px solid ${progreso>=80?"#6ee7b7":progreso>=50?"#FFF4EC":"#C0392B"}`, borderRadius:12, padding:"14px 16px" }}>
+                <p style={{ fontSize:13, fontWeight:700, color:progreso>=80?"#12A46B":progreso>=50?"#E8853B":"#7f1d1d", margin:"0 0 4px" }}>
                   {progreso>=80?"✅ Perfil casi listo":progreso>=50?"⏳ Perfil en progreso":"❌ Perfil incompleto"}
                 </p>
-                <p style={{ fontSize:12, color:progreso>=80?"#065f46":progreso>=50?"#92400e":"#7f1d1d", margin:0 }}>
+                <p style={{ fontSize:12, color:progreso>=80?"#12A46B":progreso>=50?"#E8853B":"#7f1d1d", margin:0 }}>
                   {progreso>=80?"El perfil está en buen estado para enviar a la agencia.":progreso>=50?"Faltan algunas secciones por completar.":"El perfil necesita más información antes de enviarlo."}
                 </p>
               </div>
@@ -617,30 +617,30 @@ export default function AdminPerfilAgenciaPage() {
           {/* ── Navegación inferior ── */}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20 }}>
             <button onClick={() => guardar(false)}
-              style={{ padding:"10px 20px", borderRadius:10, border:"1.5px solid #e5e7eb", background:"#fff", color:"#6b7280", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+              style={{ padding:"10px 20px", borderRadius:10, border:"1.5px solid #E5E7EB", background:"#fff", color:"#6B7280", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
               Guardar y salir
             </button>
 
             {/* Números de página */}
             <div style={{ display:"flex", gap:6, alignItems:"center" }}>
               <button onClick={()=>setSeccion(s=>Math.max(0,s-1))} disabled={seccion===0}
-                style={{ width:28, height:28, borderRadius:8, border:"1px solid #e5e7eb", background:"#fff", cursor:seccion===0?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:seccion===0?.4:1 }}>
-                <ChevronLeftIcon size={13} style={{ color:"#6b7280" }}/>
+                style={{ width:28, height:28, borderRadius:8, border:"1px solid #E5E7EB", background:"#fff", cursor:seccion===0?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:seccion===0?.4:1 }}>
+                <ChevronLeftIcon size={13} style={{ color:"#6B7280" }}/>
               </button>
               {SECCIONES.map((_,i) => (
                 <button key={i} onClick={()=>setSeccion(i)}
-                  style={{ width:32, height:32, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:i===seccion?"#a0435f":"#fff", color:i===seccion?"#fff":"#6b7280", border:`1px solid ${i===seccion?"#a0435f":"#e5e7eb"}` }}>
+                  style={{ width:32, height:32, borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, background:i===seccion?"#A0435F":"#fff", color:i===seccion?"#fff":"#6B7280", border:`1px solid ${i===seccion?"#A0435F":"#E5E7EB"}` }}>
                   {i+1}
                 </button>
               ))}
               <button onClick={()=>setSeccion(s=>Math.min(SECCIONES.length-1,s+1))} disabled={seccion===SECCIONES.length-1}
-                style={{ width:28, height:28, borderRadius:8, border:"1px solid #e5e7eb", background:"#fff", cursor:seccion===SECCIONES.length-1?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:seccion===SECCIONES.length-1?.4:1 }}>
-                <ChevronRightIcon size={13} style={{ color:"#6b7280" }}/>
+                style={{ width:28, height:28, borderRadius:8, border:"1px solid #E5E7EB", background:"#fff", cursor:seccion===SECCIONES.length-1?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", opacity:seccion===SECCIONES.length-1?.4:1 }}>
+                <ChevronRightIcon size={13} style={{ color:"#6B7280" }}/>
               </button>
             </div>
 
             <button onClick={() => guardar(true)} disabled={guardando}
-              style={{ display:"flex", alignItems:"center", gap:7, background:"#a0435f", color:"#fff", border:"none", fontSize:13, fontWeight:600, padding:"10px 22px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
+              style={{ display:"flex", alignItems:"center", gap:7, background:"#A0435F", color:"#fff", border:"none", fontSize:13, fontWeight:600, padding:"10px 22px", borderRadius:10, cursor:"pointer", fontFamily:"inherit" }}>
               {guardando
                 ? <><div style={{ width:13, height:13, border:"2px solid rgba(255,255,255,.3)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 1s linear infinite" }}/>Guardando…</>
                 : seccion < SECCIONES.length-1 ? <>Guardar y continuar <ChevronRightIcon size={14}/></> : <>Finalizar ✓</>}
@@ -649,24 +649,24 @@ export default function AdminPerfilAgenciaPage() {
         </div>
 
         {/* ── Sidebar derecho — Checklist ── */}
-        <div style={{ borderLeft:"1px solid #e5e7eb", padding:"20px 16px", background:"#fff", position:"sticky", top:64, height:"fit-content" }}>
+        <div style={{ borderLeft:"1px solid #E5E7EB", padding:"20px 16px", background:"#fff", position:"sticky", top:64, height:"fit-content" }}>
           {/* Checklist */}
           <div style={{ marginBottom:20 }}>
-            <p style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 12px" }}>Checklist del perfil</p>
+            <p style={{ fontSize:13, fontWeight:700, color:"#4A2A38", margin:"0 0 12px" }}>Checklist del perfil</p>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {SECCIONES.map((s,i) => {
                 const completa = seccionCompleta(s, form);
                 const active   = i === seccion;
                 return (
                   <div key={s.id} onClick={() => setSeccion(i)}
-                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"7px 10px", borderRadius:10, cursor:"pointer", background:active?"#fff8f9":"transparent", border:active?"1px solid #f0dde2":"1px solid transparent", transition:"all .1s" }}>
+                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"7px 10px", borderRadius:10, cursor:"pointer", background:active?"#FBF4F6":"transparent", border:active?"1px solid #F5E1E7":"1px solid transparent", transition:"all .1s" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
-                      <span style={{ fontSize:11, color:"#9ca3af", flexShrink:0, width:16 }}>{s.n}.</span>
-                      <span style={{ fontSize:12, color:"#374151", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.titulo}</span>
+                      <span style={{ fontSize:11, color:"#C9A9B4", flexShrink:0, width:16 }}>{s.n}.</span>
+                      <span style={{ fontSize:12, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.titulo}</span>
                     </div>
                     {completa
-                      ? <span style={{ fontSize:11, color:"#059669", fontWeight:600, flexShrink:0 }}>Completado <CheckCircle2Icon size={12} style={{ display:"inline", verticalAlign:"middle" }}/></span>
-                      : <span style={{ fontSize:11, color:"#9ca3af", flexShrink:0 }}>Pendiente <CircleIcon size={12} style={{ display:"inline", verticalAlign:"middle", opacity:.5 }}/></span>}
+                      ? <span style={{ fontSize:11, color:"#12A46B", fontWeight:600, flexShrink:0 }}>Completado <CheckCircle2Icon size={12} style={{ display:"inline", verticalAlign:"middle" }}/></span>
+                      : <span style={{ fontSize:11, color:"#C9A9B4", flexShrink:0 }}>Pendiente <CircleIcon size={12} style={{ display:"inline", verticalAlign:"middle", opacity:.5 }}/></span>}
                   </div>
                 );
               })}
@@ -674,21 +674,21 @@ export default function AdminPerfilAgenciaPage() {
           </div>
 
           {/* Estado actual */}
-          <div style={{ background:"#fef3c7", border:"1px solid #fde68a", borderRadius:12, padding:"14px", marginBottom:16 }}>
+          <div style={{ background:"#FFF4EC", border:"1px solid #FFF4EC", borderRadius:12, padding:"14px", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-              <span style={{ width:8, height:8, borderRadius:"50%", background:"#d97706", flexShrink:0, display:"inline-block" }}/>
-              <p style={{ fontSize:12, fontWeight:700, color:"#92400e", margin:0 }}>
+              <span style={{ width:8, height:8, borderRadius:"50%", background:"#E8853B", flexShrink:0, display:"inline-block" }}/>
+              <p style={{ fontSize:12, fontWeight:700, color:"#E8853B", margin:0 }}>
                 {form.estado_agencia||"En progreso"}
               </p>
             </div>
-            <p style={{ fontSize:11, color:"#92400e", margin:0, lineHeight:1.5 }}>
+            <p style={{ fontSize:11, color:"#E8853B", margin:0, lineHeight:1.5 }}>
               Tu perfil está en construcción. Completa todas las secciones para enviarlo a revisión.
             </p>
           </div>
 
           {/* Acciones rápidas */}
           <div>
-            <p style={{ fontSize:13, fontWeight:700, color:"#1e1033", margin:"0 0 10px" }}>Acciones rápidas</p>
+            <p style={{ fontSize:13, fontWeight:700, color:"#4A2A38", margin:"0 0 10px" }}>Acciones rápidas</p>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
                 { emoji:"👁️", label:"Ver perfil como familia anfitriona" },
@@ -696,9 +696,9 @@ export default function AdminPerfilAgenciaPage() {
                 { emoji:"🕐", label:"Historial de cambios" },
               ].map((a,i) => (
                 <button key={i} onClick={i===1?exportPDF:undefined}
-                  style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 12px", borderRadius:10, border:"1px solid #e5e7eb", background:"#fff", cursor:"pointer", fontFamily:"inherit", textAlign:"left", width:"100%" }}>
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 12px", borderRadius:10, border:"1px solid #E5E7EB", background:"#fff", cursor:"pointer", fontFamily:"inherit", textAlign:"left", width:"100%" }}>
                   <span style={{ fontSize:14 }}>{a.emoji}</span>
-                  <span style={{ fontSize:12, color:"#374151" }}>{a.label}</span>
+                  <span style={{ fontSize:12, color:"#6B7280" }}>{a.label}</span>
                 </button>
               ))}
             </div>

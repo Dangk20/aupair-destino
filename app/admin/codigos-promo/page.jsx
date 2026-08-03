@@ -64,13 +64,13 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
     <div style={{ position:"fixed",inset:0,background:"rgba(26,10,61,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16 }}
       onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:460,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,.15)",maxHeight:"90vh",overflowY:"auto" }}>
-        <div style={{ height:4,background:"linear-gradient(90deg,#A0435F,#a0435f)",borderRadius:99,marginBottom:20 }}/>
+        <div style={{ height:4,background:"linear-gradient(90deg,#A0435F,#A0435F)",borderRadius:99,marginBottom:20 }}/>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18 }}>
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:0 }}>
             {editando?"Editar código":"Crear código promocional"}
           </h2>
           <button onClick={onClose} style={{ background:"#F3F4F6",border:"none",borderRadius:99,width:30,height:30,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <X size={14} style={{ color:"#6b7280" }}/>
+            <X size={14} style={{ color:"#6B7280" }}/>
           </button>
         </div>
 
@@ -168,7 +168,7 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
 
           {/* Preview */}
           {form.codigo && (
-            <div style={{ background:"linear-gradient(135deg,#FBF4F6,#fce8ed)",borderRadius:14,padding:"14px 16px",border:"1px solid #F5E1E7" }}>
+            <div style={{ background:"linear-gradient(135deg,#FBF4F6,#FCE8EE)",borderRadius:14,padding:"14px 16px",border:"1px solid #F5E1E7" }}>
               <p style={{ fontSize:11,fontWeight:700,color:"#A0435F",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 6px" }}>Vista previa</p>
               <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
                 <div>
@@ -188,11 +188,11 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
         </div>
 
         <div style={{ display:"flex",gap:10,marginTop:20 }}>
-          <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #e5e7eb",background:"#fff",color:"#6b7280",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+          <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #E5E7EB",background:"#fff",color:"#6B7280",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
             Cancelar
           </button>
           <button onClick={()=>onGuardar(form)} disabled={loading||!form.codigo||!form.precio_final}
-            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#A0435F,#a0435f)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:(loading||!form.codigo)?0.6:1 }}>
+            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#A0435F,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:(loading||!form.codigo)?0.6:1 }}>
             {loading?"Guardando...":`✓ ${editando?"Guardar cambios":"Crear código"}`}
           </button>
         </div>
@@ -344,14 +344,14 @@ export default function AdminCodigosPromoPage() {
               const pctUsos    = c.usos_max ? Math.round((usosConf/c.usos_max)*100) : null;
 
               return (
-                <div key={c.id} style={{ background:"#fff",borderRadius:20,border:`1.5px solid ${inactivo?"#e5e7eb":"#c4b0e8"}`,padding:isMobile?"14px 16px":"18px 22px",boxShadow:"0 1px 4px rgba(0,0,0,.04)",opacity:inactivo?.7:1 }}>
+                <div key={c.id} style={{ background:"#fff",borderRadius:20,border:`1.5px solid ${inactivo?"#E5E7EB":"#c4b0e8"}`,padding:isMobile?"14px 16px":"18px 22px",boxShadow:"0 1px 4px rgba(0,0,0,.04)",opacity:inactivo?.7:1 }}>
                   <div style={{ display:"flex",alignItems:"flex-start",gap:12,flexWrap:"wrap",flexDirection:isMobile?"column":"row" }}>
 
                     {/* Código + precio — fila en mobile */}
                     <div style={{ flex:1,minWidth:0,width:"100%" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap" }}>
-                        <div style={{ background:inactivo?"#F3F4F6":"#FBF4F6",borderRadius:12,padding:"8px 14px",border:`1.5px solid ${inactivo?"#e5e7eb":"#c4b0e8"}` }}>
-                          <p style={{ fontFamily:"monospace",fontSize:isMobile?16:18,fontWeight:800,color:inactivo?"#9ca3af":"#A0435F",letterSpacing:2,margin:0 }}>{c.codigo}</p>
+                        <div style={{ background:inactivo?"#F3F4F6":"#FBF4F6",borderRadius:12,padding:"8px 14px",border:`1.5px solid ${inactivo?"#E5E7EB":"#c4b0e8"}` }}>
+                          <p style={{ fontFamily:"monospace",fontSize:isMobile?16:18,fontWeight:800,color:inactivo?"#C9A9B4":"#A0435F",letterSpacing:2,margin:0 }}>{c.codigo}</p>
                         </div>
                         <button onClick={()=>copiar(c.codigo)}
                           style={{ width:32,height:32,borderRadius:9,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
@@ -359,8 +359,8 @@ export default function AdminCodigosPromoPage() {
                         </button>
                         {/* Estado */}
                         <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,
-                          background:vencido?"#fee2e2":agotado?"#FFF4EC":c.activo?"#d1fae5":"#F3F4F6",
-                          color:vencido?"#C0392B":agotado?"#E8853B":c.activo?"#12A46B":"#6b7280",
+                          background:vencido?"#FDECEC":agotado?"#FFF4EC":c.activo?"#E6F9F0":"#F3F4F6",
+                          color:vencido?"#C0392B":agotado?"#E8853B":c.activo?"#12A46B":"#6B7280",
                         }}>
                           {vencido?"Vencido":agotado?"Agotado":c.activo?"Activo":"Inactivo"}
                         </span>
@@ -373,9 +373,9 @@ export default function AdminCodigosPromoPage() {
                       </div>
                       {c.descripcion && <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>{c.descripcion}</p>}
                       {c.asociada_nombre && (
-                        <div style={{ display:"inline-flex",alignItems:"center",gap:5,background:"#fce8ed",border:"1px solid #f3c6d3",borderRadius:99,padding:"3px 10px",marginTop:6 }}>
-                          <Users size={11} style={{ color:"#a0435f" }}/>
-                          <span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>
+                        <div style={{ display:"inline-flex",alignItems:"center",gap:5,background:"#FCE8EE",border:"1px solid #f3c6d3",borderRadius:99,padding:"3px 10px",marginTop:6 }}>
+                          <Users size={11} style={{ color:"#A0435F" }}/>
+                          <span style={{ fontSize:11,fontWeight:700,color:"#A0435F" }}>
                             {c.asociada_nombre} {c.asociada_apellido} · {Number(c.comision_porcentaje)||0}% comisión
                           </span>
                         </div>
@@ -404,7 +404,7 @@ export default function AdminCodigosPromoPage() {
                             {usosRest!==null && <span style={{ fontSize:11,color:"#9C8790" }}>{usosRest} rest.</span>}
                           </div>
                           {pctUsos!==null && (
-                            <div style={{ height:5,background:"#ede9f8",borderRadius:99,overflow:"hidden" }}>
+                            <div style={{ height:5,background:"#FCE8EE",borderRadius:99,overflow:"hidden" }}>
                               <div style={{ height:"100%",width:`${pctUsos}%`,background:pctUsos>80?"#C0392B":"#A0435F",borderRadius:99 }}/>
                             </div>
                           )}
@@ -430,8 +430,8 @@ export default function AdminCodigosPromoPage() {
                     {/* Acciones */}
                     <div style={{ display:"flex",gap:8,alignItems:"center",flexShrink:0,width:isMobile?"100%":"auto" }}>
                       <button onClick={()=>toggleActivo(c)}
-                        style={{ display:"flex",alignItems:"center",gap:6,padding:"7px 12px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:c.activo?"#12A46B":"#6b7280",fontFamily:"inherit",flex:isMobile?1:"unset" }}>
-                        {c.activo?<ToggleRight size={16} style={{ color:"#12A46B" }}/>:<ToggleLeft size={16} style={{ color:"#9ca3af" }}/>}
+                        style={{ display:"flex",alignItems:"center",gap:6,padding:"7px 12px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,color:c.activo?"#12A46B":"#6B7280",fontFamily:"inherit",flex:isMobile?1:"unset" }}>
+                        {c.activo?<ToggleRight size={16} style={{ color:"#12A46B" }}/>:<ToggleLeft size={16} style={{ color:"#C9A9B4" }}/>}
                         {c.activo?"Activo":"Inactivo"}
                       </button>
                       <button onClick={()=>setEditando(c)}
@@ -439,7 +439,7 @@ export default function AdminCodigosPromoPage() {
                         <Edit2 size={13} style={{ color:"#A0435F" }}/>
                       </button>
                       <button onClick={()=>eliminar(c.id)} disabled={deletingId===c.id}
-                        style={{ width:34,height:34,borderRadius:10,border:"1.5px solid #fecaca",background:"#fee2e2",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        style={{ width:34,height:34,borderRadius:10,border:"1.5px solid #FDECEC",background:"#FDECEC",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                         {deletingId===c.id?<div style={{ width:13,height:13,border:"2px solid #C0392B40",borderTopColor:"#C0392B",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>:<Trash2 size={13} style={{ color:"#C0392B" }}/>}
                       </button>
                     </div>

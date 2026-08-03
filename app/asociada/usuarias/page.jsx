@@ -65,7 +65,7 @@ export default function AsociadaUsuariasPage() {
               placeholder="Buscar por nombre o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
             />
           </div>
 
@@ -75,7 +75,7 @@ export default function AsociadaUsuariasPage() {
             <select
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
             >
               <option value="todos">Todos los estados</option>
               <option value="En progreso">En progreso</option>
@@ -153,7 +153,7 @@ export default function AsociadaUsuariasPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-[#7c5cc4] h-2 rounded-full"
+                            className="bg-[#A0435F] h-2 rounded-full"
                             style={{ width: `${u.porcentajeProgreso}%` }}
                           />
                         </div>
@@ -165,7 +165,7 @@ export default function AsociadaUsuariasPage() {
                     <td className="px-6 py-4">
                       <Link
                         href={`/asociada/usuarias/${u.id}`}
-                        className="inline-flex items-center gap-2 text-sm font-medium text-[#7c5cc4] hover:underline"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-[#A0435F] hover:underline"
                       >
                         Ver detalles
                         <ChevronRightIcon size={16} />

@@ -129,7 +129,7 @@ export default function CambiarRolesPage() {
               placeholder="Buscar por nombre o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
             />
           </div>
 
@@ -137,7 +137,7 @@ export default function CambiarRolesPage() {
           <select
             value={filterRol}
             onChange={(e) => setFilterRol(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7c5cc4]"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A0435F]"
           >
             <option value="todos">Todos los roles</option>
             <option value="usuaria">Usuarias</option>

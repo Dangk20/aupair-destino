@@ -13,13 +13,13 @@ import {
 import { useMobile } from "@/context/MobileContext";
 
 const SECCIONES = [
-  { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#12A46B", bg:"#e8f0e0" },
-  { key:"perfil_habilitado", label:"Perfil",     icon:UserIcon,          color:"#A0435F", bg:"#ede9f8" },
-  { key:"acceso_documentos", label:"Documentos", icon:FileTextIcon,      color:"#2a4a7f", bg:"#e8effe" },
-  { key:"acceso_recursos",   label:"Recursos",   icon:ShieldIcon,        color:"#c9973a", bg:"#fdf3e3" },
-  { key:"acceso_reuniones",  label:"Reuniones",  icon:CalendarIcon,      color:"#a0435f", bg:"#FCE8EE" },
-  { key:"acceso_mensajes",   label:"Mensajes",   icon:MessageCircleIcon, color:"#12A46B", bg:"#d1fae5" },
-  { key:"acceso_comunidad",  label:"Comunidad",  icon:UsersIcon,         color:"#6b4f9e", bg:"#f0eaff" },
+  { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#12A46B", bg:"#E6F9F0" },
+  { key:"perfil_habilitado", label:"Perfil",     icon:UserIcon,          color:"#A0435F", bg:"#FCE8EE" },
+  { key:"acceso_documentos", label:"Documentos", icon:FileTextIcon,      color:"#4A2A38", bg:"#FCE8EE" },
+  { key:"acceso_recursos",   label:"Recursos",   icon:ShieldIcon,        color:"#E8853B", bg:"#FFF4EC" },
+  { key:"acceso_reuniones",  label:"Reuniones",  icon:CalendarIcon,      color:"#A0435F", bg:"#FCE8EE" },
+  { key:"acceso_mensajes",   label:"Mensajes",   icon:MessageCircleIcon, color:"#12A46B", bg:"#E6F9F0" },
+  { key:"acceso_comunidad",  label:"Comunidad",  icon:UsersIcon,         color:"#A0435F", bg:"#FBF4F6" },
 ];
 
 function Toggle({ active, onChange, color="#12A46B", disabled=false }) {
@@ -37,18 +37,18 @@ function ModalVer({ u, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FCE8EE] border-2 border-[#f0b8c4] overflow-hidden flex items-center justify-center">
-              {u.foto_url?<img src={u.foto_url} alt="" className="w-full h-full object-cover"/>:<span className="text-[#a0435f] font-bold font-serif">{u.nombre?.[0]}</span>}
+            <div className="w-10 h-10 rounded-full bg-[#FCE8EE] border-2 border-[#C77D93] overflow-hidden flex items-center justify-center">
+              {u.foto_url?<img src={u.foto_url} alt="" className="w-full h-full object-cover"/>:<span className="text-[#A0435F] font-bold font-serif">{u.nombre?.[0]}</span>}
             </div>
             <div>
               <h3 className="font-bold text-[15px] text-[#4A2A38]">{u.nombre} {u.apellido}</h3>
               <p className="text-[11px] text-[#9C8790]">{u.email}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
         </div>
         <div className="px-5 py-4 grid grid-cols-2 gap-3">
           {[
@@ -73,7 +73,7 @@ function ModalVer({ u, onClose }) {
             {SECCIONES.map(s=>{
               const activo=u[s.key]; const Icon=s.icon;
               return (
-                <div key={s.key} style={{ display:"flex",alignItems:"center",gap:5,background:activo?s.bg:"#f5f0f0",borderRadius:99,padding:"4px 10px" }}>
+                <div key={s.key} style={{ display:"flex",alignItems:"center",gap:5,background:activo?s.bg:"#FBF4F6",borderRadius:99,padding:"4px 10px" }}>
                   <Icon size={11} style={{ color:activo?s.color:"#C9A9B4" }}/>
                   <span style={{ fontSize:11,fontWeight:600,color:activo?s.color:"#C9A9B4" }}>{s.label}</span>
                 </div>
@@ -82,7 +82,7 @@ function ModalVer({ u, onClose }) {
           </div>
         </div>
         <div className="px-5 pb-5 pt-3">
-          <button onClick={onClose} className="w-full bg-[#a0435f] text-white font-semibold text-[13px] py-3 rounded-xl">Cerrar</button>
+          <button onClick={onClose} className="w-full bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Cerrar</button>
         </div>
       </div>
     </div>
@@ -95,10 +95,10 @@ function ModalEditar({ u, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <h3 className="font-bold text-[16px] text-[#4A2A38]">Editar usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3">
           {[{label:"Nombre",key:"nombre"},{label:"Apellido",key:"apellido"},{label:"Email",key:"email"}].map(f=>(
@@ -111,7 +111,7 @@ function ModalEditar({ u, onClose, onSave }) {
         </div>
         <div className="px-5 pb-5 flex gap-3">
           <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
-          <button onClick={()=>{onSave(u.id,form);onClose();}} className="flex-1 bg-[#a0435f] text-white font-semibold text-[13px] py-3 rounded-xl">Guardar</button>
+          <button onClick={()=>{onSave(u.id,form);onClose();}} className="flex-1 bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Guardar</button>
         </div>
       </div>
     </div>
@@ -124,10 +124,10 @@ function ModalNuevo({ onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <h3 className="font-bold text-[16px] text-[#4A2A38]">Nuevo usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3">
           {[{label:"Nombre",key:"nombre",type:"text"},{label:"Apellido",key:"apellido",type:"text"},{label:"Email",key:"email",type:"email"},{label:"Contraseña",key:"password",type:"password"}].map(f=>(
@@ -140,7 +140,7 @@ function ModalNuevo({ onClose, onSave }) {
         </div>
         <div className="px-5 pb-5 flex gap-3">
           <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
-          <button onClick={()=>{onSave(form);onClose();}} className="flex-1 bg-[#a0435f] text-white font-semibold text-[13px] py-3 rounded-xl">Crear</button>
+          <button onClick={()=>{onSave(form);onClose();}} className="flex-1 bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Crear</button>
         </div>
       </div>
     </div>
@@ -192,7 +192,7 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={handleCerrar}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#a0435f] to-[#A0435F]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#A0435F] to-[#A0435F]"/>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div>
             <h3 className="font-bold text-[16px] text-[#4A2A38]">
@@ -200,7 +200,7 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
             </h3>
             <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
           </div>
-          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
         </div>
 
         {paso === 1 ? (
@@ -253,14 +253,14 @@ function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setPaso(1)}
-                className="flex-1 px-3 py-2 border border-[#F5E1E7] text-[#9C8790] rounded-xl font-medium text-[12px] hover:bg-[#f5f0f0]"
+                className="flex-1 px-3 py-2 border border-[#F5E1E7] text-[#9C8790] rounded-xl font-medium text-[12px] hover:bg-[#FBF4F6]"
               >
                 ← Atrás
               </button>
               <button
                 onClick={handleConfirmarCambio}
                 disabled={cargando === u.id}
-                className="flex-1 px-3 py-2 bg-[#A0435F] text-white rounded-xl font-medium text-[12px] hover:bg-[#6a4ab0] disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-[#A0435F] text-white rounded-xl font-medium text-[12px] hover:bg-[#A0435F] disabled:opacity-50"
               >
                 {cargando === u.id ? "Procesando..." : "Cambiar a Asesora"}
               </button>
@@ -281,13 +281,13 @@ function ModalAccesos({ u, onClose, onToggle }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#a0435f] via-[#C77D93] to-[#a0435f]"/>
+        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
           <div>
             <h3 className="font-bold text-[16px] text-[#4A2A38]">Gestionar accesos</h3>
             <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#a0435f]"/></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
         </div>
         <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
           {SECCIONES.map(sec=>{
@@ -295,7 +295,7 @@ function ModalAccesos({ u, onClose, onToggle }) {
             return (
               <div key={sec.key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:activo?sec.bg+"80":"#FBF4F6",borderRadius:14,border:`1px solid ${activo?sec.bg:"#F5E1E7"}` }}>
                 <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                  <div style={{ width:32,height:32,borderRadius:10,background:activo?sec.bg:"#f0e8f0",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  <div style={{ width:32,height:32,borderRadius:10,background:activo?sec.bg:"#FBF4F6",display:"flex",alignItems:"center",justifyContent:"center" }}>
                     <Icon size={15} style={{ color:activo?sec.color:"#C9A9B4" }}/>
                   </div>
                   <div>
@@ -332,7 +332,7 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
     <div style={{ position:"fixed",inset:0,background:"rgba(45,26,34,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16 }}
       onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,.15)" }}>
-        <div style={{ height:4,background:gradiente||"linear-gradient(90deg,#a0435f,#C77D93)" }}/>
+        <div style={{ height:4,background:gradiente||"linear-gradient(90deg,#A0435F,#C77D93)" }}/>
         <div style={{ padding:24 }}>
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:"0 0 6px" }}>{titulo}</h2>
           <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
@@ -350,7 +350,7 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
             <div style={{ display:"flex",gap:8,marginTop:4 }}>
               {["0","29","35","300"].map(p=>(
                 <button key={p} type="button" onClick={()=>setMonto(p)}
-                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#a0435f":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#a0435f":"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#A0435F":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#A0435F":"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
                   ${p}
                 </button>
               ))}
@@ -365,7 +365,7 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
               type="button"
               onClick={handleConfirmar}
               disabled={monto===""||Number(monto)<0||guardando}
-              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#F5E1E7":"#a0435f",color:(monto===""||Number(monto)<0)?"#C9A9B4":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
+              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#F5E1E7":"#A0435F",color:(monto===""||Number(monto)<0)?"#C9A9B4":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
               {guardando?"Guardando...":"✓ Confirmar"}
             </button>
           </div>
@@ -569,7 +569,7 @@ export default function AdminUsuariosPage() {
       <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
 
         {toast && (
-          <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#ef4444":"#a0435f" }}>
+          <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#ef4444":"#A0435F" }}>
             <CheckIcon size={14}/>{toast.msg}
           </div>
         )}
@@ -581,11 +581,11 @@ export default function AdminUsuariosPage() {
             <p style={{ fontSize:12,color:"#9C8790",margin:"2px 0 0" }}>Administra estudiantes, acceso y secciones.</p>
           </div>
           <div style={{ display:"flex",gap:8 }}>
-            <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:5,color:"#a0435f",fontSize:12,fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit" }}>
+            <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:5,color:"#A0435F",fontSize:12,fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit" }}>
               <DownloadIcon size={14}/>Exportar
             </button>
             <button onClick={()=>setModalNuevo(true)}
-              style={{ display:"flex",alignItems:"center",gap:5,background:"#a0435f",color:"#fff",fontSize:12,fontWeight:600,padding:"8px 14px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
+              style={{ display:"flex",alignItems:"center",gap:5,background:"#A0435F",color:"#fff",fontSize:12,fontWeight:600,padding:"8px 14px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
               <PlusIcon size={13}/>Nuevo
             </button>
           </div>
@@ -639,12 +639,12 @@ export default function AdminUsuariosPage() {
           {tabs.map(t=>(
             <button key={t.id} onClick={()=>{setTabActivo(t.id);setPagina(1);}}
               style={{ display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:10,border:"none",cursor:"pointer",fontSize:isMobile?11:12,fontWeight:tabActivo===t.id?700:500,whiteSpace:"nowrap",fontFamily:"inherit",transition:"all .12s",
-                color:tabActivo===t.id?"#a0435f":"#9C8790",
-                borderBottom:tabActivo===t.id?"2px solid #a0435f":"2px solid transparent",
+                color:tabActivo===t.id?"#A0435F":"#9C8790",
+                borderBottom:tabActivo===t.id?"2px solid #A0435F":"2px solid transparent",
                 background:"transparent",
               }}>
               {t.label}
-              <span style={{ fontSize:10,padding:"1px 6px",borderRadius:99,fontWeight:700,background:tabActivo===t.id?"#FCE8EE":"#f5f0f0",color:tabActivo===t.id?"#a0435f":"#9C8790" }}>{t.count}</span>
+              <span style={{ fontSize:10,padding:"1px 6px",borderRadius:99,fontWeight:700,background:tabActivo===t.id?"#FCE8EE":"#FBF4F6",color:tabActivo===t.id?"#A0435F":"#9C8790" }}>{t.count}</span>
             </button>
           ))}
         </div>
@@ -663,11 +663,11 @@ export default function AdminUsuariosPage() {
               {paginados.map((u,i)=>{
                 const secActivas = SECCIONES.filter(s=>u[s.key]);
                 return (
-                  <div key={u.id} style={{ padding:"14px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none" }}>
+                  <div key={u.id} style={{ padding:"14px 16px",borderBottom:i<paginados.length-1?"1px solid #FBEEF1":"none" }}>
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:10 }}>
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:38,height:38,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:12,fontWeight:700 }}>{u.nombre?.[0]}</span>}
+                        <div style={{ width:38,height:38,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #C77D93",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#A0435F",fontSize:12,fontWeight:700 }}>{u.nombre?.[0]}</span>}
                         </div>
                         <div style={{ minWidth:0 }}>
                           <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
@@ -675,8 +675,8 @@ export default function AdminUsuariosPage() {
                         </div>
                       </div>
                       <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,flexShrink:0,
-                        background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#FBF4F6":"#fdf3e3",
-                        color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#6b4f9e":"#c9973a",
+                        background:u.tiene_acceso?"#E6F9F0":!u.sesiones_completadas?"#FBF4F6":"#FFF4EC",
+                        color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#A0435F":"#E8853B",
                       }}>
                         {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
                       </span>
@@ -685,7 +685,7 @@ export default function AdminUsuariosPage() {
                       <div style={{ flex:1 }}>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
                           <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#C77D93)",borderRadius:99 }}/>
+                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#A0435F,#C77D93)",borderRadius:99 }}/>
                           </div>
                           <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
                         </div>
@@ -700,16 +700,16 @@ export default function AdminUsuariosPage() {
                       </div>
                     </div>
                     <div style={{ display:"flex",gap:6 }}>
-                      <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <EyeIcon size={12}/>Ver
                       </button>
-                      <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#a0435f",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <PencilIcon size={12}/>Editar
                       </button>
-                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #ede9f8",background:"#FBF4F6",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #FCE8EE",background:"#FBF4F6",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <ShieldIcon size={12}/>Rol
                       </button>
-                      <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #e8f0e0",background:"#f0fdf4",fontSize:11,fontWeight:600,color:"#12A46B",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
+                      <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #E6F9F0",background:"#E6F9F0",fontSize:11,fontWeight:600,color:"#12A46B",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
                         <ShieldIcon size={12}/>Accesos
                       </button>
                     </div>
@@ -728,10 +728,10 @@ export default function AdminUsuariosPage() {
                 {paginados.map((u,i)=>{
                   const secActivas=SECCIONES.filter(s=>u[s.key]);
                   return (
-                    <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #fff0f3":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
+                    <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #FBEEF1":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:34,height:34,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #f0b8c4",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#a0435f",fontSize:11,fontWeight:700 }}>{u.nombre?.[0]}</span>}
+                        <div style={{ width:34,height:34,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #C77D93",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#A0435F",fontSize:11,fontWeight:700 }}>{u.nombre?.[0]}</span>}
                         </div>
                         <div style={{ minWidth:0 }}>
                           <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
@@ -739,19 +739,19 @@ export default function AdminUsuariosPage() {
                         </div>
                       </div>
                       <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#fee2e2":u.rol==="asociada"?"#ede9f8":u.rol === "agencia" ? "#fdf3e3" :"#dbeafe",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#5b21b6": u.rol === "agencia" ? "#a16207" :"#1e40af" }}>
+                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#FDECEC":u.rol==="asociada"?"#FCE8EE":u.rol === "agencia" ? "#FFF4EC" :"#FCE8EE",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#7D2F47": u.rol === "agencia" ? "#a16207" :"#1e40af" }}>
                           {u.rol==="admin"?"Admin":u.rol==="asociada"?"Asociada":u.rol==="agencia"?"Agencia":"Candidata"}
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#e8f0e0":!u.sesiones_completadas?"#FBF4F6":"#fdf3e3",color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#6b4f9e":"#c9973a" }}>
+                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#E6F9F0":!u.sesiones_completadas?"#FBF4F6":"#FFF4EC",color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#A0435F":"#E8853B" }}>
                           {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
                         </span>
                       </div>
                       <div>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
                           <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#a0435f,#C77D93)",borderRadius:99 }}/>
+                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#A0435F,#C77D93)",borderRadius:99 }}/>
                           </div>
                           <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
                         </div>
@@ -759,29 +759,29 @@ export default function AdminUsuariosPage() {
                       </div>
                       <div>
                         {u.codigo_referido
-                          ? <span style={{ fontSize:11,fontWeight:700,color:"#a0435f" }}>{u.codigo_referido}</span>
+                          ? <span style={{ fontSize:11,fontWeight:700,color:"#A0435F" }}>{u.codigo_referido}</span>
                           : u.codigo_promo_usado
                           ? <span style={{ fontSize:11,fontWeight:700,color:"#A0435F",display:"inline-flex",alignItems:"center",gap:4 }}><TagIcon size={11}/>{u.codigo_promo_usado}</span>
-                          : <span style={{ fontSize:10,color:"#c0a0a8" }}>—</span>}
+                          : <span style={{ fontSize:10,color:"#C9A9B4" }}>—</span>}
                       </div>
                       <div>
                         {u.tiene_acceso?(
                           <div style={{ display:"flex",alignItems:"center",gap:4 }}>
                             <div>
                               <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{u.monto_pagado?`$${u.monto_pagado} USD`:"$35 USD"}</p>
-                              <span style={{ fontSize:9,background:"#e8f0e0",color:"#12A46B",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
+                              <span style={{ fontSize:9,background:"#E6F9F0",color:"#12A46B",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
                             </div>
                             <button
                               type="button"
                               onClick={()=>setModalEditPago({...u})}
-                              style={{ width:20,height:20,borderRadius:6,background:"#fdf3e3",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                              <PencilIcon size={9} style={{ color:"#c9973a" }}/>
+                              style={{ width:20,height:20,borderRadius:6,background:"#FFF4EC",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                              <PencilIcon size={9} style={{ color:"#E8853B" }}/>
                             </button>
                           </div>
-                        ):<span style={{ fontSize:10,color:"#c0a0a8" }}>—</span>}
+                        ):<span style={{ fontSize:10,color:"#C9A9B4" }}>—</span>}
                       </div>
                       <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
-                        {secActivas.length===0?<span style={{ fontSize:10,color:"#c0a0a8" }}>Ninguno</span>:secActivas.slice(0,3).map(sec=>{
+                        {secActivas.length===0?<span style={{ fontSize:10,color:"#C9A9B4" }}>Ninguno</span>:secActivas.slice(0,3).map(sec=>{
                           const Icon=sec.icon;
                           return <div key={sec.key} style={{ width:20,height:20,borderRadius:6,background:sec.bg,display:"flex",alignItems:"center",justifyContent:"center" }} title={sec.label}><Icon size={10} style={{ color:sec.color }}/></div>;
                         })}
@@ -789,15 +789,15 @@ export default function AdminUsuariosPage() {
                       </div>
                       <div style={{ display:"flex",gap:4 }}>
                         <button type="button" onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <EyeIcon size={12} style={{ color:"#a0435f" }}/>
+                          <EyeIcon size={12} style={{ color:"#A0435F" }}/>
                         </button>
                         <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <PencilIcon size={12} style={{ color:"#a0435f" }}/>
+                          <PencilIcon size={12} style={{ color:"#A0435F" }}/>
                         </button>
-                        <button type="button" onClick={()=>setModalCambiarRol(u)} style={{ width:28,height:28,borderRadius:8,background:"#ede9f8",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        <button type="button" onClick={()=>setModalCambiarRol(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <ShieldIcon size={12} style={{ color:"#A0435F" }}/>
                         </button>
-                        <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#e8f0e0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#E6F9F0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
                           <ShieldIcon size={12} style={{ color:"#12A46B" }}/>
                         </button>
                       </div>
@@ -816,7 +816,7 @@ export default function AdminUsuariosPage() {
             <div style={{ display:"flex",gap:4 }}>
               <button onClick={()=>setPagina(p=>Math.max(1,p-1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>‹</button>
               {Array.from({length:Math.min(totalPags,3)},(_,i)=>i+1).map(p=>(
-                <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:p===pagina?"#a0435f":"#fff",color:p===pagina?"#fff":"#9C8790" }}>{p}</button>
+                <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:p===pagina?"#A0435F":"#fff",color:p===pagina?"#fff":"#9C8790" }}>{p}</button>
               ))}
               {totalPags>3&&<><span style={{ fontSize:11,color:"#9C8790",display:"flex",alignItems:"center" }}>...</span><button onClick={()=>setPagina(totalPags)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,color:"#9C8790",background:"#fff" }}>{totalPags}</button></>}
               <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>›</button>
@@ -836,8 +836,8 @@ export default function AdminUsuariosPage() {
               {actividad.length===0
                 ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px" }}>Sin actividad aún.</p>
                 : actividad.slice(0,5).map((a,i)=>(
-                  <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"12px 16px",borderBottom:i<4?"1px solid #fff0f3":"none" }}>
-                    <div style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,background:a.tipo==="pago"?"#e8f0e0":a.tipo==="registro"?"#FCE8EE":"#fdf3e3" }}>
+                  <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"12px 16px",borderBottom:i<4?"1px solid #FBEEF1":"none" }}>
+                    <div style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,background:a.tipo==="pago"?"#E6F9F0":a.tipo==="registro"?"#FCE8EE":"#FFF4EC" }}>
                       {a.tipo==="pago"?<CreditCardIcon size={13}/>:a.tipo==="registro"?<UserIcon size={13}/>:<BarChart2Icon size={13}/>}
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
@@ -859,15 +859,15 @@ export default function AdminUsuariosPage() {
               {topRef.length===0
                 ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px 0" }}>Sin datos aún.</p>
                 : topRef.slice(0,3).map((r,i)=>(
-                  <div key={i} style={{ padding:"12px 0",borderBottom:i<2?"1px solid #fff0f3":"none" }}>
+                  <div key={i} style={{ padding:"12px 0",borderBottom:i<2?"1px solid #FBEEF1":"none" }}>
                     <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
                       <span style={{ fontSize:14 }}>{i===0?"🥇":i===1?"🥈":"🥉"}</span>
                       <div style={{ width:32,height:32,borderRadius:"50%",background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                        <span style={{ color:"#a0435f",fontSize:11,fontWeight:700 }}>{r.nombre?.[0]}</span>
+                        <span style={{ color:"#A0435F",fontSize:11,fontWeight:700 }}>{r.nombre?.[0]}</span>
                       </div>
                       <div style={{ minWidth:0 }}>
                         <p style={{ fontSize:12,fontWeight:700,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.nombre}</p>
-                        <p style={{ fontSize:10,color:"#a0435f",margin:0 }}>@{r.codigo?.toLowerCase()}</p>
+                        <p style={{ fontSize:10,color:"#A0435F",margin:0 }}>@{r.codigo?.toLowerCase()}</p>
                       </div>
                     </div>
                     <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6 }}>
@@ -898,7 +898,7 @@ export default function AdminUsuariosPage() {
           usuaria={modalPago}
           titulo="Confirmar pago"
           subtitulo="¿Cuánto pagó"
-          gradiente="linear-gradient(90deg,#a0435f,#C77D93)"
+          gradiente="linear-gradient(90deg,#A0435F,#C77D93)"
           onClose={()=>setModalPago(null)}
           onConfirmar={async(monto)=>{ await confirmarToggle(modalPago.id, true, monto); }}
         />

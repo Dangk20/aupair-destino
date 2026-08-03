@@ -54,7 +54,7 @@ export default function UsuariaDetallesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/asociada/usuarias" className="text-[#7c5cc4] hover:underline flex items-center gap-2">
+        <Link href="/asociada/usuarias" className="text-[#A0435F] hover:underline flex items-center gap-2">
           <ArrowLeftIcon size={18} />
           Volver
         </Link>
@@ -117,11 +117,11 @@ export default function UsuariaDetallesPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm text-gray-600">Progreso del Programa</p>
-                  <p className="text-2xl font-bold text-[#7c5cc4]">{porcentajeProgreso}%</p>
+                  <p className="text-2xl font-bold text-[#A0435F]">{porcentajeProgreso}%</p>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-[#7c5cc4] h-3 rounded-full"
+                    className="bg-[#A0435F] h-3 rounded-full"
                     style={{ width: `${porcentajeProgreso}%` }}
                   />
                 </div>
@@ -190,7 +190,7 @@ export default function UsuariaDetallesPage() {
             {documentos.map((d, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <FileTextIcon size={18} className="text-[#7c5cc4]" />
+                  <FileTextIcon size={18} className="text-[#A0435F]" />
                   <div>
                     <p className="font-medium text-gray-900">{d.tipo}</p>
                     <p className="text-xs text-gray-500">{new Date(d.fecha_subida).toLocaleDateString("es-CO")}</p>
