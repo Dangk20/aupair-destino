@@ -16,7 +16,8 @@
      *(7 casos en verde: 0 años, hoy mismo, 17 años, 1850, texto que no es fecha → rechazadas con su motivo; 18 años justos y 26 → aceptadas. En el navegador: con 0 y con 17 años el formulario no deja pasar de la sección 1 y muestra "Para el programa necesitas tener al menos 18 años. Con esa fecha tienes N"; con 26 avanza.)*
 - [x] 3.2 Comprobar contra los perfiles reales de producción que ninguna candidata válida queda bloqueada
      *(De las 4 con fecha, las 3 de 26 años pasan. Sólo queda bloqueada la de 0 años, que es la cuenta de prueba del equipo — el caso que motivó la regla.)*
-- [ ] 3.3 Comprobar que la candidata con fecha futura deja de figurar como completa y ve el motivo
+- [x] 3.3 Comprobar que la cuenta con la fecha imposible deja de figurar como completa y ve el motivo
+     *(Comprobado contra el perfil real: con `2026-07-23` la sección "Información personal" deja de contar como completa y el formulario muestra "Para el programa necesitas tener al menos 18 años. Con esa fecha tienes 0." Ya no era una fecha futura como dije al principio: es 11 días antes de hoy, o sea 0 años.)*
 - [x] 3.4 `npm run build` y `node scripts/pruebas-humo.mjs` en verde
 - [x] 3.5 Desplegar con `deploy/desplegar-codigo.sh` y verificar en producción
      *(Desplegado el 2026-08-02. 541/541 contra producción y home pública 200.)*
