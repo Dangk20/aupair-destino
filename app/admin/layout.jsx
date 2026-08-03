@@ -1,162 +1,60 @@
 "use client";
-// app/admin/layout.jsx
+// app/admin/layout.jsx — El panel de administración declara sus módulos.
+// La forma la pone components/panel/PanelLayout.jsx, la misma de todos los
+// roles. Lo que distingue a un admin de una agencia es a qué entra y qué
+// puede hacer, no cómo se ve.
+//
+// El menú sigue la arquitectura acordada en el ítem 8 del alcance:
+//   Dashboard · Asociadas · Finanzas · Usuarios · Candidatas · Sesiones ·
+//   Calendario · Reportes · Configuración
+//
+// Los módulos que todavía no existen van declarados con `disponible: false`:
+// se ven apagados y no se pueden abrir. Es distinto de lo que se retiró del
+// Resumen — allí había cifras inventadas que afirmaban algo falso; aquí una
+// entrada apagada declara que algo aún no está.
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  LayoutDashboardIcon, UsersIcon, VideoIcon, LogOutIcon,
-  MenuIcon, XIcon, UserPlusIcon, BarChart2Icon,
-  SettingsIcon, BellIcon, CreditCardIcon, CalendarIcon, TagIcon as TagIcon, HandCoinsIcon,
-  ShieldIcon, DatabaseIcon,
+  LayoutDashboard, UsersRound, CreditCard, HandCoins, Tag,
+  Users, IdCard, Video, Calendar, BarChart3, Settings,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
+import PanelLayout from "@/components/panel/PanelLayout";
 
-// ── Sprint 0.0: menú reducido a lo del flujo activo (candidata + pagos).
-// Los módulos ocultos se comentan (no se borran) — restaurar = descomentar.
-// Ver tech/deuda-tecnica-sprint-0-0.md.
-const navItems = [
-  { label:"Resumen",                href:"/admin",                icon:LayoutDashboardIcon },
-  { label:"Ventas",                 href:"/admin/ventas",         icon:CreditCardIcon      },
-  { label:"Comisiones",             href:"/admin/comisiones",     icon:HandCoinsIcon       },
-  { label:"Códigos promo",          href:"/admin/codigos-promo",  icon: TagIcon            },
-  { label:"Usuarios",               href:"/admin/usuarias",       icon:UsersIcon           },
-  { label:"Perfiles",               href:"/admin/perfiles",       icon:UsersIcon           },
-  { label:"Sesiones",               href:"/admin/sesiones",       icon:VideoIcon           },
-  // ── Ocultos en Sprint 0.0 (ruido visual / módulos sin terminar o duplicados) ──
-  // { label:"Referidos y comisiones", href:"/admin/referidos",      icon:UserPlusIcon        }, // sistema viejo de comisiones
-  // { label:"Pagos y comisiones",     href:"/admin/pagos",          icon:CreditCardIcon      }, // reemplazado por /admin/ventas
-  // { label:"Cambiar Roles",          href:"/admin/cambiar-roles",  icon:ShieldIcon          },
-  // { label:"Asesoras/Asociadas",     href:"/admin/asociadas",      icon:UsersIcon           }, // rol post-MVP
-  // { label:"Calendario",             href:"/admin/reuniones",      icon:CalendarIcon        },
-  // { label:"Verificar BD",           href:"/admin/bd-verificar",   icon:DatabaseIcon        },
-  // { label:"Reportes",               href:"/admin/reportes",       icon:BarChart2Icon       }, // sin requerimientos
-  // { label:"Configuración",          href:"/admin/configuracion",  icon:SettingsIcon        },
-  // { label:"Notificaciones",         href:"/admin/notificaciones", icon:BellIcon            }, // sin requerimientos
+const MODULOS = [
+  { href: "/admin",               label: "Dashboard",     icon: LayoutDashboard },
+
+  // Su listado funciona; lo que está roto es asignar una candidata a una
+  // asesora, porque `usuarios.asesora_asignada_id` no existe en la base.
+  // Se deja apagado hasta el Sprint 3 para no ofrecer una acción que revienta.
+  { href: "/admin/asociadas",     label: "Asociadas",     icon: UsersRound,
+    disponible: false, motivo: "Asignar una candidata a su asesora todavía no funciona — Sprint 3" },
+
+  { grupo: "Finanzas" },
+  { href: "/admin/ventas",        label: "Ventas",        icon: CreditCard },
+  { href: "/admin/comisiones",    label: "Comisiones",    icon: HandCoins },
+  { href: "/admin/codigos-promo", label: "Códigos promo", icon: Tag },
+
+  { separador: true },
+  { href: "/admin/usuarias",      label: "Usuarios",      icon: Users },
+  { href: "/admin/perfiles",      label: "Candidatas",    icon: IdCard },
+  { href: "/admin/sesiones",      label: "Sesiones",      icon: Video },
+
+  // Funciona: se comprobó que la pantalla carga sin un solo fallo. Estaba
+  // oculta desde el Sprint 0.0 por "ruido visual", no por estar rota.
+  { href: "/admin/reuniones",     label: "Calendario",    icon: Calendar },
+  { href: "/admin/reportes",      label: "Reportes",      icon: BarChart3,
+    disponible: false, motivo: "Se define en los talleres de descubrimiento" },
+
+  { separador: true },
+  { href: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];
-
-function AdminLayoutInner({ children }) {
-  const pathname    = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  // El pie de la barra mostraba "Jenni Salgado / Admin CEO" escrito en el
-  // código, en todas las pantallas del panel. Se lee de la sesión.
-  const [usuario, setUsuario] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me").then(r => r.json()).then(d => setUsuario(d?.user || null)).catch(() => {});
-  }, []);
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method:"POST" });
-    window.location.assign("/login");
-  };
-
-  function SidebarContent() {
-    return (
-      <div style={{ width:200, minWidth:200 }}
-           className="h-full flex flex-col relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <img src="https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=60"
-               alt="" className="w-full h-full object-cover object-center"/>
-          <div className="absolute inset-0 bg-[#2d0a3a]/88"/>
-        </div>
-        <div className="relative z-10 px-5 pt-6 pb-4 border-b border-white/10">
-          <Link href="/admin" onClick={()=>setMobileOpen(false)}>
-            <Image src="/assets/destino-aupair-logo.svg" alt="Destino Au Pair"
-                   width={52} height={52} className="brightness-0 invert mb-2"/>
-          </Link>
-          <p className="text-[9px] font-bold tracking-[3px] uppercase text-[#e8849a]">Panel Admin</p>
-        </div>
-        <nav className="relative z-10 flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon   = item.icon;
-            const active = item.href==="/admin"
-              ? pathname==="/admin"
-              : pathname.startsWith(item.href);
-            return (
-              <Link key={item.href} href={item.href}
-                onClick={()=>setMobileOpen(false)}
-                className={`flex items-center gap-2.5 text-[12px] px-3 py-2.5 rounded-xl transition-all
-                  ${active
-                    ? "bg-[#a0435f] text-white font-semibold shadow-md shadow-[#a0435f]/30"
-                    : "text-white/55 hover:text-white hover:bg-white/8"
-                  }`}>
-                <Icon size={15} strokeWidth={active?2:1.6}/>
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="relative z-10 flex justify-center pb-4">
-          <div className="w-20 h-28 relative shadow-xl opacity-60"
-               style={{ transform:"rotate(-4deg)", filter:"drop-shadow(2px 4px 10px rgba(0,0,0,0.5))" }}>
-            <div className="absolute left-0 top-0 w-3 h-full bg-[#6b0a2a] rounded-l-lg"/>
-            <div className="absolute left-3 top-0 right-0 h-full bg-[#a0435f] rounded-r-xl flex flex-col items-center justify-between py-2 px-2">
-              <div className="w-full h-px bg-white/20"/>
-              <div className="flex flex-col items-center gap-1">
-                <img src="/assets/destino-aupair-logo.svg" alt="" className="w-8 h-8 brightness-0 invert opacity-90"/>
-                <p className="text-white text-[5px] tracking-[2px] uppercase font-bold opacity-80">Au Pair</p>
-              </div>
-              <div className="w-full h-px bg-white/20"/>
-            </div>
-          </div>
-        </div>
-        <div className="relative z-10 px-4 py-4 border-t border-white/10">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-full bg-[#a0435f] flex items-center justify-center shrink-0">
-              <span className="text-white text-[12px] font-bold">{(usuario?.nombre || "?").charAt(0).toUpperCase()}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-white text-[11px] font-semibold truncate leading-snug">
-                {usuario ? `${usuario.nombre} ${usuario.apellido || ""}`.trim() : "…"}
-              </p>
-              <p className="text-white/40 text-[9px] truncate">{usuario?.email || "Administración"}</p>
-            </div>
-          </div>
-          <button onClick={handleLogout}
-            className="flex items-center gap-2 text-white/35 hover:text-white/70 text-[11px] transition">
-            <LogOutIcon size={12}/> Cerrar sesión
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#fff8f9" }}>
-      {/* Sidebar desktop */}
-      <div className="hidden md:block shrink-0"><SidebarContent/></div>
-
-      {/* Sidebar mobile */}
-      {mobileOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={()=>setMobileOpen(false)}/>
-          <div className="fixed inset-y-0 left-0 z-50 md:hidden flex"><SidebarContent/></div>
-        </>
-      )}
-
-      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", minWidth:0 }}>
-        <header className="md:hidden bg-[#fff8f9] border-b border-[#f0dde2] px-4 py-3 flex items-center justify-between shrink-0">
-          <button onClick={()=>setMobileOpen(!mobileOpen)} className="text-[#a0435f]">
-            {mobileOpen ? <XIcon size={20}/> : <MenuIcon size={20}/>}
-          </button>
-          <Image src="/assets/destino-aupair-logo.svg" alt="" width={36} height={36}/>
-          <div/>
-        </header>
-        {/* ← data-main="true" para CSS responsive */}
-        <div style={{ flex:1, overflowY:"auto", overflowX:"hidden" }} data-main="true">
-          <div className="inner-page">{children}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function AdminLayout({ children }) {
   return (
     <MobileProvider>
-      <AdminLayoutInner>{children}</AdminLayoutInner>
+      <PanelLayout modulos={MODULOS} rol="Administración" inicio="/admin">
+        {children}
+      </PanelLayout>
     </MobileProvider>
   );
 }

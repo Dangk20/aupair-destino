@@ -18,7 +18,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  CreditCardIcon, HandCoinsIcon, TagIcon, UsersIcon, VideoIcon,
+  CreditCardIcon, HandCoinsIcon, TagIcon, UsersIcon, VideoIcon, IdCard,
   SparklesIcon, ArrowRightIcon,
 } from "lucide-react";
 
@@ -27,7 +27,7 @@ const MODULOS = [
   { href:"/admin/comisiones",    icon:HandCoinsIcon,  label:"Comisiones",    desc:"Lo que le debes a cada asociada" },
   { href:"/admin/codigos-promo", icon:TagIcon,        label:"Códigos promo", desc:"Precios, usos y porcentaje de comisión" },
   { href:"/admin/usuarias",      icon:UsersIcon,      label:"Usuarios",      desc:"Altas, accesos y cambios de rol" },
-  { href:"/admin/perfiles",      icon:UsersIcon,      label:"Perfiles",      desc:"Revisa y aprueba a las candidatas" },
+  { href:"/admin/perfiles",      icon:IdCard,         label:"Candidatas",    desc:"Revisa y aprueba sus perfiles" },
   { href:"/admin/sesiones",      icon:VideoIcon,      label:"Sesiones",      desc:"Contenido del curso y recursos" },
 ];
 

@@ -108,11 +108,18 @@ export default function PanelLayout({ modulos = [], rol = "", inicio = "/", chil
              style={{ height: 84, width: "auto", maxWidth: "100%", objectFit: "contain" }} />
       </Link>
 
-      {modulos.map((it, i) =>
-        it.separador
-          ? <div key={`sep-${i}`} style={{ height: 1, background: T.border, margin: "10px 8px" }} />
-          : <Modulo key={it.href} item={it} />
-      )}
+      {modulos.map((it, i) => {
+        if (it.separador) return <div key={`sep-${i}`} style={{ height: 1, background: T.border, margin: "10px 8px" }} />;
+        // Un grupo rotula los módulos que vienen debajo — "Finanzas" sobre
+        // ventas, comisiones y códigos. Es una etiqueta, no un destino: no
+        // hace falta inventar una pantalla para agrupar tres que ya existen.
+        if (it.grupo) return (
+          <div key={`gr-${i}`} style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", color: T.softText, padding: "14px 13px 5px", fontFamily: T.font }}>
+            {it.grupo.toUpperCase()}
+          </div>
+        );
+        return <Modulo key={it.href} item={it} />;
+      })}
 
       <div style={{ marginTop: "auto", paddingTop: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11, background: T.lilac, borderRadius: 14, padding: 11 }}>
