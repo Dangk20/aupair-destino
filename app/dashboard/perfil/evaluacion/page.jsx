@@ -126,13 +126,20 @@ export default function PerfilEvaluacionPage() {
   const enError = (name) => faltantes.some(c => c.name === name);
   const ic = (name) => (enError(name) ? IC_ERR : IC);
 
-  /** Marca los faltantes, arma el resumen y lleva el foco al primero. */
+  /**
+   * Marca los campos con problema, arma el resumen y lleva el foco al primero.
+   * La lista mezcla dos cosas: campos vacíos y campos llenos con un valor que
+   * su regla rechaza (los segundos traen `error` con el motivo).
+   */
   const señalarFaltantes = (lista) => {
     setFaltantes(lista);
+    const malos = lista.filter(c => c.error);
     setErrorVal(
-      lista.length === 1
-        ? `Falta diligenciar: ${lista[0].label}.`
-        : `Faltan ${lista.length} campos por diligenciar: ${lista.map(c=>c.label).join(", ")}.`
+      malos.length === 1 && lista.length === 1
+        ? malos[0].error
+        : lista.length === 1
+          ? `Falta diligenciar: ${lista[0].label}.`
+          : `Revisa ${lista.length} campos: ${lista.map(c=>c.label).join(", ")}.`
     );
     // Foco en el primer campo con error.
     setTimeout(() => {
@@ -148,8 +155,8 @@ export default function PerfilEvaluacionPage() {
     if (i === paso) return;
     // Retroceder siempre se permite: nunca dejar a la candidata encerrada.
     if (i < paso) { setErrorVal(""); setFaltantes([]); setPaso(i); return; }
-    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[paso], form);
-    if (!ok) { señalarFaltantes(pendientes); return; }
+    const { ok, faltantes:pendientes, invalidos } = validarSeccion(SECCIONES[paso], form);
+    if (!ok) { señalarFaltantes([...pendientes, ...invalidos]); return; }
     setErrorVal(""); setFaltantes([]); setPaso(i);
   };
 
@@ -165,11 +172,11 @@ export default function PerfilEvaluacionPage() {
 
   const guardar = async (goNext=false) => {
     setErrorVal("");
-    const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[paso], form);
+    const { ok, faltantes:pendientes, invalidos } = validarSeccion(SECCIONES[paso], form);
 
     // Avanzar exige la sección completa. Guardar sin avanzar siempre se
     // permite: la candidata debe poder dejar el formulario a medias.
-    if (goNext && !ok) { señalarFaltantes(pendientes); return; }
+    if (goNext && !ok) { señalarFaltantes([...pendientes, ...invalidos]); return; }
 
     setGuardando(true);
     const res = await fetch("/api/dashboard/perfil", {
@@ -310,14 +317,17 @@ export default function PerfilEvaluacionPage() {
               <div style={{ background:"#fef2f2",border:"1px solid #fecaca",borderRadius:12,padding:"12px 16px",fontSize:13,color:"#dc2626" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:8,fontWeight:700 }}>
                   <span>⚠️</span>
-                  {faltantes.length===1
-                    ? "Falta 1 campo obligatorio por diligenciar"
-                    : `Faltan ${faltantes.length} campos obligatorios por diligenciar`}
+                  {faltantes.some(c=>c.error)
+                    ? (faltantes.length===1 ? "Revisa este campo" : `Revisa ${faltantes.length} campos`)
+                    : faltantes.length===1
+                      ? "Falta 1 campo obligatorio por diligenciar"
+                      : `Faltan ${faltantes.length} campos obligatorios por diligenciar`}
                 </div>
                 {faltantes.length>0 && (
                   <ul style={{ margin:"8px 0 0",paddingLeft:26,fontWeight:500,lineHeight:1.7 }}>
                     {faltantes.map(c => (
                       <li key={c.name}>
+                        {c.error && <span style={{ display:"block",fontWeight:600 }}>{c.error}</span>}
                         <button onClick={()=>{
                           const el=document.querySelector(`[name="${c.name}"]`);
                           el?.scrollIntoView?.({ behavior:"smooth",block:"center" });
