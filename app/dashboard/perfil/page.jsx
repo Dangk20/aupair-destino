@@ -27,7 +27,7 @@ import {
   GraduationCap, Car, Sparkles, MessageCircle, HeartPulse, UserCheck, Image as ImageIcon,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 import { useAccessGate, GateLoading, GateScreen } from "@/components/dashboard/AccessGate";
 import { PARTE1, PARTE2, valorParaMostrar, perfilCompleto, camposFaltantes } from "@/lib/campos-perfil";
 

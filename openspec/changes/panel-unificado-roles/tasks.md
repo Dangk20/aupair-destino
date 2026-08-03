@@ -1,7 +1,9 @@
 ## 1. La línea gráfica, compartida
 
-- [ ] 1.1 Renombrar `lib/tema-candidata.js` a `lib/tema.js` y actualizar todos sus consumidores
-- [ ] 1.2 Añadir al tema los tokens que el panel de administración necesita y no existen (estados: confirmado, error, aviso)
+- [x] 1.1 Renombrar `lib/tema-candidata.js` a `lib/tema.js` y actualizar todos sus consumidores
+     *(9 consumidores actualizados. Git lo registra como renombre, así que el historial del archivo se conserva. Verificadas en el navegador las 7 pantallas que lo usan: todas pintan, sin errores nuevos de consola — el único 404 que queda es `/api/dashboard/reunion`, que ya venía roto y es del Sprint 2.)*
+- [x] 1.2 Añadir al tema los tokens que el panel de administración necesita y no existen
+     *(`danger` / `dangerBg` para acciones destructivas —anular, eliminar, rechazar—, y `neutral` / `neutralBg` / `neutralLine` para datos secundarios y separadores de tabla. Nombrados por función, no por color. El admin escribía a mano cuatro rojos y tres grises distintos para lo mismo; el verde y el ámbar ya existían y se reutilizan en el grupo 5.)*
 
 ## 2. La cáscara compartida
 

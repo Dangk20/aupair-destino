@@ -10,7 +10,7 @@ import {
   Eye, EyeOff, Check, AlertTriangle, Lock, MessageCircle, Calendar, FolderOpen, GraduationCap,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 function Toggle({ value, onChange }) {
   return (

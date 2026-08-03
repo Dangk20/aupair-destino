@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Clock, ArrowRight, Sparkles } from "lucide-react";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 // Pantalla "próximamente" — para módulos aún no habilitados (calendario,
 // mensajería in-app, recursos). Bloquea la interacción con el contenido.

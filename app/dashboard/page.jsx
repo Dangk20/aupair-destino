@@ -8,7 +8,7 @@ import {
   Bell, Check, Star, ArrowRight, Globe, MessageCircle, Calendar, Sparkles,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 export default function DashboardPage() {
   const router = useRouter();

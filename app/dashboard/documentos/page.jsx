@@ -11,7 +11,7 @@ import {
   ScrollText, Stethoscope, Mail, Award, Languages, Baby, FileText,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 import { useAccessGate, GateLoading, GateScreen } from "@/components/dashboard/AccessGate";
 
 // Ícono de línea por tipo de documento (reemplaza los emojis del API)

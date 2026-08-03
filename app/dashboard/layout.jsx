@@ -9,7 +9,7 @@ import {
   User, Calendar, Users, FolderOpen, Settings, LogOut, Lock,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
-import { T, POPPINS_HREF } from "@/lib/tema-candidata";
+import { T, POPPINS_HREF } from "@/lib/tema";
 
 function DashboardLayoutInner({ children }) {
   const pathname = usePathname();

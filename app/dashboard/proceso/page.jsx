@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 const DESC = {
   curso:             "Tu formación para entender todo el proceso.",

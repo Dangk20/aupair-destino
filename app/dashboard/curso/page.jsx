@@ -9,7 +9,7 @@ import {
   Bell, Check, Play, Lock, ArrowRight, CheckCircle2, PlayCircle,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 /* ── Confeti al completar una clase ── */
 function Confetti() {

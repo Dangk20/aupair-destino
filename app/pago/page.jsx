@@ -10,7 +10,7 @@ import {
   Check, Tag, ShieldCheck, ArrowLeft, ArrowRight, X,
   Users, ClipboardCheck, Plane, MessageCircle, BookMarked, Lock,
 } from "lucide-react";
-import { T } from "@/lib/tema-candidata";
+import { T } from "@/lib/tema";
 
 const WHATSAPP_NUMBER = "13478886836";
 const PRECIO_REGULAR  = 35;
