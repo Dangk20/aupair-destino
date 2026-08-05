@@ -143,6 +143,7 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/pagos/stats` | GET | ✅ | `/admin`, `/admin/pagos` |
 | `/admin/perfiles` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]` | GET, PUT | ✅ | `/admin/perfiles/[id]` |
+| `/admin/perfiles/[id]/descargar` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]/documentos` | GET, PUT, DELETE | ✅ | `/admin/perfiles/[id]` |
 | `/admin/recursos` | GET, POST, DELETE | ✅ | `/admin/sesiones` |
 | `/admin/referidos` | GET, POST | ✅ | `/admin`, `/admin/referidos` |

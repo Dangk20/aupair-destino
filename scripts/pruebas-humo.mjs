@@ -103,6 +103,7 @@ const INVENTARIO = [
   ["GET", "/admin/perfiles", "rol:admin"],
   ["GET", "/admin/perfiles/[id]", "rol:admin"],
   ["PUT", "/admin/perfiles/[id]", "rol:admin"],
+  ["GET", "/admin/perfiles/[id]/descargar", "rol:admin"],
   ["DELETE", "/admin/perfiles/[id]/documentos", "rol:admin"],
   ["GET", "/admin/perfiles/[id]/documentos", "rol:admin"],
   ["PUT", "/admin/perfiles/[id]/documentos", "rol:admin"],

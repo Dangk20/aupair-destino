@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Clock as ClockIcon, AlertTriangle, Award, MapPin, Users as UsersIcon,
   SearchIcon, DownloadIcon, EyeIcon, PencilIcon,
-  ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon, CircleIcon,
+  ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon,
 } from "lucide-react";
 
 function EstadoBadge({ estado }) {
@@ -53,7 +53,6 @@ export default function AdminPerfilesPage() {
   const [filtroCiudad, setFiltroCiudad] = useState("");
   const [toast,        setToast]        = useState(null);
   const [pagina,       setPagina]       = useState(1);
-  const [aprobando,    setAprobando]    = useState(null);
   const POR_PAG = 10;
 
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2500); };
@@ -86,30 +85,12 @@ export default function AdminPerfilesPage() {
   // ese despliegue, Ver y Editar en la pestaña de agencia caían en un 404.
   const irAPerfil = (id) => router.push(`/admin/perfiles/${id}`);
 
-  const toggleAprobar = async (p) => {
-    if (!p.perfil_completo) {
-      showToast("La usuaria aún no ha completado su formulario de evaluación");
-      return;
-    }
-    setAprobando(p.id);
-    const nuevoEstado = !p.evaluacion_aprobada;
-    try {
-      const res = await fetch("/api/admin/aprobar-evaluacion", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario_id: p.id, aprobada: nuevoEstado }),
-      });
-      const d = await res.json();
-      if (res.ok) {
-        setPerfiles(prev => prev.map(x => x.id===p.id ? { ...x, evaluacion_aprobada: nuevoEstado } : x));
-        showToast(nuevoEstado ? "✓ Evaluación aprobada" : "Aprobación removida");
-      } else {
-        showToast(d.error || "Error al aprobar");
-      }
-    } catch {
-      showToast("Error al aprobar");
-    }
-    setAprobando(null);
+  // Descargar el perfil: la hoja de vida en PDF y los documentos, en un ZIP.
+  // Es una ruta autenticada de admin, así que basta con navegar a ella; el
+  // navegador recibe el Content-Disposition y guarda el archivo.
+  const descargarPerfil = (p) => {
+    showToast("Preparando la descarga…");
+    window.location.href = `/api/admin/perfiles/${p.id}/descargar`;
   };
 
   const lista     = tab===1 ? perfiles : perfiles.filter(p => p.tiene_acceso);
@@ -237,33 +218,22 @@ export default function AdminPerfilesPage() {
                   </div>
                 );
 
-                const botonAprobar = tab===1 && (
-                  <button
-                    onClick={() => toggleAprobar(p)}
-                    disabled={aprobando===p.id}
-                    title={!p.perfil_completo ? "Aún no completa su evaluación" : p.evaluacion_aprobada ? "Quitar aprobación" : "Aprobar evaluación"}
-                    style={{
-                      width:32, height:32, borderRadius:9, border:"none", cursor: p.perfil_completo ? "pointer" : "not-allowed",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      background: p.evaluacion_aprobada ? "#E6F9F0" : p.perfil_completo ? "#FFF4EC" : "#F3F4F6",
-                      opacity: aprobando===p.id ? .5 : 1,
-                    }}>
-                    {p.evaluacion_aprobada
-                      ? <CheckCircleIcon size={15} style={{ color:"#12A46B" }}/>
-                      : <CircleIcon size={15} style={{ color: p.perfil_completo ? "#E8853B" : "#c0c0c0" }}/>}
-                  </button>
-                );
-
+                // Editar · ver · descargar. Aprobar ya no está aquí: esa
+                // decisión se toma en la ficha, que es donde está el perfil
+                // que hay que leer para tomarla.
                 const acciones = (
                   <div style={{ display:"flex", gap:6 }}>
-                    {botonAprobar}
-                    <button onClick={() => irAPerfil(p.id)} title="Ver perfil"
+                    <button onClick={() => router.push(`/admin/perfiles/${p.id}/editar`)} title="Editar el perfil"
+                      style={{ width:32, height:32, borderRadius:9, background:"#FCE8EE", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <PencilIcon size={14} style={{ color:"#A0435F" }}/>
+                    </button>
+                    <button onClick={() => irAPerfil(p.id)} title="Ver la ficha"
                       style={{ width:32, height:32, borderRadius:9, background:"#FCE8EE", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       <EyeIcon size={14} style={{ color:"#A0435F" }}/>
                     </button>
-                    <button onClick={() => irAPerfil(p.id)} title="Editar"
+                    <button onClick={() => descargarPerfil(p)} title="Descargar el perfil (PDF + documentos)"
                       style={{ width:32, height:32, borderRadius:9, background:"#FCE8EE", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <PencilIcon size={14} style={{ color:"#A0435F" }}/>
+                      <DownloadIcon size={14} style={{ color:"#A0435F" }}/>
                     </button>
                   </div>
                 );

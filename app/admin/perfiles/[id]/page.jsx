@@ -15,9 +15,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Save, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Save, ShieldCheck, CheckCircle2, CircleDashed } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+import { parteCompleta, faltantesDeParte } from "@/lib/campos-perfil";
 import FichaCandidata from "@/components/perfil/FichaCandidata";
 
 const IC = {
@@ -44,7 +45,13 @@ const CALIFICACIONES  = ["califica", "requiere_revision", "no_califica"];
  * no son columnas, nunca guardó nada: se movía, decía "guardado" y al recargar
  * volvía a "Pendiente". Aquí se usa `estado_agencia`, que sí existe.
  */
-function BloqueInterno({ form, set, onGuardar, guardando }) {
+function BloqueInterno({ form, set, onGuardar, guardando, aprobacion }) {
+  const aprobado = Number(form.evaluacion_aprobada) === 1;
+  // Un perfil incompleto no se puede aprobar, pero sí se le puede QUITAR la
+  // aprobación: hay perfiles aprobados en producción a los que después les
+  // faltó algo, y dejar el botón muerto sería encerrar a la clienta con una
+  // aprobación que ya no quiere y no puede retirar.
+  const habilitado = aprobado || aprobacion.puede;
   return (
     <div style={{ background:"#fff", borderRadius:18, padding:20, boxShadow:T.shadow, border:`1.5px solid ${T.border}` }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
@@ -57,10 +64,35 @@ function BloqueInterno({ form, set, onGuardar, guardando }) {
             <div style={{ fontSize:11.5, color:T.textSoft }}>Sólo lo ve el equipo. La candidata no.</div>
           </div>
         </div>
-        <button onClick={onGuardar} disabled={guardando}
-          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:"none", background:T.primary, color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:T.font }}>
-          {guardando ? "Guardando…" : <><Save size={13} /> Guardar</>}
-        </button>
+        {/* Aprobar es una acción, no un campo: surte efecto sola y no viaja
+            con las otras seis columnas del bloque. Antes vivía en el listado,
+            donde hay que decidir sin ver el perfil. */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+          <button onClick={aprobacion.alternar} disabled={aprobacion.ocupado || !habilitado}
+            title={habilitado
+              ? (aprobado ? "Quitar la aprobación de este perfil" : "Aprobar este perfil")
+              : `No se puede aprobar un perfil incompleto. Falta: ${aprobacion.faltan.join(", ")}`}
+            style={{
+              display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10,
+              fontSize:12.5, fontWeight:700, fontFamily:T.font,
+              cursor: habilitado ? "pointer" : "not-allowed",
+              opacity: habilitado ? 1 : .55,
+              background: aprobado ? T.greenBg : "#fff",
+              color:      aprobado ? T.green   : T.primary,
+              border:`1.5px solid ${aprobado ? T.green : T.primary}`,
+            }}>
+            {aprobacion.ocupado
+              ? "Un momento…"
+              : aprobado
+              ? <><CheckCircle2 size={13} /> Aprobado · quitar</>
+              : <><CircleDashed size={13} /> Aprobar perfil</>}
+          </button>
+
+          <button onClick={onGuardar} disabled={guardando}
+            style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:"none", background:T.primary, color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:T.font }}>
+            {guardando ? "Guardando…" : <><Save size={13} /> Guardar</>}
+          </button>
+        </div>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:14 }}>
@@ -69,14 +101,6 @@ function BloqueInterno({ form, set, onGuardar, guardando }) {
           <select value={form.estado_agencia || ""} onChange={e => set("estado_agencia", e.target.value)} style={IC}>
             <option value="">Seleccionar</option>
             {ESTADOS_AGENCIA.map(o => <option key={o}>{o}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={LC}>Evaluación del perfil</label>
-          <select value={String(Number(form.evaluacion_aprobada) === 1 ? 1 : 0)}
-            onChange={e => set("evaluacion_aprobada", Number(e.target.value))} style={IC}>
-            <option value="0">En revisión</option>
-            <option value="1">Aprobado</option>
           </select>
         </div>
         <div>
@@ -115,6 +139,7 @@ export default function AdminFichaCandidataPage() {
   const [cargando, setCargando]   = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso]         = useState(null);
+  const [aprobando, setAprobando] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/perfiles/${id}`)
@@ -135,7 +160,6 @@ export default function AdminFichaCandidataPage() {
       method: "PUT", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         estado_agencia:      perfil.estado_agencia,
-        evaluacion_aprobada: Number(perfil.evaluacion_aprobada) === 1 ? 1 : 0,
         calificacion_dap:    perfil.calificacion_dap,
         score_dap:           perfil.score_dap,
         nota_dap:            perfil.nota_dap,
@@ -146,6 +170,25 @@ export default function AdminFichaCandidataPage() {
     if (res.ok && data.ok) decir("Valoración guardada");
     else decir(data.error || "No se pudo guardar", "error");
     setGuardando(false);
+  };
+
+  // Aprobar tiene su propia ruta y su propia llamada. Guardar la valoración no
+  // la toca, y ella no toca la valoración.
+  const alternarAprobacion = async () => {
+    setAprobando(true);
+    const aprobada = Number(perfil.evaluacion_aprobada) !== 1;
+    const res  = await fetch("/api/admin/aprobar-evaluacion", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario_id: perfil.id, aprobada }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      set("evaluacion_aprobada", data.evaluacion_aprobada);
+      decir(data.mensaje);
+    } else {
+      decir(data.error || "No se pudo cambiar la aprobación", "error");
+    }
+    setAprobando(false);
   };
 
   if (cargando) return (
@@ -185,7 +228,15 @@ export default function AdminFichaCandidataPage() {
         subtitulo="Lo mismo que ella ve, más la valoración del equipo."
         rutaEdicion={sec => `/admin/perfiles/${id}/editar?parte=${sec.parte}&seccion=${sec.id}`}
         bloqueInterno={
-          <BloqueInterno form={perfil} set={set} onGuardar={guardarInterno} guardando={guardando} />
+          <BloqueInterno form={perfil} set={set} onGuardar={guardarInterno} guardando={guardando}
+            aprobacion={{
+              alternar: alternarAprobacion,
+              ocupado:  aprobando,
+              // La Parte 1 es la evaluación; es la que decide si hay perfil que
+              // aprobar. Es una pista para pintar: la ruta lo vuelve a verificar.
+              puede:    parteCompleta(1, perfil),
+              faltan:   faltantesDeParte(1, perfil).map(c => c.label),
+            }} />
         }
         isMobile={isMobile}
       />

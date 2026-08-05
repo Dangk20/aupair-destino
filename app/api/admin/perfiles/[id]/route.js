@@ -46,8 +46,17 @@ export async function PUT(req, { params }) {
     const [cols] = await dbAupair.query("DESCRIBE usuarios");
     const colNames = new Set(cols.map(c => c.Field));
 
-    // Nunca tocar estas columnas desde el admin de perfiles
-    const EXCLUIR = new Set(["id","email","password","rol","created_at"]);
+    // Nunca tocar estas columnas desde el admin de perfiles.
+    //
+    // `evaluacion_aprobada` está aquí porque aprobar a una candidata es un acto
+    // con nombre propio y un solo dueño: PUT /api/admin/aprobar-evaluacion, que
+    // además comprueba que el perfil esté completo. Aceptarla también aquí la
+    // dejaba con dos dueños, y editar la estatura podía aprobar un perfil sin
+    // que nada lo dijera. Es la misma regla que rige las ventas en
+    // lib/ventas-aupair.js.
+    const EXCLUIR = new Set([
+      "id","email","password","rol","created_at","evaluacion_aprobada",
+    ]);
 
     const sets   = [];
     const values = [];
