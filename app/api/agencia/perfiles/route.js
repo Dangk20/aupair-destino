@@ -2,41 +2,15 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereRol } from "@/lib/session-aupair";
+import { progresoParte } from "@/lib/campos-perfil";
+import { perfilPublicable } from "@/lib/perfil";
 
-const CAMPOS_EVAL = [
-  "cedula","telefono","fecha_nacimiento","ciudad","pais",
-  "nivel_ingles","licencia_conduccion","curso_primeros_auxilios",
-  "situacion_actual","exp_ninos_externos","horas_exp_ninos",
-  "visa_negada","entiende_intercambio_cultural","consciente_riesgo_familiar",
-  "enfermedad_medicamentos","depresion_panico",
-];
-
-const SECCIONES_AGENCIA = [
-  { campos:["estatura","peso","nacionalidad","tiene_pasaporte"] },
-  { campos:["exp_ninos_externos","horas_exp_ninos","horas_childcare"] },
-  { campos:["situacion_actual","carrera_graduada"] },
-  { campos:["licencia_conduccion","tipo_licencia"] },
-  { campos:["bio","hobbies"] },
-  { campos:["por_que_au_pair"] },
-  { campos:["enfermedad_medicamentos","dieta_especial"] },
-  { campos:["referencia_1_nombre","referencia_1_email"] },
-  { campos:["foto_url"] },
-  { campos:["estado_agencia"] },
-];
-
-function calcProgresoEval(u) {
-  if (!u) return 0;
-  const llenos = CAMPOS_EVAL.filter(c => u[c] && String(u[c]).trim() !== "").length;
-  return Math.round((llenos / CAMPOS_EVAL.length) * 100);
-}
-
-function calcProgresoAgencia(u) {
-  if (!u) return 0;
-  const completadas = SECCIONES_AGENCIA.filter(sec =>
-    sec.campos.filter(c => u[c] && String(u[c]).trim() !== "" && u[c] !== "0").length >= Math.ceil(sec.campos.length / 2)
-  ).length;
-  return Math.round((completadas / SECCIONES_AGENCIA.length) * 100);
-}
+// El avance sale de lib/campos-perfil.js, como en la ficha y en el listado del
+// admin. Este archivo llevaba una cuarta copia del criterio, con la misma regla
+// de "media sección llena cuenta como completa" que hacía que la agencia viera
+// un porcentaje distinto del que veía la candidata sobre el mismo perfil.
+const calcProgresoEval    = (u) => (u ? progresoParte(1, u) : 0);
+const calcProgresoAgencia = (u) => (u ? progresoParte(2, u) : 0);
 
 export async function GET(req) {
   const guard = requiereRol(req, "agencia");
@@ -44,21 +18,13 @@ export async function GET(req) {
   const session = guard.session;
 
   try {
+    // `u.*` en vez de una lista blanca de columnas: el avance se calcula sobre
+    // los campos declarados en campos-perfil.js, y una lista blanca dejaría
+    // fuera la mitad de ellos, con lo que toda candidata parecería incompleta.
+    // Lo que no debe salir lo quita `perfilPublicable()`, no la consulta.
     const [rows] = await dbAupair.query(`
       SELECT
-        u.id, u.nombre, u.apellido, u.email, u.foto_url,
-        u.ciudad, u.pais, u.fecha_nacimiento, u.nivel_ingles,
-        u.estado_agencia, u.perfil_completo,
-        u.score_dap, u.calificacion_dap, u.nota_dap,
-        u.cedula, u.telefono, u.licencia_conduccion, u.curso_primeros_auxilios,
-        u.situacion_actual, u.exp_ninos_externos, u.horas_exp_ninos, u.horas_childcare,
-        u.visa_negada, u.entiende_intercambio_cultural, u.consciente_riesgo_familiar,
-        u.enfermedad_medicamentos, u.depresion_panico, u.carrera_graduada,
-        u.estatura, u.peso, u.nacionalidad, u.tiene_pasaporte,
-        u.tipo_licencia, u.bio, u.hobbies, u.por_que_au_pair, u.dieta_especial,
-        u.referencia_1_nombre, u.referencia_1_email, u.referencia_1_telefono,
-        u.referencia_2_nombre, u.referencia_2_email,
-        u.created_at,
+        u.*,
         TIMESTAMPDIFF(YEAR, u.fecha_nacimiento, CURDATE()) as edad,
         ae.id as eval_id,
         ae.evaluacion as eval_agencia,
@@ -71,8 +37,8 @@ export async function GET(req) {
       ORDER BY u.created_at DESC
     `, [session.id]);
 
-    const candidatas = rows.map(r => {
-      delete r.password;
+    const candidatas = rows.map(fila => {
+      const r = perfilPublicable(fila, "revision");
       return {
         ...r,
         progreso_eval:    calcProgresoEval(r),

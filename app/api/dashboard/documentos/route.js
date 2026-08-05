@@ -5,22 +5,10 @@ import { requierePermiso } from "@/lib/session-aupair";
 import {
   guardarDocumento, borrarDocumento, archivoDisponible,
 } from "@/lib/almacenamiento-archivos";
-
-/* ── Documentos requeridos del programa ──────────────────────────────────── */
-export const DOCS_REQUERIDOS = [
-  { tipo:"pasaporte",           label:"Pasaporte",                  emoji:"🛂", formatos:"PDF, JPG, PNG", requerido:true  },
-  { tipo:"cedula",              label:"Cédula de identidad",        emoji:"🪪", formatos:"PDF, JPG, PNG", requerido:true  },
-  { tipo:"foto_perfil",         label:"Foto de perfil reciente",    emoji:"📸", formatos:"JPG, PNG",      requerido:true  },
-  { tipo:"primeros_auxilios",   label:"Certificado primeros auxilios",emoji:"🏥",formatos:"PDF",          requerido:true  },
-  { tipo:"titulo_bachillerato", label:"Título / diploma bachillerato",emoji:"🎓",formatos:"PDF, JPG",     requerido:true  },
-  { tipo:"antecedentes",        label:"Antecedentes judiciales",    emoji:"📋", formatos:"PDF",           requerido:true  },
-  { tipo:"registro_civil",      label:"Registro civil de nacimiento",emoji:"📄",formatos:"PDF, JPG",      requerido:true  },
-  { tipo:"certificado_medico",  label:"Certificado médico",         emoji:"⚕️", formatos:"PDF",           requerido:true  },
-  { tipo:"carta_recomendacion", label:"Carta de recomendación",     emoji:"💌", formatos:"PDF",           requerido:false },
-  { tipo:"titulo_universitario",label:"Título universitario",       emoji:"🎓", formatos:"PDF, JPG",      requerido:false },
-  { tipo:"certificado_idioma",  label:"Certificado de idioma",      emoji:"🌎", formatos:"PDF",           requerido:false },
-  { tipo:"foto_experiencia",    label:"Fotos con niños",            emoji:"👶", formatos:"JPG, PNG",      requerido:false },
-];
+// La lista de requeridos vive en lib/documentos.js: la lee también la pestaña
+// de Documentos de la ficha, que es un componente de cliente y no puede
+// importar desde una ruta de API.
+import { DOCS_REQUERIDOS } from "@/lib/documentos";
 
 /* ── GET: documentos subidos por la usuaria ──────────────────────────────── */
 export async function GET(req) {

@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { perfilPublicable } from "@/lib/perfil";
 
 /* ── GET: obtener perfil completo desde usuarios ── */
 export async function GET(req, { params }) {
@@ -19,10 +20,12 @@ export async function GET(req, { params }) {
 
     if (!u) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-    // Quitar password del response
-    delete u.password;
-
-    return NextResponse.json({ perfil: u });
+    // `delete u.password` no bastaba: el `SELECT *` seguía devolviendo al
+    // navegador `reset_token` y `reset_token_expiry`, de modo que quien
+    // pudiera leer la respuesta de una candidata con recuperación en curso
+    // podía cambiarle la contraseña. En modo "revision" el admin sí conserva
+    // la valoración interna (`score_dap`, `notas_agencia`…), que necesita.
+    return NextResponse.json({ perfil: perfilPublicable(u, "revision") });
   } catch (err) {
     console.error("[GET /api/admin/perfiles/[id]]", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });

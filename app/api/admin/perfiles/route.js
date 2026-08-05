@@ -2,43 +2,16 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { progresoParte } from "@/lib/campos-perfil";
+import { perfilPublicable } from "@/lib/perfil";
 
-/* ── Campos para calcular progreso evaluación ── */
-const CAMPOS_EVAL = [
-  "cedula","telefono","fecha_nacimiento","ciudad","pais",
-  "nivel_ingles","licencia_conduccion","curso_primeros_auxilios",
-  "situacion_actual","exp_ninos_externos","horas_exp_ninos",
-  "visa_negada","entiende_intercambio_cultural","consciente_riesgo_familiar",
-  "enfermedad_medicamentos","depresion_panico",
-];
-
-/* ── Secciones agencia y sus campos clave ── */
-const SECCIONES_AGENCIA = [
-  { campos:["estatura","peso","nacionalidad","tiene_pasaporte"] },         // 1 personal
-  { campos:["exp_ninos_externos","horas_exp_ninos","horas_childcare"] },   // 2 experiencia
-  { campos:["situacion_actual","carrera_graduada"] },                      // 3 educacion
-  { campos:["licencia_conduccion","tipo_licencia"] },                      // 4 conduccion
-  { campos:["bio","hobbies"] },                                            // 5 personalidad
-  { campos:["por_que_au_pair"] },                                          // 6 preguntas
-  { campos:["enfermedad_medicamentos","dieta_especial"] },                 // 7 salud
-  { campos:["referencia_1_nombre","referencia_1_email"] },                 // 8 referencias
-  { campos:["foto_url"] },                                                 // 9 fotos
-  { campos:["estado_agencia"] },                                           // 10 estado
-];
-
-function calcProgresoEval(u) {
-  if (!u) return 0;
-  const llenos = CAMPOS_EVAL.filter(c => u[c] && String(u[c]).trim() !== "").length;
-  return Math.round((llenos / CAMPOS_EVAL.length) * 100);
-}
-
-function calcProgresoAgencia(u) {
-  if (!u) return 0;
-  const completadas = SECCIONES_AGENCIA.filter(sec =>
-    sec.campos.filter(c => u[c] && String(u[c]).trim() !== "" && u[c] !== "0").length >= Math.ceil(sec.campos.length / 2)
-  ).length;
-  return Math.round((completadas / SECCIONES_AGENCIA.length) * 100);
-}
+// El avance de las dos partes sale de lib/campos-perfil.js, la misma fuente
+// que usan la ficha y el formulario. Este archivo llevaba su propia copia:
+// dieciséis columnas escritas a mano para la evaluación y diez "secciones" de
+// agencia con la regla de que media sección llena cuenta como completa. Por eso
+// el listado podía decir 100% de una candidata cuya ficha decía 78%.
+const calcProgresoEval    = (u) => (u ? progresoParte(1, u) : 0);
+const calcProgresoAgencia = (u) => (u ? progresoParte(2, u) : 0);
 
 function calcEstadoEval(progreso) {
   if (progreso >= 90) return "Completo";
@@ -81,9 +54,10 @@ export async function GET(req) {
       "SELECT * FROM usuarios WHERE rol = 'usuaria' ORDER BY created_at DESC"
     );
 
-    const perfiles = rows.map(r => {
-      // Quitar password
-      delete r.password;
+    const perfiles = rows.map(fila => {
+      // Mismo filtro que la ficha: `delete fila.password` dejaba salir los
+      // testigos de recuperación de TODAS las candidatas en una sola respuesta.
+      const r = perfilPublicable(fila, "revision");
 
       const progresoEval    = calcProgresoEval(r);
       const progresoAgencia = calcProgresoAgencia(r);
