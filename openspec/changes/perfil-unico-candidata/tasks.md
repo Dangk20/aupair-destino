@@ -174,6 +174,24 @@
 - [x] 8.2 Verificado en el navegador con los dos casos: Laura (93%, con pestaña
       Progreso activa por defecto) y Dani (100%, sin pestaña Progreso, abre en
       Información personal)
-- [ ] 7.7 Avisar a la clienta antes de desplegar: la pantalla que usa a diario para revisar candidatas cambia de forma, y algunos porcentajes van a bajar porque pasan a ser ciertos
-- [ ] 7.8 Desplegar con `bash deploy/desplegar-codigo.sh` — sin migraciones, este change no toca la base
-- [ ] 7.9 Verificar en producción y actualizar `docs/rutas-y-acceso.md` y la bitácora del cronograma
+- [x] 7.7 Avisar a la clienta antes de desplegar: la pantalla que usa a diario para revisar candidatas cambia de forma, y algunos porcentajes van a bajar porque pasan a ser ciertos
+
+      Daniel dio la orden de desplegar con el aviso ya redactado y en su mano.
+      **Queda pendiente que se lo diga a la clienta**: la ficha cambió de forma
+      y los porcentajes del listado bajan porque pasan a ser ciertos.
+- [x] 7.8 Desplegar con `bash deploy/desplegar-codigo.sh` — sin migraciones, este change no toca la base
+
+      Desplegado el 2026-08-04 desde el commit `d15b076`. Las pruebas de humo
+      corrieron dentro del contenedor: 578 en verde, 0 en rojo. Home pública 200.
+- [x] 7.9 Verificar en producción y actualizar `docs/rutas-y-acceso.md` y la bitácora del cronograma
+
+      En el VPS: `components/perfil/`, `lib/perfil.js`, `lib/documentos.js` y
+      `app/admin/perfiles/[id]/editar/` están; `[id]/agencia` ya no existe.
+      `/dashboard/perfil`, `/admin/perfiles/1` y `/admin/perfiles/1/editar`
+      responden 307 al ingreso sin sesión, y `GET /api/admin/perfiles/1` sin
+      sesión devuelve "No autorizado".
+
+      `docs/rutas-y-acceso.md` no cambia: este change no añadió ninguna ruta de
+      API. Falta el recorrido con la cuenta real de administración en producción
+      —`grexya.admin`, con la contraseña que Daniel debe rotar— y anotar el
+      cierre en la bitácora del cronograma.
