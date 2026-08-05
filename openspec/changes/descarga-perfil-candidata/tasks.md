@@ -92,7 +92,10 @@
       equivocado, y **la ficha los muestra igual de mal**. Arreglarlo es una
       migración de datos, y este change no toca la base.
 - [x] 7.8 Recorrido del listado: editar lleva al formulario, ver lleva a la ficha, descargar entrega el ZIP — desde **las dos** pestañas
-- [ ] 7.9 Avisar a la clienta antes de desplegar: el botón de aprobar se movió al detalle de la candidata, y ahora hay descarga
+- [x] 7.9 Avisar a la clienta antes de desplegar: el botón de aprobar se movió al detalle de la candidata, y ahora hay descarga
+
+      Daniel dio la orden de desplegar con el aviso redactado y en su mano.
+      **Queda pendiente que se lo diga a la clienta.**
 - [x] 7.10 Desplegar con `bash deploy/desplegar-codigo.sh` — sin migraciones, este change no toca la base. Va después de todo lo anterior
 - [x] 7.11 Verificar en producción con una candidata real: aprobar, quitar la aprobación y descargar el paquete
 - [x] 7.12 Anotar en la bitácora del cronograma el adelanto del ítem 14 (exportar perfil) desde el Sprint 4, y las dos dependencias nuevas
