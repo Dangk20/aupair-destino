@@ -81,10 +81,10 @@ export default function AdminPerfilesPage() {
     a.click(); showToast("Lista exportada ✓");
   };
 
-  const irAPerfil = (id) => {
-    if (tab === 1) router.push(`/admin/perfiles/${id}`);
-    else           router.push(`/admin/perfiles/${id}/agencia`);
-  };
+  // Las dos pestañas llevan a la misma ficha. La segunda apuntaba a
+  // `/admin/perfiles/[id]/agencia`, que se retiró al unificar la ficha: desde
+  // ese despliegue, Ver y Editar en la pestaña de agencia caían en un 404.
+  const irAPerfil = (id) => router.push(`/admin/perfiles/${id}`);
 
   const toggleAprobar = async (p) => {
     if (!p.perfil_completo) {
