@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { avisarCursoCompletado } from "@/lib/notificaciones-aupair";
 
 export async function POST(req) {
   const session = getSessionFromRequest(req);
@@ -30,6 +31,22 @@ export async function POST(req) {
        ON DUPLICATE KEY UPDATE completada = TRUE, fecha_completado = NOW()`,
       [session.id, id_sesion]
     );
+
+    // ── ¿Terminó el curso? ──────────────────────────────────────────────────
+    // El aviso es del curso entero, no de cada video: uno por sesión sería
+    // ocho correos por candidata. Se compara contra el total de `sesiones`,
+    // que es el mismo universo que ella ve en su panel (la ruta de sesiones
+    // tampoco filtra por `estado`). Marcar dos veces la última sesión no
+    // repite el correo: lo impide la clave única del registro de avisos.
+    const [[avance]] = await dbAupair.query(
+      `SELECT (SELECT COUNT(*) FROM sesiones) AS total,
+              (SELECT COUNT(*) FROM progreso_usuario
+                WHERE id_usuario = ? AND completada = TRUE) AS completadas`,
+      [session.id]
+    );
+    if (avance.total > 0 && avance.completadas >= avance.total) {
+      avisarCursoCompletado(session.id);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -1,0 +1,160 @@
+## 1. Averiguar antes de tocar nada
+
+- [x] 1.1 Mirar el `.env` del VPS y comprobar si `RESEND_API_KEY` tiene valor.
+      **Resultado (2026-08-05): está VACÍA.** Producción no envía ningún correo
+      desde el despliegue al VPS del 2026-07-23 (`516ca27`) — tampoco el de
+      recuperar contraseña. Hay que reportárselo a la clienta.
+- [x] 1.2 Comprobar a nombre de quién está la cuenta de Resend.
+      **Resultado: es de la clienta.** El proveedor anterior creó la cuenta con
+      `info@destino-aupair.com`, así que entrar por ese correo la recupera. El
+      dominio `destino-aupair.com` figura ahí desde el 2026-05-24 en estado
+      `verified`, región `us-east-1`, con envío habilitado. Sin envíos en los
+      últimos 15 días, lo que cuadra con 1.1.
+- [x] 1.3 Guardar el estado del DNS antes de tocarlo. **Resultado: no hay que
+      tocarlo.** El DKIM publicado (`resend._domainkey`) es el de esa misma
+      cuenta y ya valida; el SPF y el MX de `send.` también. Se cae la
+      necesidad de crear cuenta nueva y de reemplazar registros en Squarespace,
+      con el riesgo que eso traía para el correo de Google Workspace.
+
+## 2. Base de datos
+
+- [x] 2.1 `migrations/007_notificaciones.sql` con la tabla `notificaciones`,
+      `UNIQUE KEY uniq_notificacion (clave_unica)` e índices por evento y por
+      usuaria. Idempotente.
+- [x] 2.2 Corrida en local y verificada con `SHOW COLUMNS`.
+      **En producción se corre en el paso 8, antes de desplegar el código.**
+
+## 3. El módulo `lib/notificaciones-aupair.js`
+
+- [x] 3.1 Cabecera con el contrato del módulo: dueño único del correo.
+- [x] 3.2 `plantilla({ titulo, saludo, parrafos, destacado, boton })` con la
+      maqueta de marca portada del correo de recuperar contraseña.
+- [x] 3.3 `destinatariosAdmin()` con el filtro de enviables y
+      `NOTIF_EXCLUIR_EMAILS`.
+- [x] 3.4 `enviar()`: registra antes de enviar, corta si la clave única ya
+      existe, modo `omitido` sin clave de API, marca `fallido` con el motivo y
+      nunca re-lanza.
+- [x] 3.5 `agendar()` sobre `after()` de `next/server`, con caída a promesa
+      suelta fuera de una petición.
+- [x] 3.6 `candidataQueAceptaCorreo()` — lee `notif_email` de la base.
+- [x] 3.7 Las seis funciones de evento, con la convención de clave única
+      `<evento>:<referencia>:<destinatario>`.
+- [x] 3.8 `avisarReunionAgendada` / `avisarReunionCancelada` con la maqueta de
+      marca y sin clave única (son repetibles).
+- [x] 3.9 `enviarRecuperacionPassword()` — no consulta `notif_email` a
+      propósito: es un correo de cuenta, no una notificación.
+
+## 4. Enganchar los eventos
+
+- [x] 4.1 `app/api/auth/register/route.js` — aviso al admin y bienvenida, antes
+      de la bifurcación entre autorregistro y creación por el admin, para que
+      valga en los dos casos.
+- [x] 4.2 `lib/ventas-aupair.js` — dentro de `confirmarVenta()`, sólo en la
+      transición real. Cubre las tres rutas que confirman.
+- [x] 4.3 `app/api/dashboard/completar/route.js` — cuenta completadas contra el
+      total de `sesiones` y avisa sólo al terminar.
+- [x] 4.4 `app/api/admin/aprobar-evaluacion/route.js` — sólo al aprobar.
+
+## 5. Retirar lo que queda muerto
+
+- [x] 5.1 Retirado `notificarAdmins()` de la ruta de reuniones; sus dos
+      llamadas pasan por el módulo.
+- [x] 5.2 Retiradas las dos importaciones sueltas de `Resend`;
+      `forgot-password` envía por el módulo.
+- [x] 5.3 Verificado: `grep -rn "new Resend\|from \"resend\"" app/ lib/` sólo
+      encuentra `lib/notificaciones-aupair.js`. El morado `#5b21b6` ya no
+      aparece en ninguna ruta.
+- [x] 5.4 `app/dashboard/configuracion/page.jsx` — queda sólo `notif_email`.
+- [x] 5.5 Anotado en el `CLAUDE.md` que las otras tres columnas `notif_*` siguen
+      en la base sin lector, y por qué no se borraron.
+
+## 6. Documentación y configuración
+
+- [x] 6.1 `.env.example` — `RESEND_API_KEY` deja de ser opcional; se añade
+      `NOTIF_EXCLUIR_EMAILS`.
+- [x] 6.2 `deploy/DEPLOY.md` — quitado el "(opcional)", añadida la advertencia
+      de lo que significa dejarla vacía, y el bucle de migraciones pasa a
+      `migrations/0*.sql` (antes sólo corría la 001 y la 002, así que las
+      migraciones 003 a 006 se habrían saltado en un despliegue limpio).
+- [x] 6.3 `LEEME-LOCAL.md` — el modo sin clave, con la consulta para ver qué se
+      habría enviado.
+- [x] 6.4 `CLAUDE.md` — sección de correo con la tabla de los ocho avisos y
+      dónde se dispara cada uno.
+- [x] 6.5 `docker-compose.yml` — pasa `NOTIF_EXCLUIR_EMAILS` al contenedor.
+
+## 7. Verificación en local
+
+Hecha contra el servidor de desarrollo, con la clave real de Resend y usando
+las direcciones de prueba de Resend (`delivered@`, `bounced@`) para no escribirle
+a ninguna persona. Los tres admins reales quedaron en `NOTIF_EXCLUIR_EMAILS`
+durante toda la prueba.
+
+- [x] 7.1 `npm run build` — compila sin errores.
+- [x] 7.2 `node scripts/pruebas-humo.mjs` — **586 aserciones en verde, 0 en
+      rojo**. (El inventario creció desde las 541 que cita el `CLAUDE.md`; este
+      change no añade rutas.)
+- [x] 7.3 **Registro** — la candidata queda creada y salen los dos avisos:
+      `registro_candidata` al admin y `bienvenida` a ella, ambos `enviado` con
+      su id de Resend. Ninguna fila hacia `revision@destino-aupair.local` ni
+      hacia los tres admins excluidos.
+- [x] 7.4 **Pago** — confirmar genera `pago_confirmado` y `acceso_activado`.
+      Confirmar por segunda vez no genera ninguna fila nueva.
+- [x] 7.5 **Curso** — completadas las 8 sesiones, una sola fila de
+      `curso_completado`. Volver a marcar la última no la duplica.
+- [x] 7.6 **Evaluación** — aprobar avisa a la candidata; retirar la aprobación
+      no genera nada. De paso quedó comprobado que la ruta rechaza aprobar un
+      perfil incompleto (400 con la lista de faltantes).
+- [x] 7.7 **Preferencia** — con `notif_email = 0`, reactivar el acceso genera el
+      aviso al admin y **no** el de la candidata.
+- [x] 7.8 **Reuniones** — agendar y cancelar generan sus dos avisos, con la
+      maqueta de marca y `clave_unica` en NULL (repetibles).
+- [x] 7.9 **Fallo controlado** — con una clave inválida, el registro se completa
+      igual (HTTP 200, usuaria creada) y las dos filas quedan en `fallido` con
+      `API key is invalid` en `detalle`.
+- [x] 7.10 **Modo sin clave** — con `RESEND_API_KEY` vacía, las filas quedan en
+      `omitido` con el motivo, y no se llama a Resend.
+- [x] 7.11 **Configuración** — la pestaña de notificaciones muestra un único
+      interruptor y guardarlo sigue funcionando (comprobado en el navegador:
+      al conmutarlo, `usuarios.notif_email` pasó de 1 a 0).
+
+## 8. Despliegue (en este orden)
+
+Ya no hay que crear cuenta ni tocar el DNS (ver 1.2 y 1.3): la cuenta es de la
+clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
+
+- [ ] 8.1 Correr `migrations/007_notificaciones.sql` en la base de producción
+      **antes** de desplegar el código.
+- [ ] 8.2 Poner en el `.env` del VPS `RESEND_API_KEY` (la de la cuenta de la
+      clienta) y `NOTIF_EXCLUIR_EMAILS` con `pruebadestino1@gmail.com`.
+- [ ] 8.3 Desplegar, y dentro del contenedor: `npm run build` y
+      `node scripts/pruebas-humo.mjs`.
+- [ ] 8.4 Comprobar en producción que el correo de **recuperar contraseña** ya
+      llega. Es el que lleva desde el 2026-07-23 sin salir, y el que más daño
+      hace mientras siga roto.
+- [ ] 8.5 Recorrido en producción: registrar una candidata de prueba, comprobar
+      que el aviso llega a `info@destino-aupair.com` (mirar también spam la
+      primera vez) y después borrarla.
+- [ ] 8.6 Revisar en el panel de Resend que los envíos figuran como entregados.
+- [ ] 8.7 Anotar el despliegue y su verificación en
+      `tech/cronograma-sprints-aupair.md`.
+
+## 9. Con la clienta
+
+- [ ] 9.1 Contarle que la recuperación de contraseña llevaba desde el 2026-07-23
+      sin funcionar, por qué (la clave de Resend no viajó en la migración a
+      VPS) y qué se hizo para que no vuelva a pasar en silencio: ahora todo
+      intento de correo queda registrado en la tabla `notificaciones`.
+- [ ] 9.2 Decidir qué se hace con el admin `pruebadestino1@gmail.com` (proveedor
+      anterior): degradarlo de rol o retirarlo. **No ejecutar sin su
+      confirmación.** Mientras tanto queda excluido por `NOTIF_EXCLUIR_EMAILS`.
+- [ ] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
+      cuenta de revisión o se retira.
+- [ ] 9.4 Confirmar si los avisos deben llegar también a
+      `hola@destino-aupair.com` (el `email_contacto` de la tabla
+      `configuracion`) o sólo a los admins.
+- [ ] 9.5 Registrar R6 como trabajo adicional al contrato cerrado, con lo que
+      quedó dentro y lo que sigue pendiente de cotizar (notificaciones en
+      plataforma, avisos de mensajería, recordatorios programados, avisos a
+      agencias y asociadas).
+- [ ] 9.6 Rotar la clave de Resend cuando el despliegue esté cerrado: se
+      compartió por chat durante este trabajo.

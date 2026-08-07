@@ -1,8 +1,11 @@
 // app/api/dashboard/reuniones/route.js
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import dbAupair from "@/lib/db-aupair";
 import { requierePermiso } from "@/lib/session-aupair";
+import {
+  avisarReunionAgendada,
+  avisarReunionCancelada,
+} from "@/lib/notificaciones-aupair";
 
 function cleanFecha(f) {
   if (!f) return "";
@@ -21,25 +24,6 @@ function fmtFecha(f) {
   if (!limpia) return "Fecha no disponible";
   return new Date(limpia+"T12:00:00")
     .toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-}
-
-async function notificarAdmins({ subject, html }) {
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const [admins] = await dbAupair.query(
-      "SELECT email, nombre FROM usuarios WHERE rol='admin'"
-    );
-    for (const admin of admins) {
-      await resend.emails.send({
-        from: "Destino Au Pair <noreply@destino-aupair.com>",
-        to: admin.email,
-        subject,
-        html: html(admin),
-      });
-    }
-  } catch (err) {
-    console.error("Error enviando notificación:", err.message);
-  }
 }
 
 // GET — historial de reuniones del cliente
@@ -122,38 +106,14 @@ export async function POST(req) {
       WHERE d.id = ?
     `, [disponibilidad_id]);
     const s = slotData[0];
-    const fechaFmt = fmtFecha(s.fecha);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-    await notificarAdmins({
-      subject: `📅 Nueva reunión agendada — ${cliente.nombre} ${cliente.apellido}`,
-      html: (admin) => `
-        <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #f0dde2">
-          <div style="background:linear-gradient(135deg,#5b21b6,#7c3aed);padding:24px;text-align:center">
-            <h1 style="color:#fff;font-size:20px;margin:0;font-family:Georgia,serif">📅 Nueva reunión agendada</h1>
-          </div>
-          <div style="padding:24px">
-            <p style="font-size:14px;color:#1e1033;margin:0 0 16px">Hola ${admin.nombre}, una usuaria acaba de agendar una reunión:</p>
-            <div style="background:#f5f0ff;border-radius:12px;padding:16px;margin-bottom:16px">
-              <p style="font-size:13px;color:#5b21b6;font-weight:700;margin:0 0 8px">👤 Usuaria</p>
-              <p style="font-size:14px;color:#1e1033;margin:0">${cliente.nombre} ${cliente.apellido}</p>
-              <p style="font-size:13px;color:#9a7080;margin:2px 0 0">${cliente.email}</p>
-            </div>
-            <div style="background:#f0fdf4;border-radius:12px;padding:16px;margin-bottom:16px">
-              <p style="font-size:13px;color:#065f46;font-weight:700;margin:0 0 8px">📅 Detalles</p>
-              <p style="font-size:14px;color:#1e1033;margin:0">${fechaFmt}</p>
-              <p style="font-size:13px;color:#059669;margin:2px 0 0">🕐 ${s.hora_inicio?.slice(0,5)} — ${s.hora_fin?.slice(0,5)}</p>
-              <p style="font-size:13px;color:#059669;margin:2px 0 0">👩‍💼 Con: ${s.asesora_nombre} ${s.asesora_apellido}</p>
-            </div>
-            <a href="${appUrl}/admin/reuniones" style="display:block;text-align:center;background:#5b21b6;color:#fff;font-size:14px;font-weight:600;padding:14px;border-radius:12px;text-decoration:none">
-              Ver en el calendario →
-            </a>
-          </div>
-          <div style="padding:16px;text-align:center;border-top:1px solid #f0dde2">
-            <p style="font-size:11px;color:#9a7080;margin:0">Destino Au Pair · ${appUrl}</p>
-          </div>
-        </div>
-      `,
+    avisarReunionAgendada({
+      candidata: { id: session.id, ...cliente },
+      fecha: fmtFecha(s.fecha),
+      horaInicio: s.hora_inicio?.slice(0, 5),
+      horaFin: s.hora_fin?.slice(0, 5),
+      asesora: `${s.asesora_nombre} ${s.asesora_apellido}`,
+      notas: notas_cliente || null,
     });
 
     return NextResponse.json({ ok: true, reunion_id: resultado.insertId });
@@ -202,41 +162,13 @@ export async function DELETE(req) {
       WHERE d.id = ?
     `, [reunion[0].disponibilidad_id]);
     const s = slotData[0];
-    const fechaFmt = fmtFecha(s.fecha);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-    await notificarAdmins({
-      subject: `❌ Reunión cancelada — ${cliente.nombre} ${cliente.apellido}`,
-      html: (admin) => `
-        <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #f0dde2">
-          <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:24px;text-align:center">
-            <h1 style="color:#fff;font-size:20px;margin:0;font-family:Georgia,serif">❌ Reunión cancelada</h1>
-          </div>
-          <div style="padding:24px">
-            <p style="font-size:14px;color:#1e1033;margin:0 0 16px">Hola ${admin.nombre}, una usuaria canceló su reunión:</p>
-            <div style="background:#fee2e2;border-radius:12px;padding:16px;margin-bottom:16px">
-              <p style="font-size:13px;color:#dc2626;font-weight:700;margin:0 0 8px">👤 Usuaria</p>
-              <p style="font-size:14px;color:#1e1033;margin:0">${cliente.nombre} ${cliente.apellido}</p>
-              <p style="font-size:13px;color:#9a7080;margin:2px 0 0">${cliente.email}</p>
-            </div>
-            <div style="background:#fef3c7;border-radius:12px;padding:16px;margin-bottom:16px">
-              <p style="font-size:13px;color:#92400e;font-weight:700;margin:0 0 8px">📅 Reunión cancelada</p>
-              <p style="font-size:14px;color:#1e1033;margin:0">${fechaFmt}</p>
-              <p style="font-size:13px;color:#d97706;margin:2px 0 0">🕐 ${s.hora_inicio?.slice(0,5)} — ${s.hora_fin?.slice(0,5)}</p>
-              <p style="font-size:13px;color:#d97706;margin:2px 0 0">👩‍💼 Con: ${s.asesora_nombre} ${s.asesora_apellido}</p>
-            </div>
-            <p style="font-size:13px;color:#6b7280;background:#f9fafb;border-radius:12px;padding:12px;margin-bottom:16px">
-              ✅ El horario quedó disponible nuevamente para otras usuarias.
-            </p>
-            <a href="${appUrl}/admin/reuniones" style="display:block;text-align:center;background:#5b21b6;color:#fff;font-size:14px;font-weight:600;padding:14px;border-radius:12px;text-decoration:none">
-              Ver calendario →
-            </a>
-          </div>
-          <div style="padding:16px;text-align:center;border-top:1px solid #f0dde2">
-            <p style="font-size:11px;color:#9a7080;margin:0">Destino Au Pair · ${appUrl}</p>
-          </div>
-        </div>
-      `,
+    avisarReunionCancelada({
+      candidata: { id: session.id, ...cliente },
+      fecha: fmtFecha(s.fecha),
+      horaInicio: s.hora_inicio?.slice(0, 5),
+      horaFin: s.hora_fin?.slice(0, 5),
+      asesora: `${s.asesora_nombre} ${s.asesora_apellido}`,
     });
 
     return NextResponse.json({ ok: true });

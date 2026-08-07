@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbAupair from "@/lib/db-aupair";
 import { createToken, getSessionFromRequest } from "@/lib/session-aupair";
+import {
+  avisarRegistroCandidata,
+  avisarBienvenida,
+} from "@/lib/notificaciones-aupair";
 
 export async function POST(req) {
   try {
@@ -105,6 +109,20 @@ export async function POST(req) {
     }
 
     // ── Vincular código referido ────────────────────────────────────────────
+
+    // ── Avisos ──────────────────────────────────────────────────────────────
+    // Van aquí, ANTES de la bifurcación de más abajo: la candidata queda
+    // registrada igual la haya creado ella o el admin, y el hecho que se avisa
+    // es el mismo. No se esperan (ver lib/notificaciones-aupair.js): si el
+    // correo falla, el registro sigue en pie.
+    avisarRegistroCandidata({
+      id: nuevoUsuarioId,
+      nombre,
+      apellido,
+      email,
+      codigo_referido: codigo_referido?.toUpperCase() || null,
+    });
+    avisarBienvenida(nuevoUsuarioId);
 
     // ── Token y cookie ──────────────────────────────────────────────────────
     // Esta ruta sirve a dos flujos distintos:

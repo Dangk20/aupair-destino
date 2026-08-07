@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import { parteCompleta, faltantesDeParte } from "@/lib/campos-perfil";
+import { avisarEvaluacionAprobada } from "@/lib/notificaciones-aupair";
 
 export async function PUT(req) {
   const guard = requiereAdmin(req);
@@ -38,6 +39,11 @@ export async function PUT(req) {
       "UPDATE usuarios SET evaluacion_aprobada = ? WHERE id = ?",
       [aprobada ? 1 : 0, usuario_id]
     );
+
+    // Sólo se avisa al aprobar. Retirar la aprobación es una corrección
+    // interna del equipo y no tiene por qué llegarle a la candidata como
+    // "tu evaluación ya no está aprobada".
+    if (aprobada) avisarEvaluacionAprobada(usuario_id);
 
     return NextResponse.json({
       ok: true,

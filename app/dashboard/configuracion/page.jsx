@@ -215,11 +215,12 @@ export default function ConfiguracionPage() {
               <div style={{ flex:1,minWidth:0 }}>
                 <h3 style={{ fontSize:15,fontWeight:700,color:T.text,margin:"0 0 3px" }}>Preferencias de notificaciones</h3>
                 <p style={{ fontSize:12,color:T.textSoft,margin:"0 0 14px" }}>Controla qué notificaciones quieres recibir.</p>
+                {/* Sólo va aquí lo que el sistema respeta de verdad. Había tres
+                    interruptores más (plataforma, mensajes, reuniones) que se
+                    guardaban en la base y nadie leía: prometían algo que no
+                    ocurría. Vuelven cuando exista lo que encienden. */}
                 {[
-                  { campo:"notif_email",label:"Notificaciones por email",desc:"Recibe actualizaciones por correo" },
-                  { campo:"notif_plataforma",label:"Notificaciones en plataforma",desc:"Alertas y mensajes en el dashboard" },
-                  { campo:"notif_mensajes",label:"Nuevos mensajes",desc:"Cuando el equipo te envíe un mensaje" },
-                  { campo:"notif_reuniones",label:"Recordatorios de reuniones",desc:"Antes de tus reuniones agendadas" },
+                  { campo:"notif_email",label:"Notificaciones por email",desc:"Avisos de tu proceso: bienvenida, acceso activado y evaluación aprobada" },
                 ].map(n=>(
                   <div key={n.campo} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:`1px solid ${T.softFill}`,gap:12 }}>
                     <div style={{ minWidth:0 }}>

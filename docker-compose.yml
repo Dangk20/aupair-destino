@@ -29,6 +29,7 @@ services:
       JWT_AUPAIR_SECRET: ${JWT_AUPAIR_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      NOTIF_EXCLUIR_EMAILS: ${NOTIF_EXCLUIR_EMAILS}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
       # Documentos fuera de public/: se sirven autenticados por /api/documentos
       UPLOADS_DIR: /app/almacenamiento

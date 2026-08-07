@@ -92,6 +92,14 @@ Documentos de las candidatas y recursos del curso se guardan en `almacenamiento/
 `UPLOADS_DIR`.
 
 ## Notas
-- Los correos (recuperar contraseña, notificaciones de reunión) **no se envían** en local porque `RESEND_API_KEY` va vacío. Es esperado.
+- Los correos **no se envían** en local porque `RESEND_API_KEY` va vacío. Es
+  esperado, y sí se puede verificar qué se habría mandado: cada aviso queda en
+  la tabla `notificaciones` con `estado='omitido'` y se escribe en consola con
+  el prefijo `[notificaciones]`.
+  ```bash
+  docker exec dap-mysql mysql -uroot -proot destino_aupair \
+    -e "SELECT evento, destinatario, asunto, estado FROM notificaciones ORDER BY id DESC LIMIT 10;"
+  ```
+  En producción ese mismo `omitido` significa que el correo **no salió**.
 - Las **fotos de perfil** siguen guardándose como base64 dentro de MySQL (deuda técnica conocida, ver auditoría). Los documentos ya no: viven en `almacenamiento/`.
 - `npm run lint` está roto de antes (llama a `next lint`, retirado en Next 16). Usar `npm run build` para verificar.

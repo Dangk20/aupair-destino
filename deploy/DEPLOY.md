@@ -16,7 +16,15 @@ git checkout main   # o la rama a desplegar
 cp deploy/.env.production.example .env
 openssl rand -hex 48   # → JWT_AUPAIR_SECRET
 openssl rand -hex 48   # → JWT_SECRET
-# editar .env: DB_ROOT_PASSWORD, JWT_*, RESEND_API_KEY (opcional), NEXT_PUBLIC_APP_URL
+# editar .env: DB_ROOT_PASSWORD, JWT_*, RESEND_API_KEY, NOTIF_EXCLUIR_EMAILS, NEXT_PUBLIC_APP_URL
+#
+# RESEND_API_KEY NO es opcional. Vacía = no sale ningún correo, ni los avisos
+# ni la recuperación de contraseña, y el fallo no se ve por ningún lado.
+# Producción estuvo así desde el despliegue del 2026-07-23: comprobarla es
+# parte del despliegue, no un detalle.
+#
+# NOTIF_EXCLUIR_EMAILS: direcciones que no deben recibir avisos de admin
+# aunque tengan rol admin en la base (cuentas heredadas o de prueba).
 nano .env
 ```
 
@@ -28,7 +36,7 @@ docker compose ps
 # cargar el dump (subir dump-railway.sql al VPS antes, NO va en el repo):
 docker compose exec -T db mysql -uroot -p"$DB_ROOT_PASSWORD" destino_aupair < dump-railway.sql
 # migraciones + fix de rol:
-for f in migrations/001_*.sql migrations/002_*.sql; do
+for f in migrations/0*.sql; do
   docker compose exec -T db mysql -uroot -p"$DB_ROOT_PASSWORD" destino_aupair < "$f"
 done
 docker compose exec -T db mysql -uroot -p"$DB_ROOT_PASSWORD" destino_aupair \

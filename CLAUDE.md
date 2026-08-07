@@ -76,6 +76,13 @@ Los permisos por sección son `acceso_documentos`, `acceso_mensajes`,
 `acceso_recursos`, `acceso_reuniones` y `acceso_comunidad`; el acceso general
 es `tiene_acceso` y el del perfil, `perfil_habilitado`.
 
+De las cuatro preferencias `notif_*`, **sólo `notif_email` tiene lector**
+(`lib/notificaciones-aupair.js`). `notif_plataforma`, `notif_mensajes` y
+`notif_reuniones` siguen en la tabla pero no las lee nadie: se conservan porque
+son los interruptores naturales de la mensajería y de los recordatorios cuando
+esos módulos existan. Sus interruptores se retiraron de
+`/dashboard/configuracion` para no prometer lo que no ocurre.
+
 ## Comandos
 
 ```bash
@@ -132,7 +139,32 @@ consultas listas.
 - **Documentos**: archivos en el directorio de datos (`UPLOADS_DIR`, fuera de
   `public/`), servidos por ruta API autenticada. Las fotos de perfil siguen como
   data-URI base64 en columnas de MySQL — deuda técnica conocida.
-- **Correo**: Resend (recuperación de contraseña, avisos de reunión).
+- **Correo**: `lib/notificaciones-aupair.js` es el **dueño único** del correo
+  saliente. Ninguna ruta instancia Resend ni arma HTML de correo por su cuenta.
+  Tres garantías que sostiene el módulo: un fallo de correo nunca tumba la
+  operación que lo originó, el envío no bloquea la respuesta (`after()` de
+  Next), y un aviso de una sola vez no se repite (columna
+  `notificaciones.clave_unica`, con el destinatario dentro de la clave).
+
+  | Aviso | A quién | Dónde se dispara |
+  |---|---|---|
+  | Registro de candidata | admins | `app/api/auth/register/route.js` |
+  | Bienvenida | candidata | `app/api/auth/register/route.js` |
+  | Pago confirmado | admins | `lib/ventas-aupair.js` · `confirmarVenta()` |
+  | Acceso activado | candidata | `lib/ventas-aupair.js` · `confirmarVenta()` |
+  | Curso completado | admins | `app/api/dashboard/completar/route.js` |
+  | Evaluación aprobada | candidata | `app/api/admin/aprobar-evaluacion/route.js` |
+  | Reunión agendada / cancelada | admins | `app/api/dashboard/reuniones/route.js` |
+  | Recuperar contraseña | quien la pide | `app/api/auth/forgot-password/route.js` |
+
+  Los avisos a la candidata respetan `usuarios.notif_email`, leída de la base
+  en cada envío. Los del admin no la consultan y van a todos los `rol='admin'`
+  enviables, menos lo que liste `NOTIF_EXCLUIR_EMAILS`.
+
+  **`RESEND_API_KEY` vacía en producción significa que no sale ningún correo**,
+  incluida la recuperación de contraseña, y el fallo sólo se ve en la tabla
+  `notificaciones` (`estado='omitido'`). Producción estuvo así desde el
+  despliegue del 2026-07-23 hasta que se detectó el 2026-08-05.
 - **Sitio público**: `app/(publicPages)/` + `sections/`, contenido de muestra en `data/`.
 
 Utilidades del admin: `/admin/bd-verificar` (inspector del esquema en vivo) y
