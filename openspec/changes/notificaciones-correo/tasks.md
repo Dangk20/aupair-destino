@@ -151,13 +151,18 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
 
 ## 9. Con la clienta
 
-- [ ] 9.1 Contarle que la recuperación de contraseña llevaba desde el 2026-07-23
+- [x] 9.1 Contarle que la recuperación de contraseña llevaba desde el 2026-07-23
       sin funcionar, por qué (la clave de Resend no viajó en la migración a
       VPS) y qué se hizo para que no vuelva a pasar en silencio: ahora todo
       intento de correo queda registrado en la tabla `notificaciones`.
+      **Hablado con la clienta el 2026-08-07.**
 - [ ] 9.2 Decidir qué se hace con el admin `pruebadestino1@gmail.com` (proveedor
       anterior): degradarlo de rol o retirarlo. **No ejecutar sin su
       confirmación.** Mientras tanto queda excluido por `NOTIF_EXCLUIR_EMAILS`.
+      Ojo: excluirlo del correo **no le quita el acceso**. Sigue siendo admin
+      con `tiene_acceso = 1` en la plataforma viva; si conserva la contraseña,
+      entra y ve candidatas, pagos y comisiones. Lo mismo vale para
+      `admin@destinoaupair.com`, que es una cuenta admin sin dueño legible.
 - [ ] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
       cuenta de revisión o se retira. Igual con `admin@destinoaupair.com`, que
       es un admin de producción con un dominio que no existe: o se corrige la
@@ -169,5 +174,10 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
       quedó dentro y lo que sigue pendiente de cotizar (notificaciones en
       plataforma, avisos de mensajería, recordatorios programados, avisos a
       agencias y asociadas).
-- [ ] 9.6 Rotar la clave de Resend cuando el despliegue esté cerrado: se
-      compartió por chat durante este trabajo.
+- [ ] 9.6 Comprobar en la consola de Google Workspace si el buzón
+      `grexya.admin@destino-aupair.com` existe de verdad. Es admin en
+      producción y recibe los avisos; si no hay buzón, cada aviso le rebota y
+      hay que excluirlo o cambiarle el correo.
+- [x] 9.7 Rotar la clave de Resend. **Decisión de Daniel el 2026-08-07: no se
+      rota por ahora.** Queda anotado que se compartió por chat durante este
+      trabajo, por si más adelante se quiere cerrar ese cabo.
