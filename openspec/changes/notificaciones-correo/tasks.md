@@ -122,20 +122,31 @@ durante toda la prueba.
 Ya no hay que crear cuenta ni tocar el DNS (ver 1.2 y 1.3): la cuenta es de la
 clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
 
-- [ ] 8.1 Correr `migrations/007_notificaciones.sql` en la base de producción
-      **antes** de desplegar el código.
-- [ ] 8.2 Poner en el `.env` del VPS `RESEND_API_KEY` (la de la cuenta de la
-      clienta) y `NOTIF_EXCLUIR_EMAILS` con `pruebadestino1@gmail.com`.
-- [ ] 8.3 Desplegar, y dentro del contenedor: `npm run build` y
-      `node scripts/pruebas-humo.mjs`.
-- [ ] 8.4 Comprobar en producción que el correo de **recuperar contraseña** ya
-      llega. Es el que lleva desde el 2026-07-23 sin salir, y el que más daño
-      hace mientras siga roto.
-- [ ] 8.5 Recorrido en producción: registrar una candidata de prueba, comprobar
-      que el aviso llega a `info@destino-aupair.com` (mirar también spam la
-      primera vez) y después borrarla.
-- [ ] 8.6 Revisar en el panel de Resend que los envíos figuran como entregados.
-- [ ] 8.7 Anotar el despliegue y su verificación en
+- [x] 8.1 Migración aplicada por `deploy/desplegar.sh`, que ahora la lleva en su
+      lista con la condición de que la tabla no exista. (Le faltaba: el script
+      sólo conocía la 006.)
+- [x] 8.2 `RESEND_API_KEY` y `NOTIF_EXCLUIR_EMAILS` puestas en el `.env` del VPS
+      y comprobadas dentro del contenedor.
+- [x] 8.3 Desplegado con `deploy/desplegar.sh` el 2026-08-07: respaldo previo en
+      `/var/respaldos-dap/20260807-1531`, migración 007 aplicada y **586
+      aserciones de humo en verde, 0 en rojo**.
+- [x] 8.4 **Recuperación de contraseña verificada en producción**: `POST
+      /api/auth/forgot-password` → fila `enviado` y Resend lo reporta
+      `delivered`. Es lo que llevaba roto desde el 2026-07-23.
+- [x] 8.5 Recorrido en producción: registro de una candidata de prueba → correo
+      de bienvenida `enviado` y `delivered` según Resend. La candidata de prueba
+      quedó borrada. Para no meterle un correo de prueba a la bandeja de la
+      clienta, durante el recorrido se excluyeron temporalmente todos los
+      admins reales y se usó la dirección de pruebas de Resend; la lista quedó
+      restaurada después.
+- [x] 8.6 Entregas confirmadas por la API de Resend (`last_event: delivered`)
+      en los dos correos de prueba.
+- [x] 8.7 Hallazgo del despliegue: **`admin@destinoaupair.com` (sin guion) no
+      existe** — ese dominio no tiene MX ni A, así que cada aviso al admin le
+      habría rebotado, y los rebotes duros desgastan la reputación de envío. Se
+      añadió a `NOTIF_EXCLUIR_EMAILS`. La lista viva en producción es
+      `pruebadestino1@gmail.com,admin@destinoaupair.com`.
+- [ ] 8.8 Anotar el despliegue y su verificación en
       `tech/cronograma-sprints-aupair.md`.
 
 ## 9. Con la clienta
@@ -148,7 +159,9 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
       anterior): degradarlo de rol o retirarlo. **No ejecutar sin su
       confirmación.** Mientras tanto queda excluido por `NOTIF_EXCLUIR_EMAILS`.
 - [ ] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
-      cuenta de revisión o se retira.
+      cuenta de revisión o se retira. Igual con `admin@destinoaupair.com`, que
+      es un admin de producción con un dominio que no existe: o se corrige la
+      dirección, o se retira la cuenta.
 - [ ] 9.4 Confirmar si los avisos deben llegar también a
       `hola@destino-aupair.com` (el `email_contacto` de la tabla
       `configuracion`) o sólo a los admins.
