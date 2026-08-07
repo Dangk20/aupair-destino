@@ -156,13 +156,15 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
       VPS) y qué se hizo para que no vuelva a pasar en silencio: ahora todo
       intento de correo queda registrado en la tabla `notificaciones`.
       **Hablado con la clienta el 2026-08-07.**
-- [ ] 9.2 Decidir qué se hace con el admin `pruebadestino1@gmail.com` (proveedor
-      anterior): degradarlo de rol o retirarlo. **No ejecutar sin su
-      confirmación.** Mientras tanto queda excluido por `NOTIF_EXCLUIR_EMAILS`.
-      Ojo: excluirlo del correo **no le quita el acceso**. Sigue siendo admin
-      con `tiene_acceso = 1` en la plataforma viva; si conserva la contraseña,
-      entra y ve candidatas, pagos y comisiones. Lo mismo vale para
-      `admin@destinoaupair.com`, que es una cuenta admin sin dueño legible.
+- [x] 9.2 **Retiradas las dos cuentas el 2026-08-07**, con autorización de la
+      clienta: `pruebadestino1@gmail.com` (proveedor anterior) y
+      `admin@destinoaupair.com` (dominio inexistente). Respaldo previo en
+      `/var/respaldos-dap/20260807-1546`. Con ellas se fueron tres filas de
+      basura de pruebas de mayo: un cupo de agenda nunca reservado, un evento
+      titulado "gfder" y dos registros de referido en 0.00. Quedan dos admins:
+      la clienta y la cuenta de servicio. Los dos correos siguen en
+      `NOTIF_EXCLUIR_EMAILS` como red de seguridad. Verificado después:
+      586 aserciones de humo en verde y el sitio en 200.
 - [ ] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
       cuenta de revisión o se retira. Igual con `admin@destinoaupair.com`, que
       es un admin de producción con un dominio que no existe: o se corrige la
