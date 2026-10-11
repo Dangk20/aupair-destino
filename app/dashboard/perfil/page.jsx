@@ -18,6 +18,7 @@ import { T } from "@/lib/tema";
 import { useAccessGate, GateLoading, GateScreen } from "@/components/dashboard/AccessGate";
 import { perfilCompleto } from "@/lib/campos-perfil";
 import FichaCandidata from "@/components/perfil/FichaCandidata";
+import { CorreccionesCandidata } from "@/components/perfil/Observaciones";
 
 // Cada parte se edita en su propio formulario, y el lápiz de una sección abre
 // el suyo anclado a ella. La regla de hasta dónde se puede saltar la aplica
@@ -36,20 +37,26 @@ export default function PerfilPage() {
   const [user, setUser]       = useState(null);
   const [perfil, setPerfil]   = useState(null);
   const [loading, setLoading] = useState(true);
+  // Lo que el equipo le pidió corregir y qué partes ya envió (R3).
+  const [revision, setRevision] = useState({ observaciones: [], enviadas: {} });
 
-  useEffect(() => {
+  const cargar = () => {
     const safe = (p, fb = null) =>
       p.then(r => { if (r.status === 401) { router.push("/login"); return fb; } return r.json().catch(() => fb); })
        .catch(() => fb);
-    Promise.all([
+    return Promise.all([
       safe(fetch("/api/auth/me"), { user: null }),
       safe(fetch("/api/dashboard/perfil"), null),
-    ]).then(([me, perf]) => {
+      safe(fetch("/api/dashboard/observaciones"), null),
+    ]).then(([me, perf, obs]) => {
       setUser(me?.user || null);
       setPerfil(perf?.perfil || null);
+      setRevision({ observaciones: obs?.observaciones || [], enviadas: obs?.enviadas || {} });
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { cargar(); }, []);
 
   if (loading || gate.loading) return <GateLoading />;
   if (!gate.access) return <GateScreen estado={gate.estado} titulo="Tu perfil de candidata" />;
@@ -59,6 +66,8 @@ export default function PerfilPage() {
 
   return (
     <div style={{ fontFamily:T.font, color:T.text, padding:isMobile ? "16px 16px 90px" : "28px 30px", maxWidth:860, margin:"0 auto", width:"100%", display:"flex", flexDirection:"column", gap:18 }}>
+
+      <CorreccionesCandidata perfil={perfil} observaciones={revision.observaciones} onGuardado={cargar} />
 
       <FichaCandidata
         perfil={perfil}
@@ -70,6 +79,9 @@ export default function PerfilPage() {
           : "Complétalo para que podamos presentarte ante una agencia."}
         rutaEdicion={sec => `${FORMULARIO[sec.parte]}?seccion=${sec.id}`}
         puedeVerDocumentos={gateDocs.access}
+        observaciones={revision.observaciones}
+        onObservacion={cargar}
+        enviadas={revision.enviadas}
         isMobile={isMobile}
       />
 

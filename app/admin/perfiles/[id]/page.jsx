@@ -140,12 +140,21 @@ export default function AdminFichaCandidataPage() {
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso]         = useState(null);
   const [aprobando, setAprobando] = useState(false);
+  // Observaciones del perfil (R3): crearlas abre el elemento a corrección.
+  const [observaciones, setObservaciones] = useState([]);
+
+  const cargarObservaciones = () =>
+    fetch(`/api/admin/perfiles/${id}/observaciones`)
+      .then(r => r.json())
+      .then(d => setObservaciones(d.observaciones || []))
+      .catch(() => {});
 
   useEffect(() => {
     fetch(`/api/admin/perfiles/${id}`)
       .then(r => r.json())
       .then(d => { setPerfil(d.perfil || null); setCargando(false); })
       .catch(() => setCargando(false));
+    cargarObservaciones();
   }, [id]);
 
   const set   = (k, v) => setPerfil(p => ({ ...p, [k]: v }));
@@ -227,6 +236,8 @@ export default function AdminFichaCandidataPage() {
         titulo="Ficha de la candidata"
         subtitulo="Lo mismo que ella ve, más la valoración del equipo."
         rutaEdicion={sec => `/admin/perfiles/${id}/editar?parte=${sec.parte}&seccion=${sec.id}`}
+        observaciones={observaciones}
+        onObservacion={cargarObservaciones}
         bloqueInterno={
           <BloqueInterno form={perfil} set={set} onGuardar={guardarInterno} guardando={guardando}
             aprobacion={{

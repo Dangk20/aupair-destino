@@ -40,6 +40,9 @@ import {
   PARTE1, PARTE2, valorParaMostrar, perfilCompleto, camposFaltantes,
 } from "@/lib/campos-perfil";
 import PestanaDocumentos from "./PestanaDocumentos";
+import {
+  ObservarElemento, PanelObservaciones, NotaObservacion, observacionesDe, seccionConCorreccion,
+} from "./Observaciones";
 
 // Cada parte se edita en su propio formulario. Los ids de sección se repiten
 // entre partes (personal, experiencia y salud están en las dos), así que la
@@ -133,6 +136,12 @@ function Campo({ campo, perfil, isMobile }) {
  * @param {function} rutaEdicion (seccion) => href del formulario, anclado
  * @param {boolean}  puedeVerDocumentos  en modo "propio", si tiene el permiso
  * @param {node}     bloqueInterno       en modo "revision", la valoración interna
+ * @param {Array}    observaciones       las del perfil (R3): el admin las crea y
+ *                                       gestiona aquí; la candidata las ve junto
+ *                                       a cada elemento
+ * @param {function} onObservacion       en "revision", recargar tras crear/cambiar
+ * @param {object}   enviadas            { 1: fecha|null, 2: fecha|null } — una
+ *                                       parte enviada ya no ofrece "Editar"
  * @param {boolean}  isMobile
  */
 export default function FichaCandidata({
@@ -144,6 +153,9 @@ export default function FichaCandidata({
   rutaEdicion,
   puedeVerDocumentos = true,
   bloqueInterno = null,
+  observaciones = [],
+  onObservacion,
+  enviadas = {},
   isMobile = false,
 }) {
   // Empieza sin decidir: cuál es la primera pestaña depende de si el perfil
@@ -235,6 +247,11 @@ export default function FichaCandidata({
 
       {/* Bloque de valoración interna — sólo en revisión */}
       {revision && bloqueInterno}
+
+      {/* Observaciones abiertas, atendidas y cerradas — sólo en revisión */}
+      {revision && (
+        <PanelObservaciones usuarioId={perfil?.id} observaciones={observaciones} onCambio={onObservacion} />
+      )}
 
       {/* Cuánto le falta. Se queda fuera de las pestañas: es el titular del
           estado del perfil, no un contenido más que haya que ir a buscar. */}
@@ -375,6 +392,8 @@ export default function FichaCandidata({
           modo={modo}
           usuarioId={perfil?.id}
           puedeVer={puedeVerDocumentos}
+          observaciones={observaciones}
+          onObservacion={onObservacion}
         />
       ) : seccionActiva && (
         <div style={{ background:"#fff", borderRadius:18, padding:isMobile ? 16 : 22, boxShadow:T.shadow }}>
@@ -385,13 +404,44 @@ export default function FichaCandidata({
                 Parte {seccionActiva.parte} · {seccionActiva.parteNombre}
               </div>
             </div>
-            <Link href={rutaEdicion(seccionActiva)}
-              style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:700, color:T.primary, textDecoration:"none", background:T.lilac, padding:"8px 14px", borderRadius:10, flexShrink:0 }}>
-              <Pencil size={13} /> Editar
-            </Link>
+            <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
+              {revision && (
+                <ObservarElemento usuarioId={perfil?.id} etiqueta="Observar sección" onCreada={onObservacion}
+                  elemento={{ tipo:"seccion", parte:seccionActiva.parte, seccion:seccionActiva.id }} />
+              )}
+              {/* La candidata edita mientras no haya enviado la parte. Enviada,
+                  sólo corrige lo observado, y eso se hace desde su perfil. */}
+              {(revision || !enviadas[seccionActiva.parte]) ? (
+                <Link href={rutaEdicion(seccionActiva)}
+                  style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:700, color:T.primary, textDecoration:"none", background:T.lilac, padding:"8px 14px", borderRadius:10, flexShrink:0 }}>
+                  <Pencil size={13} /> Editar
+                </Link>
+              ) : seccionConCorreccion(observaciones, seccionActiva.parte, seccionActiva.id) ? (
+                <a href="#correcciones"
+                  style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:700, color:"#fff", textDecoration:"none", background:T.amber, padding:"8px 14px", borderRadius:10, flexShrink:0 }}>
+                  <Pencil size={13} /> Corregir
+                </a>
+              ) : null}
+            </div>
           </div>
+          {observacionesDe(observaciones, { parte:seccionActiva.parte, seccion:seccionActiva.id }).map(o => (
+            <NotaObservacion key={o.id} obs={o} paraCandidata={!revision} />
+          ))}
           {seccionActiva.campos.map(campo => (
-            <Campo key={campo.name} campo={campo} perfil={perfil || {}} isMobile={isMobile} />
+            <div key={campo.name}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                <div style={{ flex:1, minWidth:220 }}>
+                  <Campo campo={campo} perfil={perfil || {}} isMobile={isMobile} />
+                </div>
+                {revision && (
+                  <ObservarElemento usuarioId={perfil?.id} compacto onCreada={onObservacion}
+                    elemento={{ tipo:"campo", campo:campo.name }} />
+                )}
+              </div>
+              {observacionesDe(observaciones, { campo:campo.name }).map(o => (
+                <NotaObservacion key={o.id} obs={o} paraCandidata={!revision} />
+              ))}
+            </div>
           ))}
         </div>
       )}

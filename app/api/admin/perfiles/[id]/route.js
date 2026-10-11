@@ -57,6 +57,8 @@ export async function PUT(req, { params }) {
     // lib/ventas-aupair.js.
     const EXCLUIR = new Set([
       "id","email","password","rol","created_at","evaluacion_aprobada",
+      // El envío de cada parte es un acto de la candidata (perfil/enviar).
+      "parte1_enviada_at","parte2_enviada_at",
     ]);
 
     // Mismas reglas de valor que el formulario de la candidata: el admin

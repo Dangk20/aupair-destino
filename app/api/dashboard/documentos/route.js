@@ -9,6 +9,9 @@ import {
 // de Documentos de la ficha, que es un componente de cliente y no puede
 // importar desde una ruta de API.
 import { DOCS_REQUERIDOS } from "@/lib/documentos";
+import {
+  observacionesDeDocumento, atenderObservaciones, respuestaDocumentoCerrado,
+} from "@/lib/bloqueo-perfil";
 
 /* ── GET: documentos subidos por la usuaria ──────────────────────────────── */
 export async function GET(req) {
@@ -62,6 +65,19 @@ export async function POST(req) {
     if (file.size > 10 * 1024 * 1024)
       return NextResponse.json({ error: "El archivo no puede superar 10 MB" }, { status: 400 });
 
+    // Un documento ya cargado está cerrado: reemplazarlo exige una observación
+    // abierta sobre él (R3). Se comprueba ANTES de guardar el archivo, para no
+    // dejar huérfanos en el almacenamiento.
+    // Excepción: si el archivo del registro se perdió del almacenamiento, no
+    // hay nada que revisar y volver a subirlo siempre se permite.
+    const [previo] = await dbAupair.query(
+      "SELECT id, url FROM documentos_usuario WHERE usuario_id = ? AND tipo_doc = ?",
+      [session.id, tipo_doc]
+    );
+    const reabren = previo.length ? await observacionesDeDocumento(session.id, tipo_doc) : [];
+    const perdido = previo.length && !(await archivoDisponible(previo[0].url));
+    if (previo.length && !reabren.length && !perdido) return respuestaDocumentoCerrado();
+
     // Guardar fuera de public/ — ver lib/almacenamiento-archivos.js
     const referencia = await guardarDocumento({
       usuarioId:      session.id,
@@ -96,6 +112,9 @@ export async function POST(req) {
       docId = ins.insertId;
     }
 
+    // El reemplazo atiende la observación y el documento se vuelve a cerrar.
+    await atenderObservaciones(reabren);
+
     return NextResponse.json({ ok: true, id: docId, url: `/api/documentos/${docId}`, nombre });
   } catch (err) {
     console.error("[POST documentos]", err);
@@ -115,9 +134,14 @@ export async function DELETE(req) {
 
   try {
     const [[doc]] = await dbAupair.query(
-      "SELECT url FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
+      "SELECT url, tipo_doc FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
       [id, session.id]
     );
+    // Cargado = cerrado. Quitarlo sólo con una observación que lo reabra; antes
+    // se podía borrar incluso un documento ya aprobado.
+    if (doc && !(await observacionesDeDocumento(session.id, doc.tipo_doc)).length) {
+      return respuestaDocumentoCerrado();
+    }
     if (doc?.url) await borrarDocumento(doc.url);
     await dbAupair.query("DELETE FROM documentos_usuario WHERE id = ? AND usuario_id = ?", [id, session.id]);
     return NextResponse.json({ ok: true });

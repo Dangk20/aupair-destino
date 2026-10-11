@@ -18,6 +18,7 @@
 // pantallas repitieran la misma coreografía.
 // ════════════════════════════════════════════════════════════════════════
 
+import { ObservarElemento, NotaObservacion, observacionesDe } from "./Observaciones";
 import { useEffect, useRef, useState } from "react";
 import {
   Check, Eye, Upload, Paperclip, X, AlertCircle, AlertTriangle, FileText,
@@ -182,7 +183,9 @@ function EditorNota({ valor, guardando, onGuardar, onCancelar }) {
  * @param {boolean} puedeVer  en modo "propio", si tiene el permiso de documentos.
  *        Cuando es false NO se pide nada al servidor: se muestra el aviso y ya.
  */
-export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer = true }) {
+export default function PestanaDocumentos({
+  modo = "propio", usuarioId, puedeVer = true, observaciones = [], onObservacion,
+}) {
   const revision = modo === "revision";
 
   const [docs, setDocs]         = useState([]);
@@ -278,7 +281,7 @@ export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer
           {aviso}
         </div>
       )}
-      {modal && <ModalSubir doc={modal} onCerrar={() => setModal(null)} onSubido={() => { cargar(); decir("Documento subido"); }} />}
+      {modal && <ModalSubir doc={modal} onCerrar={() => setModal(null)} onSubido={() => { cargar(); onObservacion?.(); decir("Documento subido"); }} />}
 
       {/* Avance de la documentación obligatoria */}
       <div style={{ background:"#fff", borderRadius:18, padding:18, boxShadow:T.shadow }}>
@@ -306,6 +309,10 @@ export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer
           const DocIcon  = DOC_ICON[r.tipo] || FileText;
           const cfg      = doc ? (ESTADO_DOC[doc.estado] || ESTADO_DOC.pendiente) : null;
           const enEdicion = editando === doc?.id;
+          // Un documento cargado está cerrado para la candidata (R3): sólo lo
+          // quita o reemplaza si una observación abierta lo reabre.
+          const obsDoc    = observacionesDe(observaciones, { tipoDoc: r.tipo });
+          const reabierto = obsDoc.some(o => o.estado === "abierta");
 
           return (
             <div key={r.tipo} style={{
@@ -374,7 +381,12 @@ export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer
                     </>
                   )}
 
-                  {doc && (confirmar === doc.id ? (
+                  {revision && doc && (
+                    <ObservarElemento usuarioId={usuarioId} compacto etiqueta="Pedir corrección"
+                      onCreada={onObservacion} elemento={{ tipo:"documento", tipo_doc:r.tipo }} />
+                  )}
+
+                  {doc && (revision || reabierto) && (confirmar === doc.id ? (
                     <div style={{ display:"flex", gap:4 }}>
                       <button onClick={() => quitar(doc.id)}
                         style={{ padding:"6px 10px", borderRadius:8, border:"none", background:T.danger, color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:T.font }}>Sí</button>
@@ -390,10 +402,10 @@ export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer
 
                   {/* Subir sólo lo hace la dueña del perfil: el admin no tiene
                       el archivo, y la ruta de carga escribe sobre la sesión. */}
-                  {!revision && (!doc || perdido) && (
+                  {!revision && (!doc || perdido || reabierto) && (
                     <button onClick={() => setModal(r)}
-                      style={{ background: perdido ? T.danger : T.primary, color:"#fff", border:"none", borderRadius:10, padding:"9px 14px", fontFamily:T.font, fontWeight:700, fontSize:12.5, cursor:"pointer" }}>
-                      {perdido ? "Volver a subir" : "Subir"}
+                      style={{ background: perdido ? T.danger : reabierto ? T.amber : T.primary, color:"#fff", border:"none", borderRadius:10, padding:"9px 14px", fontFamily:T.font, fontWeight:700, fontSize:12.5, cursor:"pointer" }}>
+                      {perdido || reabierto ? "Volver a subir" : "Subir"}
                     </button>
                   )}
                 </div>
@@ -407,6 +419,9 @@ export default function PestanaDocumentos({ modo = "propio", usuarioId, puedeVer
                   {revision ? "Pídele a la candidata que lo vuelva a cargar." : "Vuelve a subirlo, por favor."}
                 </div>
               )}
+
+              {/* Observaciones sobre el documento (R3) */}
+              {obsDoc.map(o => <NotaObservacion key={o.id} obs={o} paraCandidata={!revision} />)}
 
               {/* Nota del equipo: la candidata la lee, el admin la escribe */}
               {doc?.nota_admin && !enEdicion && (

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon , AlertTriangle} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import ModalSiguientePaso, { siguientePaso } from "@/components/perfil/ModalSiguientePaso";
+import { ConfirmarEnvio, ParteEnviada, enviarParte } from "@/components/perfil/EnvioParte";
 import {
   PARTE2, parteCompleta, validarSeccion,
   seccionCompleta as seccionCompletaDe, progresoParte, seccionInicial,
@@ -82,6 +83,9 @@ export default function PerfilAgenciaPage() {
   const [faltantes,    setFaltantes]    = useState([]);
   // Aviso de "qué sigue" al terminar la parte (null = cerrado).
   const [oferta,       setOferta]       = useState(null);
+  // Envío de la parte (R3): una vez enviada, el formulario no se vuelve a abrir.
+  const [enviadaAt,    setEnviadaAt]    = useState(null);
+  const [confirmar,    setConfirmar]    = useState(false);
 
   useEffect(() => {
     const safe = (p, fb) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -95,6 +99,7 @@ export default function PerfilAgenciaPage() {
       const p = perf?.perfil || me.user;
       if (p.fecha_nacimiento) p.fecha_nacimiento = p.fecha_nacimiento.split?.("T")[0] || p.fecha_nacimiento;
       setForm(p);
+      setEnviadaAt(p.parte2_enviada_at || null);
       setEvalOk(evalCompleta(p));
       // ?seccion=<id> — misma regla que en la Parte 1.
       const pedida = new URLSearchParams(window.location.search).get("seccion");
@@ -133,10 +138,15 @@ export default function PerfilAgenciaPage() {
     setFaltantes([]); setSeccion(i);
   };
 
-  const guardar = async (goNext=false) => {
+  const guardar = async (goNext=false, confirmado=false) => {
     const { ok, faltantes:pendientes } = validarSeccion(SECCIONES[seccion], form);
     // Avanzar exige la sección completa; guardar sin avanzar siempre se permite.
     if (goNext && !ok) { señalarFaltantes(pendientes); return; }
+
+    // En la última sección, avanzar es enviar: antes se confirma, porque
+    // después la parte queda cerrada.
+    const ultima = seccion === SECCIONES.length-1;
+    if (goNext && ultima && !confirmado) { setConfirmar(true); return; }
 
     setGuardando(true);
     const progreso = calcProgreso(form);
@@ -148,11 +158,16 @@ export default function PerfilAgenciaPage() {
       if (goNext) {
         setFaltantes([]);
         showToast("Guardado correctamente");
-        if (seccion < SECCIONES.length-1) setSeccion(s => s+1);
+        if (!ultima) setSeccion(s => s+1);
         else {
-          const o = await siguientePaso({ parte: 2, parte2Completa: true });
-          if (o.documentos) setOferta(o);
-          else router.push("/dashboard/perfil");
+          const envio = await enviarParte(2);
+          setConfirmar(false);
+          if (!envio.ok) showToast(envio.error, "error");
+          else {
+            const o = await siguientePaso({ parte: 2, parte2Completa: true });
+            if (o.documentos) setOferta(o);
+            else router.push("/dashboard/perfil");
+          }
         }
       } else if (!ok) {
         showToast("Guardado — aún te faltan campos");
@@ -180,6 +195,8 @@ export default function PerfilAgenciaPage() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
+
+  if (enviadaAt) return <ParteEnviada parte={2} fecha={enviadaAt}/>;
 
   /* ── Bloqueado ── */
   if (!evaluOk) return (
@@ -464,11 +481,13 @@ export default function PerfilAgenciaPage() {
             </div>
             <button onClick={()=>guardar(true)} disabled={guardando}
               style={{ display:"flex",alignItems:"center",gap:5,padding:isMobile?"9px 14px":"10px 22px",borderRadius:12,border:"none",background:"#a0435f",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-              {guardando?"Guardando…":seccion<SECCIONES.length-1?<>Guardar <ChevronRightIcon size={13}/></>:"Finalizar"}
+              {guardando?"Guardando…":seccion<SECCIONES.length-1?<>Guardar <ChevronRightIcon size={13}/></>:"Enviar Parte 2"}
             </button>
           </div>
         </div>
       </div>
+      {confirmar && <ConfirmarEnvio parte={2} enviando={guardando}
+        onConfirmar={()=>guardar(true, true)} onCancelar={()=>setConfirmar(false)}/>}
       {oferta && <ModalSiguientePaso parte={2} oferta={oferta}/>}
     </div>
   );

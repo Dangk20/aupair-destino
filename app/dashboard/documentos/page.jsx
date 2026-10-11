@@ -95,13 +95,18 @@ export default function DocumentosPage() {
   const gate = useAccessGate("documentos");
   const [docs,setDocs]=useState([]); const [requeridos,setRequeridos]=useState([]);
   const [loading,setLoading]=useState(true);
-  const [modal,setModal]=useState(null); const [toast,setToast]=useState(null); const [deleting,setDeleting]=useState(null);
+  const [modal,setModal]=useState(null); const [toast,setToast]=useState(null);
+  // Observaciones abiertas sobre documentos: lo único que permite reemplazar
+  // o quitar uno ya cargado (R3).
+  const [observaciones,setObservaciones]=useState([]);
 
   const cargar=()=>{ const safe=(p,fb=null)=>p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
     Promise.all([
       safe(fetch("/api/auth/me"),{user:null}),
       safe(fetch("/api/dashboard/documentos"),{docs:[],docs_requeridos:[]}),
-    ]).then(([me,docsData])=>{
+      safe(fetch("/api/dashboard/observaciones"),{observaciones:[]}),
+    ]).then(([me,docsData,obs])=>{
+      setObservaciones((obs?.observaciones||[]).filter(o=>o.tipo==="documento"&&o.estado==="abierta"));
       if(me?.user?.rol==="admin"||!me?.user){ router.push("/login"); return; }
       setDocs(docsData.docs||[]); setRequeridos(docsData.docs_requeridos||[]);
       setLoading(false);
@@ -109,8 +114,6 @@ export default function DocumentosPage() {
   useEffect(()=>{ cargar(); },[]);
 
   const showToast=(msg)=>{ setToast(msg); setTimeout(()=>setToast(null),3000); };
-  const eliminar=async(id)=>{ if(!window.confirm("¿Eliminar este documento?"))return; setDeleting(id);
-    await fetch(`/api/dashboard/documentos?id=${id}`,{method:"DELETE"}); showToast("Documento eliminado"); cargar(); setDeleting(null); };
 
   if (loading || gate.loading) return <GateLoading/>;
   if (!gate.access) return <GateScreen estado={gate.estado} titulo="La carga de tu documentación"/>;
@@ -164,6 +167,7 @@ export default function DocumentosPage() {
           // candidata tiene que volver a subirlo.
           const perdido = up && subido.disponible === false;
           const DocIcon = DOC_ICON[r.tipo] || FileText;
+          const obs = observaciones.find(o=>o.tipo_doc===r.tipo);
           return (
             <div key={r.tipo} style={{ background:"#fff",border:`1.5px solid ${perdido?"#fca5a5":up?T.primary3:"transparent"}`,borderRadius:16,padding:13,display:"flex",alignItems:"center",gap:12,boxShadow:T.shadow }}>
               <div style={{ width:42,height:42,borderRadius:12,background:perdido?"#FDECEC":up?T.primary:T.lilac,color:perdido?"#C0392B":up?"#fff":T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><DocIcon size={20}/></div>
@@ -171,20 +175,20 @@ export default function DocumentosPage() {
                 <div style={{ fontWeight:600,fontSize:14,color:T.text,lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.label}</div>
                 <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:perdido?"#C0392B":up?T.primary:T.textSoft,fontWeight:600 }}>
                   {up && !perdido && <Check size={12}/>}
-                  {perdido?"Vuelve a subirlo":up?"Cargado":"Pendiente"}
+                  {perdido?"Vuelve a subirlo":obs?"Te pedimos corregirlo":up?"Cargado":"Pendiente"}
                 </div>
+                {obs && <div style={{ fontSize:11.5,color:T.amber,marginTop:3,lineHeight:1.4 }}>{obs.texto}</div>}
               </div>
-              {perdido ? (
+              {perdido || obs ? (
                 <button onClick={()=>setModal(r)}
-                  style={{ background:"#C0392B",color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
+                  style={{ background:perdido?"#C0392B":T.amber,color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
                   Volver a subir
                 </button>
               ) : up ? (
                 <div style={{ display:"flex",gap:6,flexShrink:0 }}>
+                  {/* Sin "Quitar": un documento cargado queda en revisión (R3).
+                      Si el equipo pide corregirlo, aparece "Volver a subir". */}
                   <a href={subido.url} target="_blank" rel="noopener noreferrer" style={{ width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.textSoft }}><Eye size={14}/></a>
-                  <button onClick={()=>eliminar(subido.id)} disabled={deleting===subido.id} style={{ background:T.lilac,color:T.primary,border:"none",borderRadius:10,padding:"9px 12px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer" }}>
-                    {deleting===subido.id?"…":"Quitar"}
-                  </button>
                 </div>
               ) : (
                 <button onClick={()=>setModal(r)}

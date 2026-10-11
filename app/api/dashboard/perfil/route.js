@@ -7,6 +7,8 @@ import {
 // Qué columnas pueden salir hacia el navegador se decide en un solo sitio,
 // compartido con la ruta del admin. Ver lib/perfil.js.
 import { perfilPublicable } from "@/lib/perfil";
+import { cambiosBloqueados, camposCambiados, observacionesAtendidas } from "@/lib/observaciones-perfil";
+import { estadoBloqueo, atenderObservaciones, respuestaBloqueo } from "@/lib/bloqueo-perfil";
 
 export async function GET(req) {
   const session = getSessionFromRequest(req);
@@ -38,6 +40,9 @@ const BLOQUEADAS = new Set([
   "zona_horaria","formato_fecha","tema_plataforma","idioma_plataforma",
   "privacidad_perfil","compartir_progreso",
   "notif_email","notif_plataforma","notif_mensajes","notif_reuniones",
+  // Las fija sólo POST /api/dashboard/perfil/enviar: si llegaran por aquí, la
+  // candidata podría reabrir una parte enviada mandándolas en null.
+  "parte1_enviada_at","parte2_enviada_at",
 ]);
 
 export async function PUT(req) {
@@ -60,14 +65,23 @@ export async function PUT(req) {
     // Un valor que incumple su regla no entra a la base: lo leen la agencia
     // (la edad sale de la fecha) y la hoja de vida. Se valida ANTES del UPDATE
     // y se rechaza la petición entera, para no dejar un guardado a medias.
-    const [[actual]] = await dbAupair.query("SELECT created_at FROM usuarios WHERE id=?", [session.id]);
-    const invalidos = validarCambios(Object.fromEntries(campos.map((c) => [c, b[c]])), actual);
+    const [[actual]] = await dbAupair.query("SELECT * FROM usuarios WHERE id=?", [session.id]);
+    const cambios   = Object.fromEntries(campos.map((c) => [c, b[c]]));
+    const invalidos = validarCambios(cambios, actual);
     if (invalidos.length) {
       return NextResponse.json(
         { error: `${invalidos[0].label}: ${invalidos[0].error}`, invalidos },
         { status: 400 }
       );
     }
+
+    // Una parte enviada está cerrada: sólo se cambia lo que una observación
+    // abierta reabre (lib/observaciones-perfil.js). Se compara con lo guardado,
+    // porque los formularios reenvían el perfil entero.
+    const bloqueo  = await estadoBloqueo(session.id);
+    const cerrados = cambiosBloqueados(cambios, actual, bloqueo.enviadas, bloqueo.abiertas);
+    if (cerrados.length) return respuestaBloqueo(cerrados);
+    const cambiados = camposCambiados(cambios, actual);
 
     if (campos.length) {
       const setSql = campos.map((c) => `${c}=?`).join(", ");
@@ -82,6 +96,10 @@ export async function PUT(req) {
       });
       await dbAupair.query(`UPDATE usuarios SET ${setSql} WHERE id=?`, [...vals, session.id]);
     }
+
+    // Lo corregido se vuelve a cerrar: la observación que lo reabrió pasa a
+    // "atendida" y deja de cubrirlo.
+    await atenderObservaciones(observacionesAtendidas(cambiados, bloqueo.abiertas));
 
     // El estado de completitud lo decide SIEMPRE el servidor, leyendo la fila
     // guardada y aplicando lib/campos-perfil.js — la misma fuente que usa el

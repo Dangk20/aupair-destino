@@ -4,6 +4,7 @@ import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
 import { validarCambios } from "@/lib/campos-perfil";
+import { controlarCambios } from "@/lib/bloqueo-perfil";
 
 export async function GET(req) {
   const session = getSessionFromRequest(req);
@@ -93,8 +94,17 @@ export async function PUT(req) {
     if (sets.length === 0)
       return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
 
+    // Teléfono, ciudad, país y fecha de nacimiento son de la Parte 1: si ya se
+    // envió, esta pantalla tampoco los puede cambiar sin observación.
+    const cambios = Object.fromEntries(
+      Object.entries(body).filter(([c]) => c !== "accion" && CAMPOS_PERMITIDOS.includes(c))
+    );
+    const control = await controlarCambios(session.id, cambios);
+    if (control.error) return control.error;
+
     values.push(session.id);
     await dbAupair.query(`UPDATE usuarios SET ${sets.join(", ")} WHERE id = ?`, values);
+    await control.atender();
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[PUT configuracion]", err.message);

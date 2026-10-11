@@ -34,6 +34,7 @@ cd "$LOCAL"
 MIGRACIONES=(
   "006_retirar_columnas_muertas_usuarios|SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='usuarios' AND column_name='experiencia_ninos'"
   "007_notificaciones|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='notificaciones'"
+  "008_observaciones_perfil|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='observaciones_perfil'"
 )
 
 # ── 1. Respaldo ──────────────────────────────────────────────────────────

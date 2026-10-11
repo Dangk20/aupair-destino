@@ -12,6 +12,7 @@ import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
 import { useMobile } from "@/context/MobileContext";
 import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe, seccionInicial, parteCompleta } from "@/lib/campos-perfil";
 import ModalSiguientePaso, { siguientePaso } from "@/components/perfil/ModalSiguientePaso";
+import { ConfirmarEnvio, ParteEnviada, enviarParte } from "@/components/perfil/EnvioParte";
 
 // La presentación vive acá; QUÉ es obligatorio vive en lib/campos-perfil.js,
 // que comparten el formulario, el servidor y el cálculo de progreso.
@@ -95,6 +96,9 @@ export default function PerfilEvaluacionPage() {
   const [perfilBase,   setPerfilBase]   = useState(null);
   // Aviso de "qué sigue" al terminar la parte (null = cerrado).
   const [oferta,       setOferta]       = useState(null);
+  // Envío de la parte (R3): una vez enviada, el formulario no se vuelve a abrir.
+  const [enviadaAt,    setEnviadaAt]    = useState(null);
+  const [confirmar,    setConfirmar]    = useState(false);
 
   useEffect(() => {
     const safe = (p,fb=null) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -107,6 +111,7 @@ export default function PerfilEvaluacionPage() {
       if (perf?.perfil) {
         const p=perf.perfil;
         setPerfilBase(p);
+        setEnviadaAt(p.parte1_enviada_at || null);
         setForm(prev => {
           const u={...prev};
           Object.keys(prev).forEach(k=>{ if(p[k]!=null) u[k]=String(p[k]); });
@@ -178,13 +183,18 @@ export default function PerfilEvaluacionPage() {
     }).catch(()=>{});
   };
 
-  const guardar = async (goNext=false) => {
+  const guardar = async (goNext=false, confirmado=false) => {
     setErrorVal("");
     const { ok, faltantes:pendientes, invalidos } = validarSeccion(SECCIONES[paso], form);
 
     // Avanzar exige la sección completa. Guardar sin avanzar siempre se
     // permite: la candidata debe poder dejar el formulario a medias.
     if (goNext && !ok) { señalarFaltantes([...pendientes, ...invalidos]); return; }
+
+    // En la última sección, avanzar es enviar: antes se confirma, porque
+    // después la parte queda cerrada.
+    const ultima = paso === SECCIONES.length-1;
+    if (goNext && ultima && !confirmado) { setConfirmar(true); return; }
 
     setGuardando(true);
     const res = await fetch("/api/dashboard/perfil", {
@@ -194,8 +204,13 @@ export default function PerfilEvaluacionPage() {
       if (goNext) {
         setFaltantes([]);
         setToast("Guardado correctamente");
-        if (paso<SECCIONES.length-1) setPaso(paso+1);
-        else await terminar();
+        if (!ultima) setPaso(paso+1);
+        else {
+          const envio = await enviarParte(1);
+          setConfirmar(false);
+          if (envio.ok) await terminar();
+          else setToast(envio.error);
+        }
       } else if (!ok) {
         // Guardado parcial: se guardó, pero le decimos qué le falta.
         setToast("Guardado — aún te faltan campos");
@@ -235,6 +250,8 @@ export default function PerfilEvaluacionPage() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
+
+  if (enviadaAt) return <ParteEnviada parte={1} fecha={enviadaAt}/>;
 
   const seccion     = SECCIONES[paso];
   const Icon        = seccion.icon;
@@ -511,7 +528,7 @@ export default function PerfilEvaluacionPage() {
                   ? <><div style={{ width:13,height:13,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>...</>
                   : paso<SECCIONES.length-1
                   ? <>{isMobile?"Continuar":"Guardar y continuar"} <ChevronRight size={14}/></>
-                  : "Finalizar"}
+                  : "Enviar Parte 1"}
               </button>
             </div>
           </div>
@@ -528,6 +545,8 @@ export default function PerfilEvaluacionPage() {
           </div>
         </div>
       </div>
+      {confirmar && <ConfirmarEnvio parte={1} enviando={guardando}
+        onConfirmar={()=>guardar(true, true)} onCancelar={()=>setConfirmar(false)}/>}
       {oferta && <ModalSiguientePaso parte={1} oferta={oferta}/>}
     </div>
   );

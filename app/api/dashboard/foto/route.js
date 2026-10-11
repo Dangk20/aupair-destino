@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { controlarCambios } from "@/lib/bloqueo-perfil";
 
 export async function POST(req) {
   const session = getSessionFromRequest(req);
@@ -19,10 +20,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "Formato de imagen no válido" }, { status: 400 });
     }
 
+    // La foto es de la Parte 2 (Fotos y videos): enviada, se cierra salvo
+    // observación. Ver lib/observaciones-perfil.js.
+    const control = await controlarCambios(session.id, { foto_url: foto_url || null });
+    if (control.error) return control.error;
+
     await dbAupair.query(
       "UPDATE usuarios SET foto_url = ? WHERE id = ?",
       [foto_url || null, session.id]
     );
+    await control.atender();
 
     return NextResponse.json({ ok: true, foto_url });
   } catch (err) {

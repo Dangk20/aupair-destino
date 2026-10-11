@@ -1,7 +1,7 @@
 # Inventario de rutas y control de acceso
 
 **Levantado:** 2026-08-02 · Sprint 1 (`sprint-1-operacion-segura`, tarea 1.1)
-**Alcance:** 84 rutas en `app/api/**`, 129 handlers (método × ruta).
+**Alcance:** 84 rutas en `app/api/**`, 129 handlers (método × ruta), levantadas el 2026-08-02. Desde entonces se añadieron `/dashboard/perfil/enviar`, `/dashboard/observaciones` y `/admin/perfiles/[id]/observaciones` (`bloqueo-y-observaciones-perfil`).
 
 Este documento es la **fuente de verdad** del control de acceso de la API.
 `scripts/pruebas-humo.mjs` deriva sus aserciones de estas tablas: una ruta
@@ -145,6 +145,7 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/perfiles/[id]` | GET, PUT | ✅ | `/admin/perfiles/[id]` |
 | `/admin/perfiles/[id]/descargar` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]/documentos` | GET, PUT, DELETE | ✅ | `/admin/perfiles/[id]` |
+| `/admin/perfiles/[id]/observaciones` | GET, POST, PATCH | ✅ | `/admin/perfiles/[id]` — change `bloqueo-y-observaciones-perfil` |
 | `/admin/recursos` | GET, POST, DELETE | ✅ | `/admin/sesiones` |
 | `/admin/referidos` | GET, POST | ✅ | `/admin`, `/admin/referidos` |
 | `/admin/referidos/[id]` | PUT, DELETE | ✅ | `/admin/referidos` |
@@ -217,7 +218,9 @@ verifica permiso hoy.
 | `/dashboard/documentos` | DELETE | sesión + `acceso_documentos` | 🔴 |
 | `/dashboard/foto` | POST | sesión | ✅ |
 | `/dashboard/mensajes` | GET, POST | sesión + `acceso_mensajes` | 🔴 |
-| `/dashboard/perfil` | GET, PUT | sesión | ✅ |
+| `/dashboard/observaciones` | GET | sesión | ✅ — las observaciones de la propia candidata |
+| `/dashboard/perfil` | GET, PUT | sesión | ✅ — PUT rechaza (403) cambios a una parte enviada no cubiertos por una observación |
+| `/dashboard/perfil/enviar` | POST | sesión | ✅ — marca una parte como enviada si está completa |
 | `/dashboard/proceso` | GET | sesión | ✅ |
 | `/dashboard/proceso` | PUT | rol admin | ✅ excepción |
 | `/dashboard/recursos` | GET | sesión + `acceso_recursos` | 🔴 |

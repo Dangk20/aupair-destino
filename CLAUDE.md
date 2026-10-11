@@ -128,11 +128,11 @@ consultas listas.
   const session = guard.session;
   ```
 
-  **El nivel que exige cada una de las 84 rutas está en `docs/rutas-y-acceso.md`.**
+  **El nivel que exige cada ruta (78 archivos `route.js` al 2026-10-10) está en `docs/rutas-y-acceso.md`.**
   Si añades una ruta, decláralo ahí *antes* de escribir el handler: las
   pruebas de humo fallan si encuentran una ruta sin nivel declarado.
 
-- **Pruebas de humo**: `node scripts/pruebas-humo.mjs` — 541 aserciones de
+- **Pruebas de humo**: `node scripts/pruebas-humo.mjs` — 608 aserciones de
   control de acceso contra un entorno corriendo. No escribe en la base, así
   que es segura contra producción. El despliegue la ejecuta dentro del
   contenedor y se detiene si falla.
@@ -154,6 +154,7 @@ consultas listas.
   | Acceso activado | candidata | `lib/ventas-aupair.js` · `confirmarVenta()` |
   | Curso completado | admins | `app/api/dashboard/completar/route.js` |
   | Evaluación aprobada | candidata | `app/api/admin/aprobar-evaluacion/route.js` |
+  | Correcciones pendientes | candidata | `app/api/admin/perfiles/[id]/observaciones/route.js` |
   | Reunión agendada / cancelada | admins | `app/api/dashboard/reuniones/route.js` |
   | Recuperar contraseña | quien la pide | `app/api/auth/forgot-password/route.js` |
 

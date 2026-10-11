@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { controlarCambios } from "@/lib/bloqueo-perfil";
 
 // Whitelist de campos permitidos — evita que se pueda sobreescribir cualquier columna
 const CAMPOS_PERMITIDOS = ["cedula_frontal_url", "cedula_posterior_url"];
@@ -17,10 +18,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "Campo no permitido" }, { status: 400 });
     }
 
+    // Las fotos de la cédula se capturan en la Parte 1 · Información personal:
+    // enviada, se cierran salvo observación.
+    const control = await controlarCambios(session.id, { [campo]: valor || null });
+    if (control.error) return control.error;
+
     await dbAupair.query(
       `UPDATE usuarios SET ${campo} = ? WHERE id = ?`,
       [valor || null, session.id]
     );
+    await control.atender();
 
     return NextResponse.json({ ok: true, mensaje: "Documento guardado" });
   } catch (err) {
