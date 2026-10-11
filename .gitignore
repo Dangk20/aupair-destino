@@ -48,3 +48,6 @@ dump-railway.sql
 # Viven fuera de public/ y se sirven autenticados por /api/documentos.
 /almacenamiento/
 public/uploads/documentos/
+
+# Rastros del navegador automatizado (Playwright MCP)
+.playwright-mcp/
