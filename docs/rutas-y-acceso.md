@@ -236,7 +236,7 @@ ruta que proteger.
 | `/auth/me` | GET | sesión | ✅ |
 | `/codigos-promo/usar` | POST | sesión | ✅ |
 | `/documentos/[id]` | GET | sesión + dueña o rol revisor | ✅ — cerrado en el Sprint 0.0 |
-| `/sesion-recursos/[id]/archivo` | GET | sesión + admin o `acceso_recursos` | ✅ — cerrado en el Sprint 0.0 |
+| `/sesion-recursos/[id]/archivo` | GET | sesión + admin, o la sesión del curso desbloqueada para la usuaria (`lib/curso-aupair.js`) | ✅ — Sprint 0.0; criterio cambiado en `recursos-por-video` |
 | `/ventas` | POST, GET | sesión + propiedad | 🟡 revisar en 2.5 |
 
 ## Estado del barrido

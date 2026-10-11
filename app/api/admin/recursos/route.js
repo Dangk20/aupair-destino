@@ -5,6 +5,8 @@ import { requiereAdmin } from "@/lib/session-aupair";
 import { guardarArchivo, borrarArchivo, archivoDisponible } from "@/lib/almacenamiento-archivos";
 import path from "path";
 
+const MAX_BYTES = 20 * 1024 * 1024;
+
 // ── GET /api/admin/recursos?sesion_id=X ──────────────────────────────────────
 export async function GET(req) {
   const guard = requiereAdmin(req);
@@ -53,7 +55,16 @@ export async function POST(req) {
   // Detectar tipo por extensión
   const ext       = path.extname(file.name).toLowerCase();
   const tipoMap   = { ".pdf": "pdf", ".doc": "docx", ".docx": "docx" };
-  const tipo      = tipoMap[ext] || "otro";
+  const tipo      = tipoMap[ext];
+
+  // Lo mismo que anuncia el panel: PDF o Word, hasta 20 MB. Antes sólo lo
+  // comprobaba el navegador, y la ruta guardaba cualquier archivo.
+  if (!tipo) {
+    return NextResponse.json({ error: "Sólo se aceptan archivos PDF o Word." }, { status: 400 });
+  }
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: "El archivo supera los 20 MB." }, { status: 400 });
+  }
 
   // Guardar fuera de public/ — ver lib/almacenamiento-archivos.js
   const buffer     = Buffer.from(await file.arrayBuffer());

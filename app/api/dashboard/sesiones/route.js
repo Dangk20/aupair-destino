@@ -1,63 +1,40 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
-
-// Sprint 0.0: los videos son GRATIS (imán de captación). El curso ya no se
-// paga; el pago desbloquea documentación/acompañamiento, no las sesiones.
-// El desbloqueo secuencial (una sesión abre la siguiente) se mantiene.
-const CURSO_LIBRE = true;
+import { archivoDisponible } from "@/lib/almacenamiento-archivos";
+// Qué sesión está desbloqueada para quién se decide en un solo sitio: lo usa
+// también la descarga de recursos. Ver lib/curso-aupair.js.
+import { sesionesConProgreso, estadosDeSesiones } from "@/lib/curso-aupair";
 
 export async function GET(req) {
   const session = getSessionFromRequest(req);
   if (!session) return unauthorized();
 
   try {
-    // Trae todas las sesiones con el progreso de la usuaria
-    const [rows] = await dbAupair.query(
-  `SELECT 
-    s.id,
-    s.titulo,
-    s.descripcion,
-    s.orden,
-    s.es_gratis,
-    s.url_video,
-    s.video_drive_id,
-    s.video_youtube_id,
-    COALESCE(p.completada, FALSE) AS completada,
-    p.fecha_completado
-   FROM sesiones s
-   LEFT JOIN progreso_usuario p 
-     ON p.id_sesion = s.id AND p.id_usuario = ?
-   ORDER BY s.orden ASC`,
-  [session.id]
-);
+    const filas    = await sesionesConProgreso(session.id);
+    const estados  = estadosDeSesiones(filas, session);
 
-    // Calcula cuál es la primera sesión disponible (la siguiente a la última completada)
-    let primeraDisponible = null;
-    for (const s of rows) {
-      if (!s.completada) {
-        // Sprint 0.0: curso libre. Acceso si es gratis, si pagó, o si el curso es libre.
-        if (s.es_gratis || session.tiene_acceso || CURSO_LIBRE) {
-          primeraDisponible = s.id;
-        }
-        break;
+    // Recursos descargables de cada sesión (R7). Sólo de las que la usuaria
+    // puede ver: los de una sesión bloqueada no salen de aquí.
+    const visibles = estados.filter((s) => s.estado !== "locked").map((s) => s.id);
+    const porSesion = new Map();
+    if (visibles.length) {
+      const [recursos] = await dbAupair.query(
+        `SELECT id, sesion_id, nombre, tipo, url, tamano_kb
+         FROM sesion_recursos WHERE sesion_id IN (?) ORDER BY created_at ASC`,
+        [visibles]
+      );
+      for (const r of recursos) {
+        const lista = porSesion.get(r.sesion_id) || [];
+        lista.push({
+          id: r.id, nombre: r.nombre, tipo: r.tipo, tamano_kb: r.tamano_kb,
+          url: `/api/sesion-recursos/${r.id}/archivo`,
+          disponible: await archivoDisponible(r.url),
+        });
+        porSesion.set(r.sesion_id, lista);
       }
     }
-
-    // Agrega el estado a cada sesión
-    let encontroDisponible = false;
-    const sesiones = rows.map((s) => {
-      let estado = "locked";
-
-      if (s.completada) {
-        estado = "completed";
-      } else if (!encontroDisponible && (s.es_gratis || session.tiene_acceso || CURSO_LIBRE)) {
-        estado = "available";
-        encontroDisponible = true;
-      }
-
-      return { ...s, estado };
-    });
+    const sesiones = estados.map((s) => ({ ...s, recursos: porSesion.get(s.id) || [] }));
 
     const completadas = sesiones.filter((s) => s.estado === "completed").length;
     const total = sesiones.length;

@@ -6,10 +6,50 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell, Check, Play, Lock, ArrowRight, CheckCircle2, PlayCircle,
+  Bell, Check, Play, Lock, ArrowRight, CheckCircle2, PlayCircle, FileText, Download,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+
+/* ── Recursos descargables de la clase (R7) ──
+   Los trae GET /api/dashboard/sesiones con cada sesión desbloqueada. La
+   descarga va por la ruta autenticada, que entrega el archivo como adjunto. */
+const TIPO_RECURSO = { pdf:"PDF", docx:"Word", otro:"Archivo" };
+const tamano = (kb) => !kb ? "" : kb >= 1024 ? `${(kb/1024).toFixed(1)} MB` : `${kb} KB`;
+
+function RecursosDeLaClase({ recursos }) {
+  if (!recursos?.length) return null;
+  return (
+    <>
+      <div style={{ height:1, background:T.border, margin:"16px 0" }}/>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:".08em", color:T.textSoft, marginBottom:10 }}>RECURSOS DE ESTA CLASE</div>
+      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        {recursos.map(r => {
+          const ok = r.disponible !== false;
+          return (
+            <div key={r.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:T.softFill, opacity:ok?1:.6 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:"#fff", color:T.primary, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <FileText size={17}/>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13.5, fontWeight:600, color:T.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.nombre}</div>
+                <div style={{ fontSize:11.5, color:T.textSoft }}>
+                  {ok ? [TIPO_RECURSO[r.tipo] || "Archivo", tamano(r.tamano_kb)].filter(Boolean).join(" · ") : "No disponible"}
+                </div>
+              </div>
+              {ok && (
+                <a href={r.url} download aria-label={`Descargar ${r.nombre}`}
+                  style={{ display:"inline-flex", alignItems:"center", gap:6, background:T.primary, color:"#fff", borderRadius:10, padding:"8px 12px", fontSize:12.5, fontWeight:700, textDecoration:"none", flexShrink:0 }}>
+                  <Download size={14}/> Descargar
+                </a>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
 
 /* ── Confeti al completar una clase ── */
 function Confetti() {
@@ -155,6 +195,7 @@ export default function CursoPage() {
                   <p style={{ fontSize:13.5, color:T.text, lineHeight:1.65, margin:0, whiteSpace:"pre-line" }}>{activa.descripcion}</p>
                 </>
               )}
+              <RecursosDeLaClase recursos={activa.recursos}/>
             </div>
           )}
 

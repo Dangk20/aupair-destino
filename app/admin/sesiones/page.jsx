@@ -221,7 +221,7 @@ function EditModal({ sesion, onClose, onSaved }) {
     try {
       const res = await fetch("/api/admin/recursos", { method:"POST", body:fd });
       if (res.ok) { setSelectedFile(null); setNombreEdit(""); cargarRecursos(); }
-      else setUploadErr("Error al subir.");
+      else { const d = await res.json().catch(()=>({})); setUploadErr(d.error || "Error al subir."); }
     } catch { setUploadErr("Error de conexion."); }
     setUploading(false);
   };
