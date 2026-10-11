@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 import {
-  parteCompleta, faltantesDeParte, progresoParte,
+  parteCompleta, faltantesDeParte, invalidosDeParte, progresoParte, validarCambios,
 } from "@/lib/campos-perfil";
 // Qué columnas pueden salir hacia el navegador se decide en un solo sitio,
 // compartido con la ruta del admin. Ver lib/perfil.js.
@@ -56,6 +56,19 @@ export async function PUT(req) {
     // UPDATE dinámico: solo las columnas presentes en el body (y permitidas).
     // Así guardar una sección no borra las demás.
     const campos = Object.keys(b).filter((k) => permitidas.has(k));
+
+    // Un valor que incumple su regla no entra a la base: lo leen la agencia
+    // (la edad sale de la fecha) y la hoja de vida. Se valida ANTES del UPDATE
+    // y se rechaza la petición entera, para no dejar un guardado a medias.
+    const [[actual]] = await dbAupair.query("SELECT created_at FROM usuarios WHERE id=?", [session.id]);
+    const invalidos = validarCambios(Object.fromEntries(campos.map((c) => [c, b[c]])), actual);
+    if (invalidos.length) {
+      return NextResponse.json(
+        { error: `${invalidos[0].label}: ${invalidos[0].error}`, invalidos },
+        { status: 400 }
+      );
+    }
+
     if (campos.length) {
       const setSql = campos.map((c) => `${c}=?`).join(", ");
       const vals   = campos.map((c) => {
@@ -86,6 +99,7 @@ export async function PUT(req) {
     // Guardado parcial permitido: se guarda igual, pero se responde qué falta.
     const faltantes_parte1 = faltantesDeParte(1, u);
     const faltantes_parte2 = faltantesDeParte(2, u);
+    const invalidos_parte1 = invalidosDeParte(1, u);
 
     return NextResponse.json({
       ok: true,
@@ -93,6 +107,7 @@ export async function PUT(req) {
       progreso_agencia: pctAgencia,
       faltantes_parte1,
       faltantes_parte2,
+      invalidos_parte1,
     });
   } catch (err) {
     console.error(err);

@@ -42,6 +42,12 @@ reescribir las preguntas de requisitos por edad.
 
 El mínimo de 18 se sigue midiendo a hoy, como ahora.
 
+Con cuenta, la edad "al registrarse" se mide **un día antes** de `created_at`.
+La base guarda `created_at` en UTC: un registro hecho a las 9 p. m. en Colombia
+queda con fecha del día siguiente, y quien se registró la víspera de cumplir 28
+aparecía con 28. El día de holgura juega a favor de la candidata, que es el
+sentido de la decisión de la clienta. Se detectó en el recorrido.
+
 `TOPE_EDAD_DESDE` es una fecha `YYYY-MM-DD` declarada junto a `EDAD_MINIMA` y
 `EDAD_MAXIMA`; se fija el día del despliegue.
 

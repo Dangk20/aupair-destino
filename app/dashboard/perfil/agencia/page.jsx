@@ -7,6 +7,7 @@ import FotoUpload from "@/components/dashboard/FotoUpload";
 import Link from "next/link";
 import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon , AlertTriangle} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import ModalSiguientePaso, { siguientePaso } from "@/components/perfil/ModalSiguientePaso";
 import {
   PARTE2, parteCompleta, validarSeccion,
   seccionCompleta as seccionCompletaDe, progresoParte, seccionInicial,
@@ -79,6 +80,8 @@ export default function PerfilAgenciaPage() {
   const [menuMobile,   setMenuMobile]   = useState(false);
   // Campos obligatorios marcados en rojo tras una validación fallida.
   const [faltantes,    setFaltantes]    = useState([]);
+  // Aviso de "qué sigue" al terminar la parte (null = cerrado).
+  const [oferta,       setOferta]       = useState(null);
 
   useEffect(() => {
     const safe = (p, fb) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -146,7 +149,11 @@ export default function PerfilAgenciaPage() {
         setFaltantes([]);
         showToast("Guardado correctamente");
         if (seccion < SECCIONES.length-1) setSeccion(s => s+1);
-        else router.push("/dashboard/perfil");
+        else {
+          const o = await siguientePaso({ parte: 2, parte2Completa: true });
+          if (o.documentos) setOferta(o);
+          else router.push("/dashboard/perfil");
+        }
       } else if (!ok) {
         showToast("Guardado — aún te faltan campos");
         señalarFaltantes(pendientes);
@@ -154,7 +161,16 @@ export default function PerfilAgenciaPage() {
         setFaltantes([]);
         showToast("Guardado correctamente");
       }
-    } else showToast("Error al guardar","error");
+    } else {
+      // 400 con `invalidos`: el servidor rechazó un valor y no guardó nada.
+      const data = await res.json().catch(() => ({}));
+      if (data.invalidos?.length) {
+        showToast(data.error, "error");
+        const i = SECCIONES.findIndex(sec => sec.campos?.some(c => c.name === data.invalidos[0].name));
+        if (i !== -1) setSeccion(i);
+        señalarFaltantes(data.invalidos);
+      } else showToast("Error al guardar","error");
+    }
     setGuardando(false);
   };
 
@@ -453,6 +469,7 @@ export default function PerfilAgenciaPage() {
           </div>
         </div>
       </div>
+      {oferta && <ModalSiguientePaso parte={2} oferta={oferta}/>}
     </div>
   );
 }

@@ -7,17 +7,36 @@ import {
   avisarRegistroCandidata,
   avisarBienvenida,
 } from "@/lib/notificaciones-aupair";
+import { validaFechaNacimiento } from "@/lib/campos-perfil";
 
 export async function POST(req) {
   try {
     // ── FIX: frontend envía nombre/apellido, no fullName/lastName ──────────
-    const { nombre, apellido, email, password, codigo_referido } = await req.json();
+    const { nombre, apellido, email, password, codigo_referido, fecha_nacimiento } = await req.json();
 
     if (!nombre || !apellido || !email || !password) {
       return NextResponse.json(
         { error: "Todos los campos son obligatorios." },
         { status: 400 }
       );
+    }
+
+    // ── Fecha de nacimiento ─────────────────────────────────────────────────
+    // El programa es de 18 a 27 años (lib/campos-perfil.js). En el
+    // autorregistro la fecha es obligatoria; cuando el admin crea la cuenta
+    // desde /admin/usuarias puede no tenerla a mano, pero si la escribe, vale
+    // la misma regla.
+    const creadaPorAdmin = getSessionFromRequest(req)?.rol === "admin";
+    const fecha = fecha_nacimiento ? String(fecha_nacimiento).slice(0, 10) : null;
+    if (!fecha && !creadaPorAdmin) {
+      return NextResponse.json(
+        { error: "Indica tu fecha de nacimiento." },
+        { status: 400 }
+      );
+    }
+    if (fecha) {
+      const motivo = validaFechaNacimiento(fecha);
+      if (motivo) return NextResponse.json({ error: motivo }, { status: 400 });
     }
 
     // ── Email duplicado ─────────────────────────────────────────────────────
@@ -37,9 +56,9 @@ export async function POST(req) {
     // ── Crear usuario ───────────────────────────────────────────────────────
     const [result] = await dbAupair.query(
       `INSERT INTO usuarios
-        (nombre, apellido, email, password, rol, tiene_acceso, codigo_referido)
-       VALUES (?, ?, ?, ?, 'usuaria', FALSE, ?)`,
-      [nombre, apellido, email, hashedPassword, codigo_referido?.toUpperCase() || null]
+        (nombre, apellido, email, password, rol, tiene_acceso, codigo_referido, fecha_nacimiento)
+       VALUES (?, ?, ?, ?, 'usuaria', FALSE, ?, ?)`,
+      [nombre, apellido, email, hashedPassword, codigo_referido?.toUpperCase() || null, fecha]
     );
 
     const nuevoUsuarioId = result.insertId;
@@ -136,7 +155,6 @@ export async function POST(req) {
     // el admin quedaba con la sesión de esa persona: no lo redirigía, pero su
     // siguiente petición salía con rol usuaria y /api/admin/** le respondía
     // 403. Es el "me saca de la sesión" que reporta la clienta.
-    const creadaPorAdmin = getSessionFromRequest(req)?.rol === "admin";
     if (creadaPorAdmin) {
       return NextResponse.json({ ok: true, id: nuevoUsuarioId });
     }

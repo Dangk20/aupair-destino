@@ -3,7 +3,8 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { EyeIcon, EyeOffIcon, Mail, Lock, User, Users, ShieldCheck, Star } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Mail, Lock, User, Users, ShieldCheck, Star, Cake } from "lucide-react";
+import { validaFechaNacimiento, EDAD_MINIMA, EDAD_MAXIMA } from "@/lib/campos-perfil";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const steps = [
@@ -69,7 +70,7 @@ function RegisterContent() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [form, setForm] = useState({
-    nombre: "", apellido: "", email: "", password: "", confirm: "",
+    nombre: "", apellido: "", email: "", password: "", confirm: "", fecha_nacimiento: "",
     codigo_referido: searchParams.get("ref") || "",
   });
 
@@ -81,6 +82,9 @@ function RegisterContent() {
     if (!accepted) { setError("Debes aceptar los Términos de Uso y Política de Privacidad."); return; }
     if (form.password !== form.confirm) { setError("Las contraseñas no coinciden."); return; }
     if (form.password.length < 8) { setError("La contraseña debe tener mínimo 8 caracteres."); return; }
+    // Misma regla que el servidor y el perfil (lib/campos-perfil.js).
+    const motivoFecha = form.fecha_nacimiento ? validaFechaNacimiento(form.fecha_nacimiento) : "Indica tu fecha de nacimiento.";
+    if (motivoFecha) { setError(motivoFecha); return; }
 
     setLoading(true);
     try {
@@ -89,6 +93,7 @@ function RegisterContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre: form.nombre, apellido: form.apellido,
+          fecha_nacimiento: form.fecha_nacimiento,
           email: form.email, password: form.password,
           codigo_referido: form.codigo_referido || null,
         }),
@@ -264,6 +269,15 @@ function RegisterContent() {
                     <input name="apellido" type="text" placeholder="García" value={form.apellido} onChange={handleChange} required className={inputBase}/>
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] xl:text-[11px] font-bold tracking-[2px] uppercase text-[#1a0a3d] mb-1.5">Fecha de nacimiento</label>
+                <div className="relative">
+                  <Cake size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b0a0d0]" strokeWidth={1.5}/>
+                  <input name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} required max={new Date().toISOString().slice(0, 10)} className={inputBase}/>
+                </div>
+                <p className="text-[11px] text-[#8a7aa8] mt-1">El programa es para personas de {EDAD_MINIMA} a {EDAD_MAXIMA} años.</p>
               </div>
 
               <div>

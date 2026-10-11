@@ -18,7 +18,7 @@ import Link from "next/link";
 import { ChevronLeft, Save, ShieldCheck, CheckCircle2, CircleDashed } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
-import { parteCompleta, faltantesDeParte } from "@/lib/campos-perfil";
+import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
 import FichaCandidata from "@/components/perfil/FichaCandidata";
 
 const IC = {
@@ -235,7 +235,12 @@ export default function AdminFichaCandidataPage() {
               // La Parte 1 es la evaluación; es la que decide si hay perfil que
               // aprobar. Es una pista para pintar: la ruta lo vuelve a verificar.
               puede:    parteCompleta(1, perfil),
-              faltan:   faltantesDeParte(1, perfil).map(c => c.label),
+              // Vacíos y valores inválidos: sin los segundos, una fecha
+              // imposible dejaba el botón apagado con "Falta: " en blanco.
+              faltan:   [
+                ...faltantesDeParte(1, perfil).map(c => c.label),
+                ...invalidosDeParte(1, perfil).map(c => `${c.label} (${c.error})`),
+              ],
             }} />
         }
         isMobile={isMobile}

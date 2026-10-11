@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
+import { validarCambios } from "@/lib/campos-perfil";
 
 export async function GET(req) {
   const session = getSessionFromRequest(req);
@@ -69,6 +70,15 @@ export async function PUT(req) {
       "privacidad_perfil","compartir_progreso",
       "notif_email","notif_plataforma","notif_mensajes","notif_reuniones",
     ];
+
+    // La fecha de nacimiento obedece la misma regla que en el perfil
+    // (lib/campos-perfil.js). Esta pantalla la escribía sin validar.
+    if ("fecha_nacimiento" in body) {
+      const [[actual]] = await dbAupair.query("SELECT created_at FROM usuarios WHERE id = ?", [session.id]);
+      const invalidos = validarCambios({ fecha_nacimiento: body.fecha_nacimiento }, actual);
+      if (invalidos.length)
+        return NextResponse.json({ error: invalidos[0].error, invalidos }, { status: 400 });
+    }
 
     const sets   = [];
     const values = [];

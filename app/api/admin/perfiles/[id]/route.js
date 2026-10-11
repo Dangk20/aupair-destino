@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import { perfilPublicable } from "@/lib/perfil";
+import { validarCambios } from "@/lib/campos-perfil";
 
 /* ── GET: obtener perfil completo desde usuarios ── */
 export async function GET(req, { params }) {
@@ -57,6 +58,17 @@ export async function PUT(req, { params }) {
     const EXCLUIR = new Set([
       "id","email","password","rol","created_at","evaluacion_aprobada",
     ]);
+
+    // Mismas reglas de valor que el formulario de la candidata: el admin
+    // tampoco puede dejar una fecha de nacimiento imposible en la base.
+    const [[actual]] = await dbAupair.query("SELECT created_at FROM usuarios WHERE id = ?", [id]);
+    const invalidos = validarCambios(body, actual || {});
+    if (invalidos.length) {
+      return NextResponse.json(
+        { error: `${invalidos[0].label}: ${invalidos[0].error}`, invalidos },
+        { status: 400 }
+      );
+    }
 
     const sets   = [];
     const values = [];

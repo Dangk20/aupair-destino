@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
-import { parteCompleta, faltantesDeParte } from "@/lib/campos-perfil";
+import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
 import { avisarEvaluacionAprobada } from "@/lib/notificaciones-aupair";
 
 export async function PUT(req) {
@@ -29,9 +29,16 @@ export async function PUT(req) {
     // contra la fila guardada con lib/campos-perfil.js, la misma fuente que
     // usan la ficha y el formulario.
     if (aprobada && !parteCompleta(1, u)) {
+      const invalidos = invalidosDeParte(1, u);
       return NextResponse.json({
-        error: "No se puede aprobar un perfil incompleto.",
+        // La ficha muestra sólo `error`: si lo que frena es un valor inválido,
+        // el mensaje tiene que decir cuál, o el admin ve "incompleto" sobre un
+        // perfil con todos los campos llenos.
+        error: invalidos.length
+          ? `No se puede aprobar: ${invalidos[0].label} — ${invalidos[0].error}`
+          : "No se puede aprobar un perfil incompleto.",
         faltantes: faltantesDeParte(1, u).map((c) => c.label),
+        invalidos: invalidos.map((c) => `${c.label}: ${c.error}`),
       }, { status: 400 });
     }
 

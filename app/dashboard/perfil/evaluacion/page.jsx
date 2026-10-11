@@ -10,7 +10,8 @@ import {
 import FotoUpload from "@/components/dashboard/FotoUpload";
 import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
 import { useMobile } from "@/context/MobileContext";
-import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe, seccionInicial } from "@/lib/campos-perfil";
+import { PARTE1, validarSeccion, seccionCompleta as seccionCompletaDe, seccionInicial, parteCompleta } from "@/lib/campos-perfil";
+import ModalSiguientePaso, { siguientePaso } from "@/components/perfil/ModalSiguientePaso";
 
 // La presentación vive acá; QUÉ es obligatorio vive en lib/campos-perfil.js,
 // que comparten el formulario, el servidor y el cálculo de progreso.
@@ -72,6 +73,9 @@ const FORM_INIT = {
   familiar_residencia_usa:"",detalle_familiar_residencia:"",familiar_visa_estudio_usa:"",detalle_familiar_visa_estudio:"",
   overstay_otro_pais:"",entiende_intercambio_cultural:"",consciente_riesgo_familiar:"",
   participo_programa_ap:"",finalizo_programa_ap:"",puede_proveer_certificados:"",
+  // No se edita: es el contexto de la regla de edad (el tope de 27 se mide a la
+  // fecha de registro). El servidor lo descarta al guardar.
+  created_at:"",
 };
 
 export default function PerfilEvaluacionPage() {
@@ -87,6 +91,10 @@ export default function PerfilEvaluacionPage() {
   const [errorVal,     setErrorVal]     = useState("");
   // Campos obligatorios marcados en rojo tras una validación fallida.
   const [faltantes,    setFaltantes]    = useState([]);
+  // La fila completa, para saber al finalizar si la Parte 2 sigue pendiente.
+  const [perfilBase,   setPerfilBase]   = useState(null);
+  // Aviso de "qué sigue" al terminar la parte (null = cerrado).
+  const [oferta,       setOferta]       = useState(null);
 
   useEffect(() => {
     const safe = (p,fb=null) => p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
@@ -98,6 +106,7 @@ export default function PerfilEvaluacionPage() {
       setUser(me?.user||null);
       if (perf?.perfil) {
         const p=perf.perfil;
+        setPerfilBase(p);
         setForm(prev => {
           const u={...prev};
           Object.keys(prev).forEach(k=>{ if(p[k]!=null) u[k]=String(p[k]); });
@@ -186,7 +195,7 @@ export default function PerfilEvaluacionPage() {
         setFaltantes([]);
         setToast("Guardado correctamente");
         if (paso<SECCIONES.length-1) setPaso(paso+1);
-        else router.push("/dashboard/perfil");
+        else await terminar();
       } else if (!ok) {
         // Guardado parcial: se guardó, pero le decimos qué le falta.
         setToast("Guardado — aún te faltan campos");
@@ -196,8 +205,28 @@ export default function PerfilEvaluacionPage() {
         setToast("Guardado correctamente");
       }
       setTimeout(()=>setToast(null),2500);
-    } else setToast("Error al guardar");
+    } else {
+      // 400 con `invalidos`: el servidor rechazó un valor (p. ej. la fecha de
+      // nacimiento) y no guardó nada. Se dice cuál y por qué.
+      const data = await res.json().catch(() => ({}));
+      if (data.invalidos?.length) {
+        // El campo puede estar en otra sección (el formulario envía el perfil
+        // entero): se abre la suya para que se vea.
+        const i = SECCIONES.findIndex(sec => sec.campos.some(c => c.name === data.invalidos[0].name));
+        if (i !== -1 && i !== paso) setPaso(i);
+        señalarFaltantes(data.invalidos);
+        setToast("No se guardó: revisa el campo señalado");
+      } else setToast("Error al guardar");
+      setTimeout(()=>setToast(null),2500);
+    }
     setGuardando(false);
+  };
+
+  /** Al finalizar la parte: el aviso de qué sigue, o el perfil si no hay nada que ofrecer. */
+  const terminar = async () => {
+    const o = await siguientePaso({ parte: 1, parte2Completa: parteCompleta(2, perfilBase || {}) });
+    if (o.documentos || o.parte2) setOferta(o);
+    else router.push("/dashboard/perfil");
   };
 
   if (loading) return (
@@ -499,6 +528,7 @@ export default function PerfilEvaluacionPage() {
           </div>
         </div>
       </div>
+      {oferta && <ModalSiguientePaso parte={1} oferta={oferta}/>}
     </div>
   );
 }
