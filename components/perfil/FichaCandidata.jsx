@@ -126,6 +126,58 @@ function Campo({ campo, perfil, isMobile }) {
   );
 }
 
+/* ── Las fotos de la cédula ─────────────────────────────────────────────────
+   Se suben en la Parte 1 · Información personal pero no están declaradas en
+   campos-perfil.js (no se validan ni cuentan para el progreso), así que nada
+   las pintaba: se cargaban y desaparecían (R2). Van aquí, debajo de los campos
+   de esa sección, para la candidata y para quien la revisa. */
+const LADOS_CEDULA = [
+  { name: "cedula_frontal_url",   label: "Lado frontal" },
+  { name: "cedula_posterior_url", label: "Lado posterior" },
+];
+
+/** Un data-URI no se puede abrir con un enlace (el navegador bloquea navegar a `data:`). */
+function verEnGrande(src, titulo) {
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.title = titulo;
+  w.document.body.style.cssText = "margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh";
+  const img = w.document.createElement("img");
+  img.src = src; img.alt = titulo;
+  img.style.cssText = "max-width:100%;max-height:100vh";
+  w.document.body.appendChild(img);
+}
+
+function FotosCedula({ perfil }) {
+  return (
+    <div style={{ marginTop:16 }}>
+      <div style={{ fontSize:12.5, color:T.textSoft, marginBottom:10 }}>Cédula</div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12 }}>
+        {LADOS_CEDULA.map(lado => {
+          const src = String(perfil?.[lado.name] || "");
+          const hay = src.startsWith("data:image/") || /^https?:\/\//.test(src);
+          return (
+            <div key={lado.name}>
+              {hay ? (
+                <button type="button" onClick={() => verEnGrande(src, `Cédula · ${lado.label}`)}
+                  title="Ver en grande" aria-label={`Ver la cédula, ${lado.label.toLowerCase()}, en grande`}
+                  style={{ display:"block", width:"100%", padding:0, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", cursor:"zoom-in", background:T.softFill }}>
+                  <img src={src} alt={`Cédula · ${lado.label}`} style={{ display:"block", width:"100%", height:140, objectFit:"cover" }} />
+                </button>
+              ) : (
+                <div style={{ height:140, borderRadius:12, border:`1.5px dashed ${T.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12.5, color:T.softText, fontStyle:"italic" }}>
+                  Sin cargar
+                </div>
+              )}
+              <div style={{ fontSize:11.5, color:T.textSoft, marginTop:6, textAlign:"center" }}>{lado.label}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /**
  * @param {object}   perfil      la fila de `usuarios`, ya filtrada por la API
  * @param {object}   usuario     identidad (nombre, apellido, email). Si no viene,
@@ -443,6 +495,7 @@ export default function FichaCandidata({
               ))}
             </div>
           ))}
+          {seccionActiva.clave === "1-personal" && <FotosCedula perfil={perfil} />}
         </div>
       )}
     </div>
