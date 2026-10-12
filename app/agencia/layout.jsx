@@ -9,18 +9,16 @@
 // de la plataforma: parecía otra. Al compartir la cáscara, la agencia navega
 // igual que la clienta, sólo que con menos módulos.
 
-import { LayoutDashboard, IdCard, FileText, BarChart3, Settings } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
 
+// Un módulo: el tablero de sus candidatas, desde el que se abre cada ficha
+// (change `panel-agencia`). Las pantallas heredadas —perfiles, documentos,
+// reportes y una configuración que llamaba a una ruta inexistente— se
+// retiraron con el flujo que modelaban.
 const MODULOS = [
-  { href: "/agencia",               label: "Inicio",        icon: LayoutDashboard },
-  { href: "/agencia/perfiles",      label: "Candidatas",    icon: IdCard },
-  { href: "/agencia/documentos",    label: "Documentos",    icon: FileText },
-  { href: "/agencia/reportes",      label: "Reportes",      icon: BarChart3 },
-
-  { separador: true },
-  { href: "/agencia/configuracion", label: "Configuración", icon: Settings },
+  { href: "/agencia", label: "Mis candidatas", icon: LayoutGrid },
 ];
 
 export default function AgenciaLayout({ children }) {

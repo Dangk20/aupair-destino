@@ -9,10 +9,13 @@
 // sección estaba completa con la mitad de sus campos llenos). De ahí salía el
 // "100% completado" del admin sobre perfiles incompletos.
 //
-// Ahora es este componente, y sólo cambia QUÉ SE PUEDE HACER:
+// Ahora es este componente, y sólo cambia QUÉ SE PUEDE HACER, según la tabla
+// PERMISOS de abajo (regla del proyecto: una sola interfaz para candidata,
+// equipo y agencia; cambian los permisos):
 //
 //   modo="propio"    la candidata mira su ficha
-//   modo="revision"  el personal la revisa: añade el bloque de valoración interna
+//   modo="equipo"    el personal la revisa ("revision" es el nombre anterior)
+//   modo="agencia"   su agencia: ve, descarga y mueve la etapa; no edita
 //
 // Se recibe `modo`, no el rol, porque lo que cambia la ficha es si la miras como
 // dueña o como revisora. El día que una asociada revise a sus candidatas entra
@@ -78,6 +81,21 @@ const SECCIONES = PARTES.flatMap(p =>
 //              falta nada, no hay nada que recorrer. Va primera porque es lo
 //              que hay que hacer a continuación.
 //   DOCUMENTOS la documentación. Va última, y siempre.
+/**
+ * Qué puede hacer cada rol en la ficha. Es una guía para dibujar: quién puede
+ * qué lo deciden las rutas de API.
+ *
+ *   terceraPersona  "Perfil incompleto" en vez de "Te falta poco"
+ *   editar          true · false · "si-no-enviada" (la candidata, hasta enviar)
+ *   observar        escribir observaciones que reabren a corrección
+ *   docs            "propios" (subir) · "gestion" (aprobar, rechazar, notas) · "lectura"
+ */
+export const PERMISOS = {
+  propio:  { terceraPersona: false, editar: "si-no-enviada", observar: false, docs: "propios" },
+  equipo:  { terceraPersona: true,  editar: true,            observar: true,  docs: "gestion" },
+  agencia: { terceraPersona: true,  editar: false,           observar: false, docs: "lectura" },
+};
+
 const PROGRESO   = "progreso";
 const DOCUMENTOS = "documentos";
 //   RECORRIDO  la línea de tiempo: etapas e historial. La misma que ve la
@@ -186,7 +204,7 @@ function FotosCedula({ perfil }) {
  * @param {object}   perfil      la fila de `usuarios`, ya filtrada por la API
  * @param {object}   usuario     identidad (nombre, apellido, email). Si no viene,
  *                               se toma del propio perfil — el admin la trae ahí.
- * @param {"propio"|"revision"} modo
+ * @param {"propio"|"equipo"|"revision"|"agencia"} modo  ver PERMISOS
  * @param {string}   titulo      encabezado de la pantalla
  * @param {string}   subtitulo   línea bajo el encabezado
  * @param {function} rutaEdicion (seccion) => href del formulario, anclado
@@ -221,7 +239,11 @@ export default function FichaCandidata({
   // está completo, y eso se sabe abajo, ya con el perfil en la mano.
   const [elegida, setElegida] = useState(null);
 
-  const revision = modo === "revision";
+  const rol      = modo === "revision" ? "equipo" : (PERMISOS[modo] ? modo : "propio");
+  const P        = PERMISOS[rol];
+  // Habla de ella en tercera persona (equipo, agencia) o le habla a ella.
+  const revision = P.terceraPersona;
+  const puedeEditar = (parte) => P.editar === true || (P.editar === "si-no-enviada" && !enviadas[parte]);
   const ident    = usuario || perfil || {};
   const nombre   = `${ident.nombre || ""} ${ident.apellido || ""}`.trim();
   const anios    = edad(perfil?.fecha_nacimiento);
@@ -305,10 +327,10 @@ export default function FichaCandidata({
       )}
 
       {/* Bloque de valoración interna — sólo en revisión */}
-      {revision && bloqueInterno}
+      {bloqueInterno}
 
       {/* Observaciones abiertas, atendidas y cerradas — sólo en revisión */}
-      {revision && (
+      {P.observar && (
         <PanelObservaciones usuarioId={perfil?.id} observaciones={observaciones} onCambio={onObservacion} />
       )}
 
@@ -432,7 +454,7 @@ export default function FichaCandidata({
                       background: sec.lista ? T.primary : "#fff",
                       border:`2px solid ${sec.lista ? T.primary : T.border}`,
                     }} />
-                    <Link href={rutaEdicion(sec)} style={{ textDecoration:"none" }}>
+                    <Link href={puedeEditar(sec.parte) && rutaEdicion ? rutaEdicion(sec) : "#"} style={{ textDecoration:"none", pointerEvents: puedeEditar(sec.parte) && rutaEdicion ? "auto" : "none" }}>
                       <div style={{
                         background: sec.lista ? "#fff" : T.lilac, borderRadius:14, padding:"13px 16px",
                         boxShadow:T.shadow, display:"flex", alignItems:"center", gap:12,
@@ -463,11 +485,11 @@ export default function FichaCandidata({
         </div>
       ) : activa === RECORRIDO && recorrido ? (
         <div style={{ background:"#fff", borderRadius:18, padding:isMobile ? 16 : 22, boxShadow:T.shadow }}>
-          <LineaDeTiempo etapa={recorrido.etapa} agencia={recorrido.agencia} historial={recorrido.historial} modo={modo} />
+          <LineaDeTiempo etapa={recorrido.etapa} agencia={recorrido.agencia} historial={recorrido.historial} modo={rol === "equipo" ? "revision" : "propio"} />
         </div>
       ) : activa === DOCUMENTOS ? (
         <PestanaDocumentos
-          modo={modo}
+          modo={rol === "equipo" ? "revision" : rol}
           usuarioId={perfil?.id}
           puedeVer={puedeVerDocumentos}
           observaciones={observaciones}
@@ -483,18 +505,18 @@ export default function FichaCandidata({
               </div>
             </div>
             <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
-              {revision && (
+              {P.observar && (
                 <ObservarElemento usuarioId={perfil?.id} etiqueta="Observar sección" onCreada={onObservacion}
                   elemento={{ tipo:"seccion", parte:seccionActiva.parte, seccion:seccionActiva.id }} />
               )}
               {/* La candidata edita mientras no haya enviado la parte. Enviada,
                   sólo corrige lo observado, y eso se hace desde su perfil. */}
-              {(revision || !enviadas[seccionActiva.parte]) ? (
+              {puedeEditar(seccionActiva.parte) && rutaEdicion ? (
                 <Link href={rutaEdicion(seccionActiva)}
                   style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:700, color:T.primary, textDecoration:"none", background:T.lilac, padding:"8px 14px", borderRadius:10, flexShrink:0 }}>
                   <Pencil size={13} /> Editar
                 </Link>
-              ) : seccionConCorreccion(observaciones, seccionActiva.parte, seccionActiva.id) ? (
+              ) : rol === "propio" && seccionConCorreccion(observaciones, seccionActiva.parte, seccionActiva.id) ? (
                 <a href="#correcciones"
                   style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12.5, fontWeight:700, color:"#fff", textDecoration:"none", background:T.amber, padding:"8px 14px", borderRadius:10, flexShrink:0 }}>
                   <Pencil size={13} /> Corregir
@@ -511,7 +533,7 @@ export default function FichaCandidata({
                 <div style={{ flex:1, minWidth:220 }}>
                   <Campo campo={campo} perfil={perfil || {}} isMobile={isMobile} />
                 </div>
-                {revision && (
+                {P.observar && (
                   <ObservarElemento usuarioId={perfil?.id} compacto onCreada={onObservacion}
                     elemento={{ tipo:"campo", campo:campo.name }} />
                 )}

@@ -11,6 +11,7 @@ import { readFile } from "fs/promises";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized, forbidden } from "@/lib/session-aupair";
 import { resolverRuta, tipoContenido } from "@/lib/almacenamiento-archivos";
+import { candidataDeAgencia } from "@/lib/agencia-aupair";
 
 const ROLES_REVISORES = ["admin"];
 
@@ -31,7 +32,9 @@ export async function GET(req, { params }) {
 
     const esDuena   = Number(doc.usuario_id) === Number(session.id);
     const esRevisor = ROLES_REVISORES.includes(session.rol);
-    if (!esDuena && !esRevisor) return forbidden();
+    // La agencia ve los documentos de las candidatas que el equipo le envió.
+    const esSuAgencia = session.rol === "agencia" && !!(await candidataDeAgencia(session.id, doc.usuario_id));
+    if (!esDuena && !esRevisor && !esSuAgencia) return forbidden();
 
     const ruta = resolverRuta(doc.url);
     if (!ruta) {

@@ -187,6 +187,8 @@ export default function PestanaDocumentos({
   modo = "propio", usuarioId, puedeVer = true, observaciones = [], onObservacion,
 }) {
   const revision = modo === "revision";
+  // La agencia ve los documentos de su candidata, sin gestionarlos ni subirlos.
+  const lectura  = modo === "agencia";
 
   const [docs, setDocs]         = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -201,10 +203,10 @@ export default function PestanaDocumentos({
   const cargar = () => {
     // Sin permiso no se pregunta: el aviso no necesita datos y pedirlos sólo
     // produciría un 403 en la consola de la candidata.
-    if (!revision && !puedeVer) { setCargando(false); return; }
+    if (!revision && !lectura && !puedeVer) { setCargando(false); return; }
     setCargando(true);
-    const url = revision
-      ? `/api/admin/perfiles/${usuarioId}/documentos`
+    const url = revision ? `/api/admin/perfiles/${usuarioId}/documentos`
+      : lectura ? `/api/agencia/candidatas/${usuarioId}/documentos`
       : "/api/dashboard/documentos";
     fetch(url)
       .then(r => r.json())
@@ -243,7 +245,7 @@ export default function PestanaDocumentos({
   };
 
   /* ── Candidata sin el permiso ─────────────────────────────────────────── */
-  if (!revision && !puedeVer) {
+  if (!revision && !lectura && !puedeVer) {
     return (
       <div style={{ background:"#fff", borderRadius:18, padding:28, boxShadow:T.shadow, textAlign:"center", fontFamily:T.font }}>
         <div style={{ width:56, height:56, borderRadius:16, background:T.gradIcon, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
@@ -388,7 +390,7 @@ export default function PestanaDocumentos({
                       onCreada={onObservacion} elemento={{ tipo:"documento", tipo_doc:r.tipo }} />
                   )}
 
-                  {doc && (revision || reabierto) && (confirmar === doc.id ? (
+                  {doc && !lectura && (revision || reabierto) && (confirmar === doc.id ? (
                     <div style={{ display:"flex", gap:4 }}>
                       <button onClick={() => quitar(doc.id)}
                         style={{ padding:"6px 10px", borderRadius:8, border:"none", background:T.danger, color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:T.font }}>Sí</button>
@@ -404,7 +406,7 @@ export default function PestanaDocumentos({
 
                   {/* Subir sólo lo hace la dueña del perfil: el admin no tiene
                       el archivo, y la ruta de carga escribe sobre la sesión. */}
-                  {!revision && (!doc || perdido || reabierto) && (
+                  {!revision && !lectura && (!doc || perdido || reabierto) && (
                     <button onClick={() => setModal(r)}
                       style={{ background: perdido ? T.danger : reabierto ? T.amber : T.primary, color:"#fff", border:"none", borderRadius:10, padding:"9px 14px", fontFamily:T.font, fontWeight:700, fontSize:12.5, cursor:"pointer" }}>
                       {perdido || reabierto ? "Volver a subir" : "Subir"}
@@ -418,7 +420,7 @@ export default function PestanaDocumentos({
                 <div style={{ marginTop:10, background:T.dangerBg, border:`1px solid ${T.danger}`, borderRadius:10, padding:"9px 12px", fontSize:11.5, color:T.danger, lineHeight:1.5 }}>
                   <AlertTriangle size={12} style={{ display:"inline", verticalAlign:"-2px", marginRight:5 }} />
                   <strong>El registro existe pero el archivo no está en el servidor.</strong>{" "}
-                  {revision ? "Pídele a la candidata que lo vuelva a cargar." : "Vuelve a subirlo, por favor."}
+                  {revision ? "Pídele a la candidata que lo vuelva a cargar." : lectura ? "El equipo de Destino Au Pair se lo pedirá a la candidata." : "Vuelve a subirlo, por favor."}
                 </div>
               )}
 

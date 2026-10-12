@@ -191,16 +191,23 @@ Nivel objetivo: **rol asociada**. Las seis lo verifican.
 | `/asociada/usuarias-asignadas` | GET | ✅ | — |
 | `/asociada/usuarias/[id]` | GET | ✅ | 🟡 revisar en 2.5 |
 
-## `/api/agencia/**` — 4 rutas, 5 handlers
+## `/api/agencia/**` — change `panel-agencia`
 
-Nivel objetivo: **rol agencia**. Las cuatro lo verifican.
+Nivel objetivo: **rol agencia**, y **propiedad**: toda ruta sobre una
+candidata comprueba con `lib/agencia-aupair.js · candidataDeAgencia()` que el
+equipo se la envió a esta agencia (`candidata_agencia`); ajena → 404.
 
 | Ruta | Métodos | Estado | Propiedad |
 |---|---|---|---|
-| `/agencia/[id]` | GET | ✅ | 🟡 revisar en 2.5 |
-| `/agencia/candidatas` | GET | ✅ | — |
-| `/agencia/perfiles` | GET | ✅ | — |
-| `/agencia/perfiles/[id]` | GET, PUT | ✅ | 🟡 revisar en 2.5 |
+| `/agencia/tablero` | GET | ✅ | ✅ sólo las candidatas de la agencia |
+| `/agencia/candidatas/[id]` | GET | ✅ | ✅ `candidataDeAgencia` |
+| `/agencia/candidatas/[id]/documentos` | GET | ✅ | ✅ `candidataDeAgencia` |
+| `/agencia/candidatas/[id]/etapa` | PUT | ✅ | ✅ `candidataDeAgencia` + `moverEtapa({ agenciaId })` |
+| `/agencia/candidatas/[id]/descargar` | GET | ✅ | ✅ `candidataDeAgencia` |
+
+Retiradas en `panel-agencia`: `/agencia/[id]`, `/agencia/candidatas`,
+`/agencia/perfiles`, `/agencia/perfiles/[id]` (el flujo heredado sin modelo de
+asignación que describe la sección de propiedad, más abajo).
 
 ## `/api/dashboard/**` — 15 rutas, 22 handlers
 
@@ -241,7 +248,7 @@ ruta que proteger.
 |---|---|---|---|
 | `/auth/me` | GET | sesión | ✅ |
 | `/codigos-promo/usar` | POST | sesión | ✅ |
-| `/documentos/[id]` | GET | sesión + dueña o rol revisor | ✅ — cerrado en el Sprint 0.0 |
+| `/documentos/[id]` | GET | sesión + dueña, rol revisor o su agencia (`candidataDeAgencia`) | ✅ — Sprint 0.0; agencia en `panel-agencia` |
 | `/sesion-recursos/[id]/archivo` | GET | sesión + admin, o la sesión del curso desbloqueada para la usuaria (`lib/curso-aupair.js`) | ✅ — Sprint 0.0; criterio cambiado en `recursos-por-video` |
 | `/ventas` | POST, GET | sesión + propiedad | 🟡 revisar en 2.5 |
 
@@ -312,6 +319,11 @@ cree la segunda, sin haber definido antes el modelo, cada una vería y
 evaluaría a las candidatas de la otra.
 
 **No abrir una segunda cuenta de agencia hasta cerrar el ítem 7.**
+
+> **Cerrado en `etapas-candidata` + `panel-agencia` (2026-10-12):** al aprobar,
+> el equipo elige la agencia y queda la relación en `candidata_agencia`. Las
+> rutas nuevas de la agencia sólo leen y mueven a sus candidatas, y las
+> heredadas que se describen arriba se retiraron.
 
 **Consistencia pendiente, sin efecto en el comportamiento:** 49 handlers de
 nivel *sesión* siguen con `getSessionFromRequest` + `if (!session)` a mano en
