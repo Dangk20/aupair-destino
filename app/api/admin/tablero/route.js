@@ -10,7 +10,7 @@ export async function GET(req) {
   const guard = requiereAdmin(req);
   if (guard.error) return guard.error;
   try {
-    return NextResponse.json({ candidatas: await tablero() });
+    return NextResponse.json({ candidatas: await tablero({ actor: { id: Number(guard.session.id), rol: guard.session.rol } }) });
   } catch (err) {
     console.error("[GET tablero]", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

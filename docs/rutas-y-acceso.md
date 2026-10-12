@@ -137,7 +137,6 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/confirmar-pago` | POST | ✅ | `/admin/pagos` |
 | `/admin/disponibilidad` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones` |
 | `/admin/eventos` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones`, `/dashboard/reuniones` |
-| `/admin/mensajes` | GET, POST | ✅ | `/admin/mensajes` |
 | `/admin/pagos/movimientos` | GET | ✅ | `/admin/pagos` |
 | `/admin/pagos/stats` | GET | ✅ | `/admin`, `/admin/pagos` |
 | `/admin/perfiles` | GET | ✅ | `/admin/perfiles` |
@@ -227,7 +226,6 @@ verifica permiso hoy.
 | `/dashboard/documentos` | POST | sesión + `acceso_documentos` | ✅ — único que lo verifica hoy |
 | `/dashboard/documentos` | DELETE | sesión + `acceso_documentos` | 🔴 |
 | `/dashboard/foto` | POST | sesión | ✅ |
-| `/dashboard/mensajes` | GET, POST | sesión + `acceso_mensajes` | 🔴 |
 | `/dashboard/observaciones` | GET | sesión | ✅ — las observaciones de la propia candidata |
 | `/dashboard/perfil` | GET, PUT | sesión | ✅ — PUT rechaza (403) cambios a una parte enviada no cubiertos por una observación |
 | `/dashboard/perfil/enviar` | POST | sesión | ✅ — marca una parte como enviada si está completa |
@@ -241,6 +239,24 @@ verifica permiso hoy.
 el cliente (`app/dashboard/comunidad/page.jsx`) sin llamar a la API. El
 permiso existe en la base y lo aplica `AccessGate` en la interfaz; no hay
 ruta que proteger.
+
+## `/api/conversaciones/**` — change `chat-candidata`
+
+Nivel: **sesión**, y la autorización fina en `lib/conversaciones-aupair.js ·
+permisos()`, que es la misma para todas: la candidata, las suyas (escribe con
+`acceso_mensajes`, leído de la base); la agencia, las de sus candidatas
+(`candidataDeAgencia`); el admin lee todas y escribe en las de agencia sólo
+después de entrar. Lo ajeno → 404. La asociada no tiene conversaciones todavía.
+
+| Ruta | Métodos | Estado | Propiedad |
+|---|---|---|---|
+| `/conversaciones` | GET | ✅ | ✅ bandeja de quien pide; `?candidata_id=` → `deCandidata()` |
+| `/conversaciones` | POST | ✅ | ✅ `iniciar()`: la agencia, la suya; admin y candidata, la del equipo |
+| `/conversaciones/[id]/mensajes` | GET, POST | ✅ | ✅ `acceso()`; POST exige `permisos.escribir` |
+| `/conversaciones/[id]/entrar` | POST | ✅ | ✅ sólo admin, conversación de agencia |
+
+Retiradas en `chat-candidata`: `/admin/mensajes` y `/dashboard/mensajes`
+(sólo modelaban candidata ↔ equipo sobre la tabla `mensajes`).
 
 ## Rutas sueltas — 5 rutas, 8 handlers
 

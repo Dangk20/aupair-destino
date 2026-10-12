@@ -9,19 +9,21 @@
 // de la plataforma: parecía otra. Al compartir la cáscara, la agencia navega
 // igual que la clienta, sólo que con menos módulos.
 
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, MessageCircle } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
+import { useNoLeidos } from "@/components/chat/useNoLeidos";
 
-// Un módulo: el tablero de sus candidatas, desde el que se abre cada ficha
-// (change `panel-agencia`). Las pantallas heredadas —perfiles, documentos,
+// El tablero de sus candidatas, desde el que se abre cada una (change
+// `panel-agencia`), y sus conversaciones con ellas (change `chat-candidata`). Las pantallas heredadas —perfiles, documentos,
 // reportes y una configuración que llamaba a una ruta inexistente— se
 // retiraron con el flujo que modelaban.
-const MODULOS = [
-  { href: "/agencia", label: "Mis candidatas", icon: LayoutGrid },
-];
-
 export default function AgenciaLayout({ children }) {
+  const noLeidos = useNoLeidos();
+  const MODULOS = [
+    { href: "/agencia",          label: "Mis candidatas", icon: LayoutGrid },
+    { href: "/agencia/mensajes", label: "Mensajes",       icon: MessageCircle, badge: noLeidos },
+  ];
   return (
     <MobileProvider>
       <PanelLayout modulos={MODULOS} rol="Agencia" inicio="/agencia">

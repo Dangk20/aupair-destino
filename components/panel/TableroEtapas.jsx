@@ -9,15 +9,20 @@
 // Dos vistas de las mismas candidatas: «Tablero» (columnas) y «Lista»
 // (filas ordenadas por etapa). La elegida se recuerda en el navegador.
 //
+// Tocar una tarjeta (o la burbuja de la fila, en la lista) abre la vista rápida: el chat con
+// la candidata y sus datos generales (components/panel/VistaRapida). El punto
+// en el avatar = mensajes sin leer.
+//
 // Mover: arrastrar la tarjeta (HTML5 nativo, sin librería) o el menú ⋯ de la
 // tarjeta o la fila. Sólo entre etapas de la agencia: las demás se calculan
 // de los datos y se deciden en la ficha.
 // ════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List, Eye, MessageCircle } from "lucide-react";
 import { T } from "@/lib/tema";
 import { ETAPAS, SALIDAS, etapaPorId, posicion } from "@/lib/etapas-candidata";
+import VistaRapida from "@/components/panel/VistaRapida";
 
 const dias = (desde) => {
   if (!desde) return null;
@@ -54,7 +59,7 @@ function MenuMover({ c, movibles, onMover, style }) {
   }, [menu]);
 
   return (
-    <div ref={caja} style={style}>
+    <div ref={caja} style={style} onClick={(e) => e.stopPropagation()}>
       <button type="button" onClick={abrir} aria-label={`Mover a ${c.nombre} a otra etapa`} title="Mover a otra etapa"
         style={{ width: 24, height: 24, borderRadius: 8, border: "none",
                  background: menu ? T.lilac : "transparent", color: T.textSoft, cursor: "pointer",
@@ -81,30 +86,39 @@ function MenuMover({ c, movibles, onMover, style }) {
   );
 }
 
-const Avatar = ({ c, size = 36 }) => c.foto_url
+const Avatar = ({ c, size = 36 }) => (
+  <div style={{ position: "relative", flexShrink: 0 }}>
+    <Foto c={c} size={size} />
+    {c.no_leidos > 0 && (
+      <span title={`${c.no_leidos} sin leer`} aria-label={`${c.no_leidos} mensajes sin leer`}
+        style={{ position: "absolute", top: -1, right: -1, width: 11, height: 11, borderRadius: "50%", background: T.primary, border: "2px solid #fff" }} />
+    )}
+  </div>
+);
+const Foto = ({ c, size }) => c.foto_url
   ? <img src={c.foto_url} alt="" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
   : <div style={{ width: size, height: size, borderRadius: "50%", background: T.lilac, color: T.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: size * 0.39, flexShrink: 0 }}>
       {(c.nombre || "?").charAt(0).toUpperCase()}
     </div>;
 
-function Tarjeta({ c, movible, movibles, onMover, hrefFicha, onArrastrar }) {
+function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar }) {
 
   const fila  = { display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: T.neutral, minWidth: 0 };
   const corto = { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
   const vacio = (t) => <em style={{ color: T.softText, fontStyle: "normal" }}>{t}</em>;
 
   return (
-    <div draggable={movible} onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(c.id)); onArrastrar(c.id); }}
-      style={{ position: "relative", background: "#fff", borderRadius: 14, padding: 14, cursor: movible ? "grab" : "default",
+    <div draggable={movible} onClick={() => onAbrir(c)} role="button" tabIndex={0} aria-label={`Abrir a ${c.nombre}`}
+      onKeyDown={(e) => { if (e.key === "Enter") onAbrir(c); }}
+      onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(c.id)); onArrastrar(c.id); }}
+      style={{ position: "relative", background: "#fff", borderRadius: 14, padding: 14, cursor: "pointer",
                boxShadow: "0 1px 3px rgba(58,37,48,.06)", border: `1px solid ${T.border}`, display: "flex", flexDirection: "column", gap: 10 }}>
 
       {/* Quién es y desde cuándo está en la etapa */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, paddingRight: movible ? 22 : 0 }}>
         <Avatar c={c} />
         <div style={{ minWidth: 0 }}>
-          <Link href={hrefFicha(c.id)} draggable={false} style={{ textDecoration: "none" }}>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink, ...corto }}>{c.nombre || "Sin nombre"}</div>
-          </Link>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink, ...corto }}>{c.nombre || "Sin nombre"}</div>
           {dias(c.desde) && <div style={{ fontSize: 11, color: T.softText }}>En la etapa: {dias(c.desde)}</div>}
         </div>
       </div>
@@ -115,11 +129,11 @@ function Tarjeta({ c, movible, movibles, onMover, hrefFicha, onArrastrar }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <div style={fila}>
           <Phone size={13} style={{ flexShrink: 0 }} />
-          {c.telefono ? <a href={`tel:${c.telefono}`} draggable={false} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.telefono}</a> : vacio("Sin teléfono")}
+          {c.telefono ? <a href={`tel:${c.telefono}`} draggable={false} onClick={(e) => e.stopPropagation()} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.telefono}</a> : vacio("Sin teléfono")}
         </div>
         <div style={fila}>
           <Mail size={13} style={{ flexShrink: 0 }} />
-          {c.email ? <a href={`mailto:${c.email}`} draggable={false} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.email}</a> : vacio("Sin correo")}
+          {c.email ? <a href={`mailto:${c.email}`} draggable={false} onClick={(e) => e.stopPropagation()} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.email}</a> : vacio("Sin correo")}
         </div>
         <div style={fila}>
           <MapPin size={13} style={{ flexShrink: 0 }} />
@@ -145,8 +159,11 @@ function Tarjeta({ c, movible, movibles, onMover, hrefFicha, onArrastrar }) {
 
 const VISTA_KEY = "dap.tablero.vista";
 
+const icono = { width: 32, height: 32, borderRadius: 9, border: `1px solid ${T.border}`, background: "#fff", color: T.primary,
+                display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0, textDecoration: "none" };
+
 /** Las mismas candidatas en filas, ordenadas por etapa. */
-function Lista({ candidatas, movibles, onMover, hrefFicha, conAgencia }) {
+function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }) {
   const filas = [...candidatas].sort((a, b) => {
     const pa = posicion(a.etapa), pb = posicion(b.etapa);
     // Las salidas (posición -1) van al final, como en el tablero.
@@ -171,10 +188,11 @@ function Lista({ candidatas, movibles, onMover, hrefFicha, conAgencia }) {
           {filas.map((c) => (
             <tr key={c.id}>
               <td style={td}>
-                <Link href={hrefFicha(c.id)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+                <button type="button" onClick={() => onAbrir(c)}
+                  style={{ display: "flex", alignItems: "center", gap: 10, border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: T.font }}>
                   <Avatar c={c} size={30} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{c.nombre || "Sin nombre"}</span>
-                </Link>
+                </button>
               </td>
               <td style={td}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: T.ink, background: T.softFill, padding: "3px 10px", borderRadius: 8 }}>
@@ -188,8 +206,18 @@ function Lista({ candidatas, movibles, onMover, hrefFicha, conAgencia }) {
               <td style={td}>{c.ciudad || vacio("Sin ciudad")}</td>
               <td style={td}><span style={{ fontSize: 11, fontWeight: 600, color: T.primary, background: T.lilac, padding: "3px 10px", borderRadius: 8 }}>{c.score}%</span></td>
               {conAgencia && <td style={td}>{c.agencia || vacio("Sin agencia")}</td>}
-              <td style={{ ...td, width: 40 }}>
-                {movibles.includes(c.etapa) && <MenuMover c={c} movibles={movibles} onMover={onMover} style={{ position: "relative" }} />}
+              <td style={{ ...td, width: 110 }}>
+                {/* Dos accesos: el perfil completo y el chat (vista rápida). */}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                  <Link href={hrefFicha(c.id)} title="Ver perfil" aria-label={`Ver el perfil de ${c.nombre}`} style={icono}>
+                    <Eye size={16} />
+                  </Link>
+                  <button type="button" onClick={() => onAbrir(c)} title="Chatear" aria-label={`Chatear con ${c.nombre}`} style={{ ...icono, position: "relative" }}>
+                    <MessageCircle size={16} />
+                    {c.no_leidos > 0 && <span style={{ position: "absolute", top: 3, right: 3, width: 8, height: 8, borderRadius: "50%", background: T.primary, border: "1.5px solid #fff" }} />}
+                  </button>
+                  {movibles.includes(c.etapa) && <MenuMover c={c} movibles={movibles} onMover={onMover} style={{ position: "relative" }} />}
+                </div>
               </td>
             </tr>
           ))}
@@ -201,6 +229,10 @@ function Lista({ candidatas, movibles, onMover, hrefFicha, conAgencia }) {
 
 export default function TableroEtapas({ candidatas = [], movibles = [], onMover, hrefFicha, columnas = null }) {
   const [vista, setVista] = useState("tablero");
+  const [abierta, setAbierta] = useState(null);
+  // Lo que se abrió en esta visita ya no tiene punto (el servidor ya lo marcó leído).
+  const [vistas, setVistas] = useState(() => new Set());
+  const conPunto = (c) => (vistas.has(c.id) ? { ...c, no_leidos: 0 } : c);
   const [arrastrando, setArrastrando] = useState(null);
   const [encima, setEncima] = useState(null);
   const carril = useRef(null);
@@ -252,8 +284,8 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
           </span>
         </div>
         {tarjetas.map((c) => (
-          <Tarjeta key={c.id} c={conAgencia ? c : { ...c, agencia: null }} movible={movibles.includes(c.etapa)} movibles={movibles}
-            onMover={onMover} hrefFicha={hrefFicha} onArrastrar={setArrastrando} />
+          <Tarjeta key={c.id} c={conPunto(conAgencia ? c : { ...c, agencia: null })} movible={movibles.includes(c.etapa)} movibles={movibles}
+            onMover={onMover} onAbrir={setAbierta} onArrastrar={setArrastrando} />
         ))}
         {!tarjetas.length && <div style={{ fontSize: 11.5, color: T.softText, textAlign: "center", padding: "18px 0", border: `1.5px dashed ${T.border}`, borderRadius: 14 }}>Sin candidatas</div>}
       </div>
@@ -277,12 +309,16 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
         {boton("lista", List, "Lista")}
       </div>
       {vista === "lista"
-        ? <Lista candidatas={candidatas} movibles={movibles} onMover={onMover} hrefFicha={hrefFicha} conAgencia={conAgencia} />
+        ? <Lista candidatas={candidatas.map(conPunto)} movibles={movibles} onMover={onMover} onAbrir={setAbierta} hrefFicha={hrefFicha} conAgencia={conAgencia} />
         : <div ref={carril} onDragOver={desplazarSiBorde} onDragEnd={() => { setArrastrando(null); setEncima(null); }}
             style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
             {lista.map((e) => columna(e))}
             {salidas.map((s) => columna(s, true))}
           </div>}
+      {abierta && (
+        <VistaRapida candidata={(({ agencia, ...x }) => (conAgencia ? { ...x, agencia } : x))(candidatas.find((x) => x.id === abierta.id) || abierta)} hrefFicha={hrefFicha}
+          onCerrar={() => setAbierta(null)} onLeido={(id) => setVistas((v) => new Set(v).add(id))} />
+      )}
     </div>
   );
 }

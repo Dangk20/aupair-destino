@@ -36,6 +36,7 @@ MIGRACIONES=(
   "007_notificaciones|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='notificaciones'"
   "008_observaciones_perfil|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='observaciones_perfil'"
   "009_etapas_candidata|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='historial_candidata'"
+  "010_conversaciones|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='conversaciones'"
 )
 
 # ── 1. Respaldo ──────────────────────────────────────────────────────────

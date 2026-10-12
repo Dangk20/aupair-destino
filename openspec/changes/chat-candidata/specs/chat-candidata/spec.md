@@ -35,11 +35,13 @@ El admin SHALL poder leer cualquier conversación sin que eso quede registrado. 
 
 ### Requirement: Vista rápida de la candidata
 
-Al hacer clic en una tarjeta del tablero o en «Ver» de la lista, SHALL abrirse una vista rápida, con el mismo componente para la agencia y el admin:
+Al hacer clic en una tarjeta del tablero o en el ícono de burbuja de chat de una fila de la lista, SHALL abrirse una vista rápida, con el mismo componente para la agencia y el admin:
 
 - **A la izquierda, el chat:** la conversación o, si no existe, el botón «Iniciar conversación».
 - **A la derecha, los datos generales básicos:** foto, nombre, etapa, tiempo en la etapa, porcentaje diligenciado, edad, ciudad, teléfono, correo y agencia.
 - **Arriba, «Ver perfil»:** lleva a la ficha completa del rol.
+
+En la lista, cada fila SHALL tener dos íconos: un ojo, que lleva directo al perfil completo, y una burbuja de chat, que abre la vista rápida.
 
 El admin SHALL poder cambiar entre la conversación con el equipo y la de la agencia. La agencia SHALL ver sólo la suya.
 

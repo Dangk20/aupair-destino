@@ -6,7 +6,7 @@
 //
 // El menú sigue la arquitectura acordada en el ítem 8 del alcance:
 //   Dashboard · Asociadas · Finanzas · Usuarios · Candidatas · Sesiones ·
-//   Calendario · Reportes · Configuración
+//   Mensajes · Calendario · Reportes · Configuración
 //
 // Los módulos que todavía no existen van declarados con `disponible: false`:
 // se ven apagados y no se pueden abrir. Es distinto de lo que se retiró del
@@ -15,12 +15,13 @@
 
 import {
   LayoutDashboard, UsersRound, CreditCard, HandCoins, Tag,
-  Users, IdCard, Video, Calendar, BarChart3, Settings,
+  Users, IdCard, Video, Calendar, BarChart3, Settings, MessageCircle,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
+import { useNoLeidos } from "@/components/chat/useNoLeidos";
 
-const MODULOS = [
+const modulos = (noLeidos) => [
   { href: "/admin",               label: "Dashboard",     icon: LayoutDashboard },
 
   // Su listado funciona; lo que está roto es asignar una candidata a una
@@ -38,6 +39,8 @@ const MODULOS = [
   { href: "/admin/usuarias",      label: "Usuarios",      icon: Users },
   { href: "/admin/perfiles",      label: "Candidatas",    icon: IdCard },
   { href: "/admin/sesiones",      label: "Sesiones",      icon: Video },
+  // Las del equipo y, en supervisión, las de las agencias (`chat-candidata`).
+  { href: "/admin/mensajes",      label: "Mensajes",      icon: MessageCircle, badge: noLeidos },
 
   // Funciona: se comprobó que la pantalla carga sin un solo fallo. Estaba
   // oculta desde el Sprint 0.0 por "ruido visual", no por estar rota.
@@ -50,9 +53,10 @@ const MODULOS = [
 ];
 
 export default function AdminLayout({ children }) {
+  const noLeidos = useNoLeidos();
   return (
     <MobileProvider>
-      <PanelLayout modulos={MODULOS} rol="Administración" inicio="/admin">
+      <PanelLayout modulos={modulos(noLeidos)} rol="Administración" inicio="/admin">
         {children}
       </PanelLayout>
     </MobileProvider>

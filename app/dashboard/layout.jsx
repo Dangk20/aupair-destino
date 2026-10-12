@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
+import { useNoLeidos } from "@/components/chat/useNoLeidos";
 
 const SIN_ACCESO = {
   perfil: false, documentos: false, recursos: false,
@@ -27,7 +28,7 @@ const SIN_ACCESO = {
 
 export default function DashboardLayout({ children }) {
   const [accesos, setAccesos] = useState(SIN_ACCESO);
-  const [mensajes, setMensajes] = useState(0);
+  const mensajes = useNoLeidos();
 
   useEffect(() => {
     fetch("/api/dashboard/acceso").then(r => r.json())
@@ -35,8 +36,6 @@ export default function DashboardLayout({ children }) {
         perfil: !!d.perfil, documentos: !!d.documentos, recursos: !!d.recursos,
         reuniones: !!d.reuniones, mensajes: !!d.mensajes, comunidad: !!d.comunidad,
       })).catch(() => {});
-    fetch("/api/dashboard/mensajes?limit=1&solo_conteo=true").then(r => r.json())
-      .then(d => setMensajes(d.no_leidos || 0)).catch(() => {});
   }, []);
 
   const bloqueado = (llave) => ({
