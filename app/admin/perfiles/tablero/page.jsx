@@ -49,7 +49,7 @@ export default function TableroCandidatasPage() {
           </div>
         </div>
         <Link href="/admin/perfiles" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: T.primary, textDecoration: "none", background: T.lilac, padding: "9px 14px", borderRadius: 10 }}>
-          <List size={15} /> Ver como lista
+          <List size={15} /> Listado de perfiles
         </Link>
       </div>
       {candidatas === null

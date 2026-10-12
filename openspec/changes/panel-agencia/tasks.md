@@ -19,6 +19,12 @@
 - [x] 3.3 `/agencia`: tablero; `/agencia/candidatas/[id]`: ficha con etapa, mover, descargar y presentación
 - [x] 3.4 Menú de la agencia; retirar `perfiles`, `documentos`, `reportes`, `configuracion`
 
+## 3b. Ajustes tras la revisión de Daniel (2026-10-12)
+
+- [x] 3b.1 `TableroEtapas`: las salidas como últimas columnas de la misma fila
+- [x] 3b.2 `TableroEtapas`: vista «Lista» con el mismo menú para mover; la vista elegida se recuerda
+- [ ] 3b.3 Verificar en Playwright: agencia y admin, tablero y lista; mover desde la lista
+
 ## 4. Verificación
 
 - [x] 4.1 `npm run build` y `node scripts/pruebas-humo.mjs`

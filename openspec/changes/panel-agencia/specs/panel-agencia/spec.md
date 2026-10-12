@@ -23,6 +23,20 @@ La agencia SHALL entrar a un tablero con el mismo componente que el del admin, c
 - **WHEN** la agencia mueve a una candidata de Elección de plan a Pago confirmado
 - **THEN** la candidata queda en Pago confirmado y su línea de tiempo lo muestra, con la fecha
 
+#### Scenario: Las salidas van al final del camino
+
+- **WHEN** la agencia (o el admin) abre el tablero
+- **THEN** «No continúa» (y «No califica», en el del admin) aparece como la última columna de la misma fila, después de «Completada»
+
+### Requirement: El tablero también se ve como lista
+
+El tablero SHALL ofrecer dos vistas de las mismas candidatas, «Tablero» y «Lista», con el mismo componente para el admin y la agencia. La lista SHALL mostrar por candidata: nombre, etapa, tiempo en la etapa, teléfono, correo, ciudad y porcentaje diligenciado (y la agencia, en la del admin), ordenada por etapa, con el mismo menú para moverla y un acceso a su ficha. La vista elegida SHALL recordarse en el navegador.
+
+#### Scenario: La agencia cambia a la lista
+
+- **WHEN** la agencia pulsa «Lista» en «Mis candidatas»
+- **THEN** ve sus candidatas en filas, ordenadas por etapa, y puede moverlas desde el menú ⋯ de cada fila
+
 ### Requirement: La agencia abre la misma ficha, con sus permisos
 
 La agencia SHALL ver la ficha de su candidata con el mismo componente que la candidata y el equipo: perfil, documentos, línea de tiempo y la presentación del equipo. SHALL poder mover la etapa y descargar el perfil (hoja de vida en PDF y documentos). NO SHALL poder editar el perfil, escribir observaciones, gestionar documentos, ni ver las notas internas o el motivo de una decisión.
