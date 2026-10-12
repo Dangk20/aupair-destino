@@ -12,6 +12,7 @@ import { DOCS_REQUERIDOS } from "@/lib/documentos";
 import {
   observacionesDeDocumento, atenderObservaciones, respuestaDocumentoCerrado,
 } from "@/lib/bloqueo-perfil";
+import { registrarSiListaParaRevision } from "@/lib/historial-aupair";
 
 /* ── GET: documentos subidos por la usuaria ──────────────────────────────── */
 export async function GET(req) {
@@ -119,6 +120,8 @@ export async function POST(req) {
 
     // El reemplazo atiende la observación y el documento se vuelve a cerrar.
     await atenderObservaciones(reabren);
+    // Con la Parte 1 enviada, el último obligatorio la lleva a revisión (R14).
+    await registrarSiListaParaRevision(session.id, { id: session.id, rol: session.rol });
 
     return NextResponse.json({ ok: true, id: docId, url: `/api/documentos/${docId}`, nombre });
   } catch (err) {

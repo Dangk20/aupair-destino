@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereSesion } from "@/lib/session-aupair";
 import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
-import { registrarHecho } from "@/lib/historial-aupair";
+import { registrarHecho, registrarSiListaParaRevision } from "@/lib/historial-aupair";
 
 export async function POST(req) {
   const guard = requiereSesion(req);
@@ -43,6 +43,8 @@ export async function POST(req) {
     if (r.affectedRows) {
       await registrarHecho({ candidataId: session.id, evento: `parte${n}_enviada`, actor: { id: session.id, rol: session.rol } });
     }
+    // Con los documentos ya cargados, enviar la Parte 1 la lleva a revisión.
+    if (n === 1) await registrarSiListaParaRevision(session.id, { id: session.id, rol: session.rol });
     const [[fila]] = await dbAupair.query(`SELECT ${col} AS enviada_at FROM usuarios WHERE id = ?`, [session.id]);
     return NextResponse.json({ ok: true, parte: n, enviada_at: fila.enviada_at });
   } catch (err) {

@@ -96,9 +96,21 @@ export async function GET(req) {
       link: "/dashboard/proceso",
     } : null;
 
+    // Envió la Parte 1 pero le faltan documentos obligatorios (R14): eso es lo
+    // que la separa de la revisión, y es lo que se le dice.
+    const faltanDocs = ctx.etapa === "diligenciando" && ctx.parte1Enviada && ctx.documentosFaltantes.length > 0;
+
     const siguiente = pasos.find((p) => p.id !== "curso" && (p.status === "en_revision" || p.status === "disponible"))
                    || pasos.find((p) => p.status === "disponible");
-    const proximoPaso = siguiente ? {
+    const proximoPaso = faltanDocs ? {
+      id: "perfil",
+      titulo: ctx.documentosFaltantes.length === 1
+        ? "Te falta 1 documento obligatorio para pasar a revisión."
+        : `Te faltan ${ctx.documentosFaltantes.length} documentos obligatorios para pasar a revisión.`,
+      detalle: `Pendientes: ${ctx.documentosFaltantes.join(", ")}.`,
+      link: "/dashboard/documentos",
+      label_boton: "Cargar documentos",
+    } : siguiente ? {
       id: siguiente.id,
       titulo: ctx.etapa === "correcciones" ? "El equipo te pidió corregir algunos datos."
             : siguiente.status === "en_revision" ? `Estamos en «${siguiente.label}».` : `Continúa con: ${siguiente.label}`,
