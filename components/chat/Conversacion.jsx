@@ -5,9 +5,9 @@
 // El mismo para la candidata, la agencia y el admin: lo que cambia sale de
 // `conv.permisos`, que calcula el servidor (lib/conversaciones-aupair.js).
 //
-//   conv.id null      todavía no existe: la agencia ve «Iniciar
-//                     conversación»; la candidata y el admin escriben y el
-//                     primer mensaje la crea.
+//   conv.id null      todavía no existe: quien puede iniciarla (la agencia,
+//                     la suya; el admin, la del equipo) ve «Iniciar
+//                     conversación». La candidata nunca inicia.
 //   permisos.entrar   el admin lee en silencio; «Entrar a la conversación»
 //                     deja el ingreso en el hilo y le habilita escribir.
 //
@@ -66,7 +66,7 @@ export default function Conversacion({ conv, onCambio, vacio = "Aún no hay mens
 
   useEffect(() => { fondo.current?.scrollTo({ top: fondo.current.scrollHeight, behavior: "smooth" }); }, [mensajes.length]);
 
-  /** Crea la conversación (la agencia, con el botón; los demás, con el primer mensaje). */
+  /** Crea la conversación («Iniciar conversación»). */
   const iniciar = async () => {
     const r = await fetch("/api/conversaciones", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -82,15 +82,13 @@ export default function Conversacion({ conv, onCambio, vacio = "Aún no hay mens
     if (!t || ocupado) return;
     setOcupado(true); setError(null);
     try {
-      const convId = id || (await iniciar());
-      if (!convId) return;
-      const r = await fetch(`/api/conversaciones/${convId}/mensajes`, {
+      const r = await fetch(`/api/conversaciones/${id}/mensajes`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contenido: t }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { setError(d.error || "No se pudo enviar."); return; }
       setTexto("");
-      if (!id) onCambio?.(convId); else await traer();
+      await traer();
     } finally { setOcupado(false); }
   };
 
@@ -106,13 +104,15 @@ export default function Conversacion({ conv, onCambio, vacio = "Aún no hay mens
   const pie = { borderRadius: 999, background: "#fff", border: `1px solid ${T.border}`, boxShadow: "0 2px 10px rgba(58,37,48,.05)" };
 
   // ── Sin conversación ──
-  if (!id && conv?.tipo === "agencia") {
+  if (!id) {
     return (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 30, textAlign: "center" }}>
         <MessageSquarePlus size={38} strokeWidth={1.5} style={{ color: T.softText }} />
         {conv.permisos?.iniciar ? (
           <>
-            <div style={{ fontSize: 13.5, color: T.textSoft, maxWidth: 300, lineHeight: 1.5 }}>Todavía no has hablado con esta candidata.</div>
+            <div style={{ fontSize: 13.5, color: T.textSoft, maxWidth: 300, lineHeight: 1.5 }}>
+              {conv?.tipo === "equipo" ? "El equipo todavía no ha hablado con esta candidata." : "Todavía no has hablado con esta candidata."}
+            </div>
             <button type="button" disabled={ocupado} onClick={async () => { setOcupado(true); const n = await iniciar(); setOcupado(false); if (n) onCambio?.(n); }}
               style={{ border: "none", borderRadius: 999, padding: "11px 22px", background: T.primary, color: "#fff", fontFamily: T.font, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>
               Iniciar conversación
@@ -173,7 +173,7 @@ export default function Conversacion({ conv, onCambio, vacio = "Aún no hay mens
               Entrar a la conversación
             </button>
           </div>
-        ) : permisos.escribir || (!id && conv?.permisos?.iniciar) ? (
+        ) : permisos.escribir ? (
           <div style={{ ...pie, display: "flex", alignItems: "flex-end", gap: 8, padding: "6px 6px 6px 18px" }}>
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={1} maxLength={4000}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } }}

@@ -72,7 +72,14 @@ export default function Bandeja({ rol, titulo: encabezado, detalle }) {
       </div>
       <div style={{ overflowY: "auto", flex: 1 }}>
         {lista === null && <div style={{ padding: 20, fontSize: 13, color: T.textSoft }}>Cargando…</div>}
-        {lista && !visibles.length && <div style={{ padding: 20, fontSize: 13, color: T.textSoft }}>No hay conversaciones.</div>}
+        {lista && !visibles.length && (
+          <div style={{ padding: 20, fontSize: 13, color: T.textSoft, lineHeight: 1.5 }}>
+            {busca.trim() ? "Ninguna conversación coincide."
+              : rol === "usuaria" ? "Todavía no tienes conversaciones. Cuando el equipo de Destino Au Pair o tu agencia te escriban, las verás aquí."
+              : rol === "agencia" ? "Todavía no tienes conversaciones. Para iniciar una, abre a la candidata desde «Mis candidatas»."
+              : "No hay conversaciones. Para iniciar una, abre a la candidata desde el tablero."}
+          </div>
+        )}
         {visibles.map((c) => {
           const sel = clave(c) === activa;
           const sub = subtitulo(c, rol);
@@ -94,7 +101,7 @@ export default function Bandeja({ rol, titulo: encabezado, detalle }) {
                 </div>
                 {sub && <div style={{ fontSize: 11, color: T.primary3, fontWeight: 600 }}>{sub}</div>}
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: T.textSoft, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.ultimo || (c.id ? "" : "Escribe el primer mensaje")}</span>
+                  <span style={{ fontSize: 12, color: T.textSoft, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.ultimo || ""}</span>
                   {c.no_leidos > 0 && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: T.primary, borderRadius: 999, padding: "1px 7px", flexShrink: 0 }}>{c.no_leidos}</span>}
                 </div>
               </div>
@@ -115,7 +122,7 @@ export default function Bandeja({ rol, titulo: encabezado, detalle }) {
         </div>
       </div>
       <Conversacion key={clave(abierta)} conv={abierta} onCambio={(id) => cargar(id)}
-        vacio={rol === "usuaria" && abierta.tipo === "equipo" ? "Este es tu canal directo con Destino Au Pair. Escríbenos cualquier duda." : "Aún no hay mensajes."} />
+        vacio="Aún no hay mensajes." />
     </div>
   );
 

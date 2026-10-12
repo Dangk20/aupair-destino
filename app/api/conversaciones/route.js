@@ -4,7 +4,8 @@
 // GET ?candidata_id=X    las conversaciones de una candidata, para la vista
 //                        rápida, con las que aún se pueden iniciar (id null)
 // POST { candidata_id }  inicia la conversación de quien pide: la agencia, la
-//                        suya; el admin y la candidata, la del equipo
+//                        suya; el admin, la del equipo. La candidata no
+//                        inicia (403): responde en las que le abren
 //
 // Quién puede qué vive en lib/conversaciones-aupair.js. Lo ajeno → 404.
 import { NextResponse } from "next/server";
@@ -38,6 +39,7 @@ export async function POST(req) {
     const { candidata_id } = await req.json().catch(() => ({}));
     const conv = await iniciar(actorDe(guard.session), candidata_id);
     if (!conv) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+    if (conv.error) return NextResponse.json({ error: conv.error }, { status: conv.status });
     return NextResponse.json({ ok: true, id: conv.id });
   } catch (err) {
     console.error("[POST /api/conversaciones]", err);

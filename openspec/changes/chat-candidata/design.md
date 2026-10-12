@@ -44,7 +44,7 @@
 
 `puede(actor, conversacion)` devuelve `{ leer, escribir, entrar }`:
 
-- **Candidata:** las suyas, y escribe con el permiso `mensajes`.
+- **Candidata:** las suyas, y responde con el permiso `mensajes`. No inicia ninguna (regla de Daniel, 2026-10-12): `POST /api/conversaciones` le da 403.
 - **Agencia:** solo las suyas con candidatas en su `candidata_agencia`; lo ajeno da 404, no 403.
 - **Admin:** lee todas. Escribe en las del equipo, o en las de agencia una vez que entró.
 
@@ -56,10 +56,11 @@ Rutas:
   - agencia: las de sus candidatas;
   - admin: todas;
   - en todos los casos con el último mensaje y los no leídos.
-- `GET /api/conversaciones?candidata_id=X`: las de una candidata, para la vista rápida. Si la candidata no tiene conversación con el equipo, el admin la ve como «por iniciar».
+- `GET /api/conversaciones?candidata_id=X`: las de una candidata, para la vista rápida. Si la conversación todavía no existe, a quien puede iniciarla se le muestra «por iniciar», con su botón: al admin, la del equipo; a la agencia, la suya.
 - `POST /api/conversaciones` `{ candidata_id }`:
   - la agencia inicia la suya;
-  - el admin, la del equipo.
+  - el admin, la del equipo;
+  - la candidata, 403.
   - Es idempotente.
 - `GET /api/conversaciones/[id]/mensajes?desde=<id>`: los mensajes posteriores a `desde`. Marca la conversación como leída para quien la pide.
 - `POST /api/conversaciones/[id]/mensajes` `{ contenido }`: máximo 4000 caracteres.

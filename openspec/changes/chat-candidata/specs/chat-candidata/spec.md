@@ -2,7 +2,9 @@
 
 ### Requirement: Cada candidata tiene una conversación con el equipo y otra con su agencia
 
-Cada candidata SHALL tener a lo sumo una conversación con el equipo de Destino Au Pair y a lo sumo una con cada agencia. La conversación con la agencia SHALL existir sólo si la agencia tiene a la candidata en `candidata_agencia`. Pueden escribir en ella la candidata y la agencia, y el admin una vez que entró. La candidata SHALL poder escribir al equipo en cualquier momento, con el permiso de mensajes.
+Cada candidata SHALL tener a lo sumo una conversación con el equipo de Destino Au Pair y a lo sumo una con cada agencia. La conversación con la agencia SHALL existir sólo si la agencia tiene a la candidata en `candidata_agencia`. Pueden escribir en ella la candidata y la agencia, y el admin una vez que entró.
+
+Las conversaciones SHALL iniciarlas sólo el admin (la del equipo) y la agencia (la suya), con el botón «Iniciar conversación». La candidata NO SHALL iniciar ninguna: responde, con el permiso de mensajes, en las que le abrieron.
 
 #### Scenario: La agencia inicia la conversación
 
@@ -14,10 +16,15 @@ Cada candidata SHALL tener a lo sumo una conversación con el equipo de Destino 
 - **WHEN** una agencia pide la conversación de una candidata que no está en su `candidata_agencia`
 - **THEN** recibe 404 y no se crea nada
 
-#### Scenario: La candidata no inicia la conversación con la agencia
+#### Scenario: El admin inicia la conversación con el equipo
 
-- **WHEN** la candidata tiene agencia pero la agencia no ha iniciado la conversación
-- **THEN** en «Mensajes» ve sólo la conversación con el equipo
+- **WHEN** el admin abre la vista rápida de una candidata sin conversación con el equipo y pulsa «Iniciar conversación»
+- **THEN** se crea la conversación y el admin puede escribir; la candidata la ve en «Mensajes»
+
+#### Scenario: La candidata no inicia conversaciones
+
+- **WHEN** la candidata no tiene ninguna conversación abierta por el equipo ni por su agencia
+- **THEN** en «Mensajes» no ve ninguna conversación ni ningún botón para iniciarla, y si intenta crearla por la API recibe 403
 
 ### Requirement: El admin supervisa las conversaciones de la agencia
 

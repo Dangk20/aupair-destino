@@ -27,6 +27,7 @@
 
 - [x] 4b.1 En la lista, dos íconos por fila: ojo → perfil completo; burbuja → vista rápida (chat). Se queda el ⋯ para mover
 - [x] 4b.2 Los mensajes del equipo de Destino Au Pair, en ámbar (`T.amberBg` / `T.amberLine`), como su aviso de ingreso
+- [x] 4b.4 Sólo el admin y la agencia inician conversaciones (botón «Iniciar conversación»); la candidata no: 403 en la API y sin conversación por iniciar en su bandeja
 - [x] 4b.3 «Mensajes» en el menú de la agencia (R16) y del admin, con el conteo de no leídos
 
 ## 5. Verificación
@@ -45,7 +46,7 @@
 - Agencia 22 en el navegador: la tarjeta abre la vista rápida («Iniciar conversación» → escribe); «Ver perfil» → `/agencia/candidatas/15`; en la lista, el ojo lleva a la ficha y la burbuja abre el chat.
 - Candidata 15 (API): ve la conversación de la agencia con 1 no leído y responde; el tablero de la agencia da `no_leidos: 1` y vuelve a 0 al abrirla.
 - Admin: lee la conversación de agencia sin ingreso en el hilo; escribir sin entrar → 409; en el navegador ve «Estás leyendo…», pulsa «Entrar», aparece «Entraste a la conversación» y se habilita la caja; entrar dos veces deja un solo ingreso; la candidata ve «Revision Admin del equipo de Destino Au Pair entró a la conversación».
-- Candidata 14 en el navegador: sin conversación con el equipo, escribe y el primer mensaje la crea; al admin le aparece con 1 no leído.
+- Regla «sólo el admin y la agencia inician»: la candidata 14, sin conversaciones, ve «Todavía no tienes conversaciones…» sin caja ni botón; `POST /api/conversaciones` como candidata → 403. El admin abre la vista rápida de Laura, ve «Iniciar conversación», la inicia y escribe; Laura la ve en «Mensajes» con 1 no leído y puede responder. La candidata 15 sigue respondiendo en la de su agencia.
 - Agencia 12 (ajena) sobre la conversación 5: leer, escribir, iniciar, entrar y `?candidata_id=15` → 404. Candidata 14 sobre la 5 → 404. Asociada: bandeja vacía y 404. La agencia no puede entrar (400).
 - La fila del tablero que alimenta la vista rápida no trae notas internas, motivo ni score del equipo.
 - `npm run build` bien; `pruebas-humo.mjs`: 632 en verde, 0 en rojo. (Los íconos de la lista y el color del equipo se hicieron después del build; cargan sin errores en dev.)
