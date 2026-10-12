@@ -8,6 +8,7 @@ import {
   avisarBienvenida,
 } from "@/lib/notificaciones-aupair";
 import { validaFechaNacimiento } from "@/lib/campos-perfil";
+import { registrarHecho } from "@/lib/historial-aupair";
 
 export async function POST(req) {
   try {
@@ -142,6 +143,11 @@ export async function POST(req) {
       codigo_referido: codigo_referido?.toUpperCase() || null,
     });
     avisarBienvenida(nuevoUsuarioId);
+    // Primer hecho de su línea de tiempo.
+    await registrarHecho({
+      candidataId: nuevoUsuarioId, evento: "registro",
+      actor: creadaPorAdmin ? { id: getSessionFromRequest(req).id, rol: "admin" } : { id: nuevoUsuarioId, rol: "usuaria" },
+    });
 
     // ── Token y cookie ──────────────────────────────────────────────────────
     // Esta ruta sirve a dos flujos distintos:

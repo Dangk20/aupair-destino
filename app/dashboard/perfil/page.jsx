@@ -39,6 +39,8 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
   // Lo que el equipo le pidió corregir y qué partes ya envió (R3).
   const [revision, setRevision] = useState({ observaciones: [], enviadas: {} });
+  // Etapa e historial para la pestaña Recorrido.
+  const [recorrido, setRecorrido] = useState(null);
 
   const cargar = () => {
     const safe = (p, fb = null) =>
@@ -48,10 +50,12 @@ export default function PerfilPage() {
       safe(fetch("/api/auth/me"), { user: null }),
       safe(fetch("/api/dashboard/perfil"), null),
       safe(fetch("/api/dashboard/observaciones"), null),
-    ]).then(([me, perf, obs]) => {
+      safe(fetch("/api/dashboard/historial"), null),
+    ]).then(([me, perf, obs, hist]) => {
       setUser(me?.user || null);
       setPerfil(perf?.perfil || null);
       setRevision({ observaciones: obs?.observaciones || [], enviadas: obs?.enviadas || {} });
+      setRecorrido(hist ? { etapa: hist.etapa, agencia: hist.agencia?.nombre || null, historial: hist.historial || [] } : null);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -82,6 +86,7 @@ export default function PerfilPage() {
         observaciones={revision.observaciones}
         onObservacion={cargar}
         enviadas={revision.enviadas}
+        recorrido={recorrido}
         isMobile={isMobile}
       />
 

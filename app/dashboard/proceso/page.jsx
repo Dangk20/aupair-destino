@@ -8,16 +8,9 @@ import Link from "next/link";
 import { Bell, Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+import LineaDeTiempo from "@/components/perfil/LineaDeTiempo";
+import { etapaPorId } from "@/lib/etapas-candidata";
 
-const DESC = {
-  curso:             "Tu formación para entender todo el proceso.",
-  cuentanos_de_ti:   "Completa tu perfil para presentarte ante una agencia.",
-  evaluacion_perfil: "Nuestro equipo revisa tu perfil (1–3 días hábiles).",
-  perfil_agencia:    "Presentamos tu perfil a una agencia aliada.",
-  match:             "La agencia te acepta. El momento soñado.",
-  visa:              "Tramitamos tu visa para viajar.",
-  viaje:             "Preparación final y ¡despegas!",
-};
 
 export default function MiDestinoPage() {
   const router = useRouter();
@@ -25,6 +18,8 @@ export default function MiDestinoPage() {
   const [user,setUser]=useState(null); const [pasos,setPasos]=useState([]);
   const [reunion,setReunion]=useState(null); const [docs,setDocs]=useState({count:0,total:0});
   const [loading,setLoading]=useState(true);
+  // Etapa, agencia e historial: la línea de tiempo compartida con la ficha.
+  const [recorrido,setRecorrido]=useState(null);
 
   useEffect(() => {
     const safe=(p,fb=null)=>p.then(r=>{ if(r.status===401){router.push("/login");return fb;} return r.json().catch(()=>fb); }).catch(()=>fb);
@@ -33,7 +28,9 @@ export default function MiDestinoPage() {
       safe(fetch("/api/dashboard/proceso"),null),
       safe(fetch("/api/dashboard/reunion"),null),
       safe(fetch("/api/dashboard/documentos"),{docs:[],docs_requeridos:[]}),
-    ]).then(([me,proc,reu,dd])=>{
+      safe(fetch("/api/dashboard/historial"),null),
+    ]).then(([me,proc,reu,dd,hist])=>{
+      setRecorrido(hist);
       setUser(me?.user||null); setPasos(proc?.pasos||[]); setReunion(reu?.reunion||null);
       const total=(dd?.docs_requeridos||[]).length;
       const subidos=new Set((dd?.docs||[]).map(d=>d.tipo_doc));
@@ -96,42 +93,17 @@ export default function MiDestinoPage() {
             <div style={{ opacity:.9 }}><Star size={40}/></div>
           </div>
           <div style={{ position:"relative",marginTop:22,display:"flex",gap:26 }}>
-            <div><div style={{ fontSize:11,opacity:.65 }}>ETAPA ACTUAL</div><div style={{ fontWeight:700,fontSize:15,marginTop:2 }}>{actual?.label||"—"}</div></div>
+            <div><div style={{ fontSize:11,opacity:.65 }}>ETAPA ACTUAL</div><div style={{ fontWeight:700,fontSize:15,marginTop:2 }}>{etapaPorId(recorrido?.etapa)?.label||actual?.label||"—"}</div></div>
             <div><div style={{ fontSize:11,opacity:.65 }}>SELLOS</div><div style={{ fontWeight:700,fontSize:15,marginTop:2 }}>{sellos} / {totalPasos}</div></div>
           </div>
         </div>
 
-        {/* SELLOS DE VIAJE */}
-        <div style={{ fontSize:15,fontWeight:700,color:T.text }}>Tus sellos de viaje</div>
-        <div style={{ display:"flex",flexDirection:"column" }}>
-          {pasos.map((p,i) => {
-            const st=est(p.status), done=st==="done", cur=st==="current", last=i===pasos.length-1;
-            const sb={ width:50,height:50,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 };
-            const stamp = done ? {...sb,background:T.ink,color:"#F2D9E1",border:`2px solid ${T.primary3}`,transform:"rotate(-8deg)"}
-                        : cur  ? {...sb,background:"#fff",border:`3px solid ${T.primary3}`,color:T.primary3,animation:"pulsering 2s infinite"}
-                               : {...sb,background:T.lilac,color:T.softText};
-            const body = done ? { background:"#fff",boxShadow:T.shadow }
-                       : cur  ? { background:"linear-gradient(135deg,#FCE8EE,#F7E4EA)" }
-                              : { background:"#fff",border:`1px dashed ${T.border}` };
-            const chip = done ? { t:"Sellado", c:T.primary, bg:T.lilac }
-                       : cur  ? { t:"En curso", c:"#fff", bg:T.primary3 }
-                              : { t:"Próximamente", c:T.softText, bg:T.softFill };
-            return (
-              <div key={p.id} style={{ display:"flex",gap:16 }}>
-                <div style={{ display:"flex",flexDirection:"column",alignItems:"center" }}>
-                  <div style={stamp}>{done ? <Check size={22}/> : cur ? <Star size={22}/> : <span style={{ fontWeight:700 }}>{i+1}</span>}</div>
-                  {!last && <div style={{ width:3,flex:1,minHeight:20,background:done?T.primary3:T.softLine,margin:"4px 0" }}/>}
-                </div>
-                <div style={{ flex:1,borderRadius:16,padding:14,marginBottom:14,...body }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",gap:8 }}>
-                    <div style={{ fontWeight:700,fontSize:14.5,color:T.text }}>{i+1}. {p.label}</div>
-                    <div style={{ fontSize:11,fontWeight:700,color:chip.c,background:chip.bg,padding:"4px 11px",borderRadius:12,whiteSpace:"nowrap" }}>{chip.t}</div>
-                  </div>
-                  <div style={{ fontSize:12.5,color:T.textSoft,marginTop:4,lineHeight:1.5 }}>{p.nota || DESC[p.id] || p.sublabel || ""}</div>
-                </div>
-              </div>
-            );
-          })}
+        {/* EL RECORRIDO — la misma línea de tiempo que ve el equipo en tu ficha */}
+        <div style={{ fontSize:15,fontWeight:700,color:T.text }}>Tu recorrido</div>
+        <div style={{ background:"#fff",borderRadius:20,padding:isMobile?16:22,boxShadow:T.shadow }}>
+          {recorrido
+            ? <LineaDeTiempo etapa={recorrido.etapa} agencia={recorrido.agencia?.nombre} historial={recorrido.historial} modo="propio"/>
+            : <div style={{ fontSize:13,color:T.textSoft }}>No pudimos cargar tu recorrido. Intenta de nuevo en un momento.</div>}
         </div>
       </div>
 

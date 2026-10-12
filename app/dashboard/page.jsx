@@ -59,12 +59,13 @@ export default function DashboardPage() {
 
   // Pasos reales de proceso → etapas del "ruta al sueño"
   const pasosSrc = proceso?.pasos?.length>0 ? proceso.pasos : [
-    { id:"curso",            label:"Curso",            status: cursoCompleto?"completado":"disponible" },
-    { id:"documentos",       label:"Documentos",       status: tieneAcceso?"disponible":"bloqueado" },
-    { id:"evaluacion_perfil",label:"Evaluación",       status:"bloqueado" },
-    { id:"perfil_agencia",   label:"Agencia",          status:"bloqueado" },
-    { id:"match",            label:"Match",            status:"bloqueado" },
-    { id:"viaje",            label:"Visa & Viaje",     status:"bloqueado" },
+    // Respaldo si /api/dashboard/proceso falla: los mismos ids que devuelve.
+    { id:"curso",      label:"Curso",     status: cursoCompleto?"completado":"disponible" },
+    { id:"perfil",     label:"Tu perfil", status: tieneAcceso?"disponible":"bloqueado" },
+    { id:"revision",   label:"Revisión",  status:"bloqueado" },
+    { id:"agencia",    label:"Agencia",   status:"bloqueado" },
+    { id:"visa",       label:"Visa",      status:"bloqueado" },
+    { id:"completada", label:"¡Lista!",   status:"bloqueado" },
   ];
   const estado = (s) => s==="completado" ? "done" : (s==="disponible"||s==="en_revision") ? "current" : "soon";
 
@@ -73,8 +74,8 @@ export default function DashboardPage() {
   const docsSubidos = new Set((docsData?.docs||[]).map(d=>d.tipo_doc));
   const docsCount   = (docsData?.docs_requeridos||[]).filter(r=>docsSubidos.has(r.tipo)).length;
   const docsListos  = docsTotal>0 && docsCount>=docsTotal;
-  // Perfil (ambas partes) completo → el paso "cuentanos_de_ti" sellado
-  const perfilListo = proceso?.pasos?.find(p=>p.id==="cuentanos_de_ti")?.status==="completado";
+  // Perfil enviado → el paso "perfil" sellado
+  const perfilListo = proceso?.pasos?.find(p=>p.id==="perfil")?.status==="completado";
 
   // Hero: próximo paso REAL. Prioridad de acciones de la candidata; si ya hizo
   // todo lo suyo, usa el proximoPaso del proceso (que incluye "esperar / en revisión").

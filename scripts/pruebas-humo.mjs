@@ -69,7 +69,7 @@ const ID_FANTASMA = 999999999;
    la prueba de cobertura falla. Niveles: publica | sesion | rol:a,b | permiso:x
    Project Center ya no existe: se retiró en el Sprint 1, grupo 6. */
 const INVENTARIO = [
-  ["PUT", "/admin/aprobar-evaluacion", "rol:admin"],
+  ["GET", "/admin/agencias", "rol:admin"],
   ["GET", "/admin/asesoras", "rol:admin"],
   ["GET", "/admin/asociadas", "rol:admin"],
   ["POST", "/admin/asociadas", "rol:admin"],
@@ -110,6 +110,10 @@ const INVENTARIO = [
   ["GET", "/admin/perfiles/[id]/observaciones", "rol:admin"],
   ["PATCH", "/admin/perfiles/[id]/observaciones", "rol:admin"],
   ["POST", "/admin/perfiles/[id]/observaciones", "rol:admin"],
+  ["PUT", "/admin/perfiles/[id]/decision", "rol:admin"],
+  ["PUT", "/admin/perfiles/[id]/etapa", "rol:admin"],
+  ["GET", "/admin/perfiles/[id]/historial", "rol:admin"],
+  ["GET", "/admin/tablero", "rol:admin"],
   ["DELETE", "/admin/recursos", "rol:admin"],
   ["GET", "/admin/recursos", "rol:admin"],
   ["POST", "/admin/recursos", "rol:admin"],
@@ -173,12 +177,12 @@ const INVENTARIO = [
   ["POST", "/dashboard/foto", "sesion"],
   ["GET", "/dashboard/mensajes", "permiso:mensajes"],
   ["POST", "/dashboard/mensajes", "permiso:mensajes"],
+  ["GET", "/dashboard/historial", "sesion"],
   ["GET", "/dashboard/observaciones", "sesion"],
   ["GET", "/dashboard/perfil", "sesion"],
   ["PUT", "/dashboard/perfil", "sesion"],
   ["POST", "/dashboard/perfil/enviar", "sesion"],
   ["GET", "/dashboard/proceso", "sesion"],
-  ["PUT", "/dashboard/proceso", "rol:admin"],
   ["GET", "/dashboard/recursos", "permiso:recursos"],
   ["DELETE", "/dashboard/reuniones", "permiso:reuniones"],
   ["GET", "/dashboard/reuniones", "permiso:reuniones"],

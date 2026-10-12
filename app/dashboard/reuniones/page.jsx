@@ -303,7 +303,7 @@ export default function ReunionesPage() {
   /* ── Próximamente ── */
   return <ComingSoon titulo="El calendario de reuniones" detalle="Muy pronto podrás agendar tus reuniones con la asesora desde aquí. Por ahora las coordinamos por WhatsApp."/>;
 
-  const fasesComp = proceso?.pasos?.filter(p=>["evaluacion_perfil","perfil_agencia","match","visa","viaje"].includes(p.id)&&p.status==="completado")?.length||0;
+  const fasesComp = proceso?.pasos?.filter(p=>["revision","agencia","plan","pago","visa","completada"].includes(p.id)&&p.status==="completado")?.length||0;
   const hoyStr = fechaStr(hoy);
 
   return (

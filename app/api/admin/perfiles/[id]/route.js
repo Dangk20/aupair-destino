@@ -50,7 +50,7 @@ export async function PUT(req, { params }) {
     // Nunca tocar estas columnas desde el admin de perfiles.
     //
     // `evaluacion_aprobada` está aquí porque aprobar a una candidata es un acto
-    // con nombre propio y un solo dueño: PUT /api/admin/aprobar-evaluacion, que
+    // con nombre propio y un solo dueño: PUT /api/admin/perfiles/[id]/decision, que
     // además comprueba que el perfil esté completo. Aceptarla también aquí la
     // dejaba con dos dueños, y editar la estatura podía aprobar un perfil sin
     // que nada lo dijera. Es la misma regla que rige las ventas en
@@ -59,6 +59,11 @@ export async function PUT(req, { params }) {
       "id","email","password","rol","created_at","evaluacion_aprobada",
       // El envío de cada parte es un acto de la candidata (perfil/enviar).
       "parte1_enviada_at","parte2_enviada_at",
+      // La decisión del equipo tiene su propia ruta (.../decision), que además
+      // crea la relación con la agencia y deja el hecho en el historial.
+      "decision_dap","decision_dap_at","decision_dap_motivo",
+      // Ya no se escriben desde la ficha: la etapa y el score se calculan.
+      "estado_agencia","calificacion_dap","score_dap",
     ]);
 
     // Mismas reglas de valor que el formulario de la candidata: el admin

@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Clock as ClockIcon, AlertTriangle, Award, MapPin, Users as UsersIcon,
+  LayoutGrid as LayoutGridIcon, Clock as ClockIcon, AlertTriangle, Award, MapPin, Users as UsersIcon,
   SearchIcon, DownloadIcon, EyeIcon, PencilIcon,
   ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon,
 } from "lucide-react";
@@ -112,10 +112,17 @@ export default function AdminPerfilesPage() {
             <h1 style={{ fontFamily:"Georgia,serif", fontSize:26, fontWeight:700, color:"#4A2A38", margin:0 }}>Candidatas</h1>
             <p style={{ fontSize:13, color:"#9C8790", margin:"4px 0 0" }}>Revisa y aprueba los perfiles de las candidatas</p>
           </div>
-          <button onClick={exportarLista}
-            style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #F5E1E7", background:"#fff", color:"#4A2A38", fontSize:13, fontWeight:600, padding:"10px 18px", borderRadius:12, cursor:"pointer", fontFamily:"inherit" }}>
-            <DownloadIcon size={14}/> Exportar
-          </button>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            {/* El mismo universo de candidatas, por etapa (etapas-candidata) */}
+            <button onClick={()=>router.push("/admin/perfiles/tablero")}
+              style={{ display:"flex", alignItems:"center", gap:7, border:"none", background:"#A0435F", color:"#fff", fontSize:13, fontWeight:600, padding:"10px 18px", borderRadius:12, cursor:"pointer", fontFamily:"inherit" }}>
+              <LayoutGridIcon size={14}/> Ver tablero
+            </button>
+            <button onClick={exportarLista}
+              style={{ display:"flex", alignItems:"center", gap:7, border:"1.5px solid #F5E1E7", background:"#fff", color:"#4A2A38", fontSize:13, fontWeight:600, padding:"10px 18px", borderRadius:12, cursor:"pointer", fontFamily:"inherit" }}>
+              <DownloadIcon size={14}/> Exportar
+            </button>
+          </div>
         </div>
 
         <div style={{ display:"flex", marginBottom:24, background:"#fff", borderRadius:14, border:"1px solid #F5E1E7", overflow:"hidden", width:"fit-content" }}>

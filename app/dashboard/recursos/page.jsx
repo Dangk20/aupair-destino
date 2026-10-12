@@ -74,7 +74,7 @@ export default function RecursosPage() {
     .filter(r=>!busqueda||r.titulo.toLowerCase().includes(busqueda.toLowerCase())||(r.descripcion||"").toLowerCase().includes(busqueda.toLowerCase()))
     .sort((a,b)=>ordenar==="az"?a.titulo.localeCompare(b.titulo):new Date(b.created_at||0)-new Date(a.created_at||0));
 
-  const fasesCompletadas = proceso?.pasos?.filter(p=>["evaluacion_perfil","perfil_agencia","match","visa","viaje"].includes(p.id)&&p.status==="completado")?.length||0;
+  const fasesCompletadas = proceso?.pasos?.filter(p=>["revision","agencia","plan","pago","visa","completada"].includes(p.id)&&p.status==="completado")?.length||0;
   const pctProceso = Math.round((fasesCompletadas/5)*100);
 
   return <ComingSoon titulo="El centro de recursos" detalle="Estamos preparando guías, plantillas y materiales para tu proceso. Muy pronto disponibles aquí."/>;

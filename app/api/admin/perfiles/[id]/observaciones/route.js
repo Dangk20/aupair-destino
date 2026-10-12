@@ -9,6 +9,7 @@ import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import { elementoValido } from "@/lib/observaciones-perfil";
 import { avisarObservaciones } from "@/lib/notificaciones-aupair";
+import { registrarHecho } from "@/lib/historial-aupair";
 
 /* ── GET: todas las observaciones de la candidata ── */
 export async function GET(req, { params }) {
@@ -64,6 +65,17 @@ export async function POST(req, { params }) {
     );
 
     avisarObservaciones(Number(id));
+
+    // Un hecho por tanda: varias observaciones el mismo día son una sola
+    // "le pidieron correcciones" en su línea de tiempo.
+    const [[yaHoy]] = await dbAupair.query(
+      `SELECT id FROM historial_candidata
+       WHERE candidata_id = ? AND evento = 'correcciones' AND DATE(created_at) = CURDATE() LIMIT 1`,
+      [id]
+    );
+    if (!yaHoy) {
+      await registrarHecho({ candidataId: Number(id), evento: "correcciones", actor: { id: session.id, rol: "admin" } });
+    }
 
     const [[creada]] = await dbAupair.query("SELECT * FROM observaciones_perfil WHERE id = ?", [r.insertId]);
     return NextResponse.json({ ok: true, observacion: creada });

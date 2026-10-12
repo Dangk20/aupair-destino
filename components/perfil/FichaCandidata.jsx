@@ -33,13 +33,14 @@ import {
   Pencil, MapPin, Mail, Cake, CheckCircle2, Clock, Paperclip, ListChecks,
   User, ClipboardCheck, Briefcase, Heart, Baby, Plane,
   GraduationCap, Car, Sparkles, MessageCircle, HeartPulse, UserCheck,
-  Image as ImageIcon,
+  Image as ImageIcon, Milestone,
 } from "lucide-react";
 import { T } from "@/lib/tema";
 import {
   PARTE1, PARTE2, valorParaMostrar, perfilCompleto, camposFaltantes,
 } from "@/lib/campos-perfil";
 import PestanaDocumentos from "./PestanaDocumentos";
+import LineaDeTiempo from "./LineaDeTiempo";
 import {
   ObservarElemento, PanelObservaciones, NotaObservacion, observacionesDe, seccionConCorreccion,
 } from "./Observaciones";
@@ -79,6 +80,9 @@ const SECCIONES = PARTES.flatMap(p =>
 //   DOCUMENTOS la documentación. Va última, y siempre.
 const PROGRESO   = "progreso";
 const DOCUMENTOS = "documentos";
+//   RECORRIDO  la línea de tiempo: etapas e historial. La misma que ve la
+//              candidata en "Mi Destino". Sólo si la pantalla la trae.
+const RECORRIDO  = "recorrido";
 
 const edad = (fecha) => {
   if (!fecha) return null;
@@ -192,6 +196,8 @@ function FotosCedula({ perfil }) {
  *                                       gestiona aquí; la candidata las ve junto
  *                                       a cada elemento
  * @param {function} onObservacion       en "revision", recargar tras crear/cambiar
+ * @param {object}   recorrido           { etapa, agencia, historial } para la
+ *                                       pestaña Recorrido (línea de tiempo)
  * @param {object}   enviadas            { 1: fecha|null, 2: fecha|null } — una
  *                                       parte enviada ya no ofrece "Editar"
  * @param {boolean}  isMobile
@@ -208,6 +214,7 @@ export default function FichaCandidata({
   observaciones = [],
   onObservacion,
   enviadas = {},
+  recorrido = null,
   isMobile = false,
 }) {
   // Empieza sin decidir: cuál es la primera pestaña depende de si el perfil
@@ -329,7 +336,7 @@ export default function FichaCandidata({
           acciones y no para indicar dónde estás.
 
           Progreso primero y sólo si falta algo; Documentos último y siempre. */}
-      <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4, scrollbarWidth:"thin" }}>
+      <div id="secciones-ficha" style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4, scrollbarWidth:"thin", scrollMarginTop:20 }}>
         {!completo && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button onClick={() => setElegida(PROGRESO)} title="Qué falta por diligenciar"
@@ -386,6 +393,21 @@ export default function FichaCandidata({
             Documentos
           </button>
         </div>
+
+        {recorrido && (
+          <button onClick={() => setElegida(RECORRIDO)} title="Etapas e historial"
+            style={{
+              fontFamily:T.font, fontSize:12.5, fontWeight: activa === RECORRIDO ? 700 : 600,
+              padding:"9px 14px", borderRadius:12, cursor:"pointer", background:"#fff",
+              color: activa === RECORRIDO ? T.primary : T.textSoft,
+              border:`1.5px solid ${activa === RECORRIDO ? T.primary : T.border}`,
+              display:"inline-flex", alignItems:"center", gap:7,
+              whiteSpace:"nowrap", flexShrink:0, transition:"all .15s",
+            }}>
+            <Milestone size={15} strokeWidth={activa === RECORRIDO ? 2.2 : 1.8} />
+            Recorrido
+          </button>
+        )}
       </div>
 
       {/* Contenido de la pestaña activa */}
@@ -438,6 +460,10 @@ export default function FichaCandidata({
               </div>
             </div>
           ))}
+        </div>
+      ) : activa === RECORRIDO && recorrido ? (
+        <div style={{ background:"#fff", borderRadius:18, padding:isMobile ? 16 : 22, boxShadow:T.shadow }}>
+          <LineaDeTiempo etapa={recorrido.etapa} agencia={recorrido.agencia} historial={recorrido.historial} modo={modo} />
         </div>
       ) : activa === DOCUMENTOS ? (
         <PestanaDocumentos

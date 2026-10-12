@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereSesion } from "@/lib/session-aupair";
 import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
+import { registrarHecho } from "@/lib/historial-aupair";
 
 export async function POST(req) {
   const guard = requiereSesion(req);
@@ -34,10 +35,14 @@ export async function POST(req) {
 
     // Se conserva la primera fecha de envío: reenviar no la mueve.
     const col = n === 1 ? "parte1_enviada_at" : "parte2_enviada_at";
-    await dbAupair.query(
-      `UPDATE usuarios SET ${col} = COALESCE(${col}, NOW()) WHERE id = ?`,
+    const [r] = await dbAupair.query(
+      `UPDATE usuarios SET ${col} = NOW() WHERE id = ? AND ${col} IS NULL`,
       [session.id]
     );
+    // Sólo el primer envío es un hecho del recorrido.
+    if (r.affectedRows) {
+      await registrarHecho({ candidataId: session.id, evento: `parte${n}_enviada`, actor: { id: session.id, rol: session.rol } });
+    }
     const [[fila]] = await dbAupair.query(`SELECT ${col} AS enviada_at FROM usuarios WHERE id = ?`, [session.id]);
     return NextResponse.json({ ok: true, parte: n, enviada_at: fila.enviada_at });
   } catch (err) {

@@ -42,7 +42,6 @@ Una excepción no declarada es un defecto, no una decisión.
 |---|---|---|---|
 | `/api/admin/disponibilidad` | admin · asociada | La agenda de disponibilidad es compartida: la clienta y sus asesoras publican franjas sobre el mismo calendario. Cada una sólo puede editar o borrar las suyas (verificación de propiedad ya presente en PUT y DELETE). | Sprint 3, al construir el panel de la asociada |
 | `/api/admin/eventos` | admin · asociada | Mismo calendario, mismo motivo. | Sprint 3 |
-| `/api/dashboard/proceso` (PUT) | admin | Vive bajo `/api/dashboard/**` pero escribe el avance del proceso de **otra** persona: es una acción administrativa colocada en el prefijo equivocado. El GET sí es de la candidata. | Sprint 3, al reorganizar módulos |
 
 ## Rutas sin consumidor
 
@@ -125,7 +124,7 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 
 | Ruta | Métodos | Estado | Consumidor |
 |---|---|---|---|
-| `/admin/aprobar-evaluacion` | PUT | ✅ | `/admin/perfiles` |
+| `/admin/agencias` | GET | ✅ | `/admin/perfiles/[id]` (elegir agencia al aprobar) — `etapas-candidata` |
 | `/admin/asesoras` | GET | ✅ | `/admin/reuniones` |
 | `/admin/asociadas` | GET, POST | ✅ | `/admin/asociadas`, `/admin/codigos-promo` |
 | `/admin/asociadas/[id]` | GET, PUT, DELETE | ✅ | `/admin/asociadas/[id]` |
@@ -146,6 +145,10 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/perfiles/[id]/descargar` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]/documentos` | GET, PUT, DELETE | ✅ | `/admin/perfiles/[id]` |
 | `/admin/perfiles/[id]/observaciones` | GET, POST, PATCH | ✅ | `/admin/perfiles/[id]` — change `bloqueo-y-observaciones-perfil` |
+| `/admin/perfiles/[id]/decision` | PUT | ✅ | `/admin/perfiles/[id]` — dueño único de la decisión del equipo; reemplaza a `/admin/aprobar-evaluacion` (`etapas-candidata`) |
+| `/admin/perfiles/[id]/etapa` | PUT | ✅ | `/admin/perfiles/[id]`, `/admin/perfiles/tablero` |
+| `/admin/perfiles/[id]/historial` | GET | ✅ | `/admin/perfiles/[id]` |
+| `/admin/tablero` | GET | ✅ | `/admin/perfiles/tablero` |
 | `/admin/recursos` | GET, POST, DELETE | ✅ | `/admin/sesiones` |
 | `/admin/referidos` | GET, POST | ✅ | `/admin`, `/admin/referidos` |
 | `/admin/referidos/[id]` | PUT, DELETE | ✅ | `/admin/referidos` |
@@ -221,8 +224,8 @@ verifica permiso hoy.
 | `/dashboard/observaciones` | GET | sesión | ✅ — las observaciones de la propia candidata |
 | `/dashboard/perfil` | GET, PUT | sesión | ✅ — PUT rechaza (403) cambios a una parte enviada no cubiertos por una observación |
 | `/dashboard/perfil/enviar` | POST | sesión | ✅ — marca una parte como enviada si está completa |
-| `/dashboard/proceso` | GET | sesión | ✅ |
-| `/dashboard/proceso` | PUT | rol admin | ✅ excepción |
+| `/dashboard/historial` | GET | sesión | ✅ — el historial de la propia candidata, sin lo interno |
+| `/dashboard/proceso` | GET | sesión | ✅ — pasos derivados de las etapas (`etapas-candidata`); el PUT de override se retiró |
 | `/dashboard/recursos` | GET | sesión + `acceso_recursos` | 🔴 |
 | `/dashboard/reuniones` | GET, POST, DELETE | sesión + `acceso_reuniones` | 🔴 |
 | `/dashboard/sesiones` | GET | sesión | ✅ — contenido del curso |

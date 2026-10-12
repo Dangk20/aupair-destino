@@ -15,11 +15,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Save, ShieldCheck, CheckCircle2, CircleDashed } from "lucide-react";
+import { ChevronLeft, Save, CheckCircle2, XCircle, Undo2, Eye, EyeOff, MessageSquareWarning } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
 import FichaCandidata from "@/components/perfil/FichaCandidata";
+import { etapaPorId, ETAPAS_AGENCIA } from "@/lib/etapas-candidata";
 
 const IC = {
   width:"100%", border:`1.5px solid ${T.border}`, borderRadius:10,
@@ -31,101 +32,141 @@ const LC = {
   letterSpacing:".7px", display:"block", marginBottom:5,
 };
 
-// Los valores de `estado_agencia`, tal como los guarda hoy la base.
-const ESTADOS_AGENCIA = ["En progreso", "En revisión", "Lista para agencia", "Incompleto", "Aprobada", "Rechazada"];
-const CALIFICACIONES  = ["califica", "requiere_revision", "no_califica"];
-
 /**
- * Valoración interna: lo que el equipo escribe sobre la candidata y que ella
- * NO ve. La ruta `/api/dashboard/perfil` no le devuelve estas columnas, así
- * que ocultarlas aquí no es la única defensa — es la de la interfaz.
+ * La decisión del equipo y lo que el equipo escribe sobre la candidata.
  *
- * El selector "Estado admin" del diseño anterior escribía sobre `estado_perfil`,
- * una columna que NO existe en `usuarios`. Como el PUT descarta las claves que
- * no son columnas, nunca guardó nada: se movía, decía "guardado" y al recargar
- * volvía a "Pendiente". Aquí se usa `estado_agencia`, que sí existe.
+ * Antes eran cinco campos y un "Guardar" que decían lo mismo de tres maneras
+ * (botón Aprobar, Calificación DAP y el estado "Aprobada/Rechazada"), con un
+ * score de 0 a 10 escrito a mano y un letrero "Sólo lo ve el equipo" que no era
+ * cierto: la agencia veía la calificación, el score y la nota. Ahora:
+ *
+ *   · la etapa, la agencia y el score se CALCULAN (lib/etapas-candidata.js);
+ *   · la decisión son tres acciones (PUT .../decision);
+ *   · las dos notas dicen quién las ve.
  */
-function BloqueInterno({ form, set, onGuardar, guardando, aprobacion }) {
-  const aprobado = Number(form.evaluacion_aprobada) === 1;
-  // Un perfil incompleto no se puede aprobar, pero sí se le puede QUITAR la
-  // aprobación: hay perfiles aprobados en producción a los que después les
-  // faltó algo, y dejar el botón muerto sería encerrar a la clienta con una
-  // aprobación que ya no quiere y no puede retirar.
-  const habilitado = aprobado || aprobacion.puede;
+function BloqueDecision({ form, set, estado, agencias, onDecidir, onMover, onGuardarNotas, ocupado, puedeAprobar, faltan }) {
+  const [abierto, setAbierto] = useState(null);       // "aprobar" | "no_califica" | null
+  const [agenciaId, setAgenciaId] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const etapa = etapaPorId(estado?.etapa);
+  const decidida = form.decision_dap;
+  const deAgencia = ETAPAS_AGENCIA.includes(estado?.etapa);
+
+  useEffect(() => { if (agencias.length === 1) setAgenciaId(String(agencias[0].id)); }, [agencias]);
+
+  const BTN = (activo = true) => ({
+    display:"inline-flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10,
+    fontSize:12.5, fontWeight:700, fontFamily:T.font, cursor: activo ? "pointer" : "not-allowed", opacity: activo ? 1 : .5,
+  });
+
   return (
-    <div style={{ background:"#fff", borderRadius:18, padding:20, boxShadow:T.shadow, border:`1.5px solid ${T.border}` }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-          <div style={{ width:32, height:32, borderRadius:10, background:T.lilac, color:T.primary, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <ShieldCheck size={16} />
+    <div style={{ background:"#fff", borderRadius:18, padding:20, boxShadow:T.shadow, border:`1.5px solid ${T.border}`, display:"flex", flexDirection:"column", gap:16 }}>
+      {/* Dónde está: calculado, no escrito */}
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"stretch" }}>
+        {[
+          { k:"ETAPA",   v: etapa?.label || "—", c: estado?.etapa === "no_califica" || estado?.etapa === "no_continua" ? T.danger : T.primary },
+          { k:"AGENCIA", v: estado?.agencia?.nombre || (estado?.etapa === "evaluacion" ? "Sin asignar" : "—"), c: T.ink },
+          { k:"SCORE",   v: estado ? `${estado.score}%` : "—", c: T.ink, ayuda: "Porcentaje de la información diligenciada: campos que le aplican y documentos." },
+        ].map(x => (
+          <div key={x.k} title={x.ayuda} style={{ flex:"1 1 150px", background:T.softFill, borderRadius:12, padding:"10px 14px" }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:".08em", color:T.textSoft }}>{x.k}</div>
+            <div style={{ fontSize:15, fontWeight:700, color:x.c, marginTop:3 }}>{x.v}</div>
           </div>
-          <div>
-            <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>Valoración interna</div>
-            <div style={{ fontSize:11.5, color:T.textSoft }}>Sólo lo ve el equipo. La candidata no.</div>
-          </div>
-        </div>
-        {/* Aprobar es una acción, no un campo: surte efecto sola y no viaja
-            con las otras seis columnas del bloque. Antes vivía en el listado,
-            donde hay que decidir sin ver el perfil. */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-          <button onClick={aprobacion.alternar} disabled={aprobacion.ocupado || !habilitado}
-            title={habilitado
-              ? (aprobado ? "Quitar la aprobación de este perfil" : "Aprobar este perfil")
-              : `No se puede aprobar un perfil incompleto. Falta: ${aprobacion.faltan.join(", ")}`}
-            style={{
-              display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10,
-              fontSize:12.5, fontWeight:700, fontFamily:T.font,
-              cursor: habilitado ? "pointer" : "not-allowed",
-              opacity: habilitado ? 1 : .55,
-              background: aprobado ? T.greenBg : "#fff",
-              color:      aprobado ? T.green   : T.primary,
-              border:`1.5px solid ${aprobado ? T.green : T.primary}`,
-            }}>
-            {aprobacion.ocupado
-              ? "Un momento…"
-              : aprobado
-              ? <><CheckCircle2 size={13} /> Aprobado · quitar</>
-              : <><CircleDashed size={13} /> Aprobar perfil</>}
-          </button>
-
-          <button onClick={onGuardar} disabled={guardando}
-            style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:"none", background:T.primary, color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:T.font }}>
-            {guardando ? "Guardando…" : <><Save size={13} /> Guardar</>}
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:14 }}>
-        <div>
-          <label style={LC}>Estado con la agencia</label>
-          <select value={form.estado_agencia || ""} onChange={e => set("estado_agencia", e.target.value)} style={IC}>
-            <option value="">Seleccionar</option>
-            {ESTADOS_AGENCIA.map(o => <option key={o}>{o}</option>)}
+      {/* La decisión del equipo */}
+      <div>
+        <div style={{ fontSize:14.5, fontWeight:700, color:T.ink }}>Decisión del equipo</div>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:10 }}>
+          {!decidida && (<>
+            <button type="button" disabled={ocupado || !puedeAprobar} onClick={() => setAbierto(abierto === "aprobar" ? null : "aprobar")}
+              title={puedeAprobar ? "Aprobar y enviar a la agencia" : `Falta: ${faltan.join(", ")}`}
+              style={{ ...BTN(puedeAprobar), background:T.green, color:"#fff", border:"none" }}>
+              <CheckCircle2 size={14} /> Aprobar y enviar a la agencia
+            </button>
+            <a href="#secciones-ficha" style={{ ...BTN(), background:T.amberBg, color:T.amber, border:"none", textDecoration:"none" }}
+              title="Usa «Observar» en cada campo, sección o documento">
+              <MessageSquareWarning size={14} /> Pedir correcciones
+            </a>
+            <button type="button" disabled={ocupado} onClick={() => setAbierto(abierto === "no_califica" ? null : "no_califica")}
+              style={{ ...BTN(), background:"#fff", color:T.danger, border:`1.5px solid ${T.dangerBg}` }}>
+              <XCircle size={14} /> No califica
+            </button>
+          </>)}
+          {decidida && (
+            <button type="button" disabled={ocupado} onClick={() => onDecidir({ accion:"revertir" })}
+              style={{ ...BTN(), background:"#fff", color:T.textSoft, border:`1px solid ${T.border}` }}>
+              <Undo2 size={14} /> Revertir decisión
+            </button>
+          )}
+        </div>
+        {!decidida && !puedeAprobar && (
+          <div style={{ fontSize:11.5, color:T.textSoft, marginTop:6 }}>Para aprobar falta: {faltan.join(", ")}</div>
+        )}
+        {decidida === "no_califica" && form.decision_dap_motivo && (
+          <div style={{ fontSize:12.5, color:T.text, marginTop:8, background:T.neutralBg, borderRadius:10, padding:"8px 12px" }}>
+            <strong>Motivo (interno):</strong> {form.decision_dap_motivo}
+          </div>
+        )}
+
+        {abierto === "aprobar" && (
+          <div style={{ marginTop:12, background:T.greenBg, borderRadius:12, padding:12, display:"flex", gap:8, flexWrap:"wrap", alignItems:"center" }}>
+            <label style={{ fontSize:12.5, color:T.ink, fontWeight:600 }}>Agencia</label>
+            <select value={agenciaId} onChange={e => setAgenciaId(e.target.value)} style={{ ...IC, width:"auto", minWidth:220 }}>
+              <option value="">Elegir agencia</option>
+              {agencias.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            </select>
+            <button type="button" disabled={ocupado || !agenciaId}
+              onClick={async () => { if (await onDecidir({ accion:"aprobar", agencia_id:Number(agenciaId) })) setAbierto(null); }}
+              style={{ ...BTN(!!agenciaId), background:T.green, color:"#fff", border:"none" }}>
+              Confirmar aprobación
+            </button>
+          </div>
+        )}
+        {abierto === "no_califica" && (
+          <div style={{ marginTop:12, background:T.dangerBg, borderRadius:12, padding:12 }}>
+            <textarea rows={2} value={motivo} onChange={e => setMotivo(e.target.value)} autoFocus
+              placeholder="Motivo. Es interno: la candidata no lo verá." style={{ ...IC, resize:"vertical" }} />
+            <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
+              <button type="button" disabled={ocupado || !motivo.trim()}
+                onClick={async () => { if (await onDecidir({ accion:"no_califica", motivo })) { setAbierto(null); setMotivo(""); } }}
+                style={{ ...BTN(!!motivo.trim()), background:T.danger, color:"#fff", border:"none" }}>
+                Confirmar «No califica»
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Con la agencia: la etapa se mueve a mano */}
+      {deAgencia && (
+        <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+          <label style={{ fontSize:12.5, color:T.ink, fontWeight:600 }}>Mover etapa</label>
+          <select value={estado.etapa} disabled={ocupado} onChange={e => onMover(e.target.value)} style={{ ...IC, width:"auto", minWidth:220 }}>
+            {ETAPAS_AGENCIA.map(id => <option key={id} value={id}>{etapaPorId(id).label}</option>)}
           </select>
         </div>
-        <div>
-          <label style={LC}>Calificación DAP</label>
-          <select value={form.calificacion_dap || ""} onChange={e => set("calificacion_dap", e.target.value)} style={IC}>
-            <option value="">Sin calificar</option>
-            {CALIFICACIONES.map(o => <option key={o} value={o}>{o.replace(/_/g, " ")}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={LC}>Score DAP</label>
-          <input type="number" step="0.1" min="0" max="10" value={form.score_dap ?? ""}
-            onChange={e => set("score_dap", e.target.value)} style={IC} placeholder="0.0" />
-        </div>
-      </div>
+      )}
 
-      <div style={{ marginTop:14 }}>
-        <label style={LC}>Nota DAP</label>
-        <input value={form.nota_dap || ""} onChange={e => set("nota_dap", e.target.value)} style={IC}
-          placeholder="Una línea sobre la candidata" />
+      {/* Las notas, con quién las ve */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:14 }}>
+        <div>
+          <label style={LC}><Eye size={11} style={{ verticalAlign:"-1px" }} /> Presentación para la agencia · la ve la agencia</label>
+          <textarea rows={3} value={form.nota_dap || ""} onChange={e => set("nota_dap", e.target.value)}
+            style={{ ...IC, resize:"vertical" }} placeholder="Una presentación corta de la candidata" />
+        </div>
+        <div>
+          <label style={LC}><EyeOff size={11} style={{ verticalAlign:"-1px" }} /> Notas internas · sólo el equipo</label>
+          <textarea rows={3} value={form.notas_agencia || ""} onChange={e => set("notas_agencia", e.target.value)}
+            style={{ ...IC, resize:"vertical" }} placeholder="Lo que el equipo necesita recordar" />
+        </div>
       </div>
-      <div style={{ marginTop:14 }}>
-        <label style={LC}>Notas para la agencia</label>
-        <textarea rows={3} value={form.notas_agencia || ""} onChange={e => set("notas_agencia", e.target.value)}
-          style={{ ...IC, resize:"vertical" }} placeholder="Observaciones internas del equipo" />
+      <div style={{ display:"flex", justifyContent:"flex-end" }}>
+        <button type="button" onClick={onGuardarNotas} disabled={ocupado}
+          style={{ ...BTN(), background:T.primary, color:"#fff", border:"none" }}>
+          <Save size={13} /> Guardar notas
+        </button>
       </div>
     </div>
   );
@@ -139,7 +180,9 @@ export default function AdminFichaCandidataPage() {
   const [cargando, setCargando]   = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso]         = useState(null);
-  const [aprobando, setAprobando] = useState(false);
+  // Etapa, agencia, score e historial (GET .../historial), y las agencias para aprobar.
+  const [estado, setEstado]       = useState(null);
+  const [agencias, setAgencias]   = useState([]);
   // Observaciones del perfil (R3): crearlas abre el elemento a corrección.
   const [observaciones, setObservaciones] = useState([]);
 
@@ -148,56 +191,67 @@ export default function AdminFichaCandidataPage() {
       .then(r => r.json())
       .then(d => setObservaciones(d.observaciones || []))
       .catch(() => {});
-
-  useEffect(() => {
+  const cargarEstado = () =>
+    fetch(`/api/admin/perfiles/${id}/historial`)
+      .then(r => r.json())
+      .then(d => setEstado(d.etapa ? d : null))
+      .catch(() => {});
+  const cargarPerfil = () =>
     fetch(`/api/admin/perfiles/${id}`)
       .then(r => r.json())
       .then(d => { setPerfil(d.perfil || null); setCargando(false); })
       .catch(() => setCargando(false));
+
+  useEffect(() => {
+    cargarPerfil();
     cargarObservaciones();
+    cargarEstado();
+    fetch("/api/admin/agencias").then(r => r.json()).then(d => setAgencias(d.agencias || [])).catch(() => {});
   }, [id]);
+
+  // Una observación nueva cambia la etapa (Con correcciones): se recargan las dos.
+  const alObservar = () => { cargarObservaciones(); cargarEstado(); };
 
   const set   = (k, v) => setPerfil(p => ({ ...p, [k]: v }));
   const decir = (msg, tipo = "ok") => { setAviso({ msg, tipo }); setTimeout(() => setAviso(null), 3000); };
 
-  // Se guarda sólo la valoración interna, no la fila entera: reenviar el perfil
-  // completo desde una pantalla de lectura escribiría de vuelta todo lo que la
-  // candidata haya cambiado entretanto.
-  const guardarInterno = async () => {
+  // Se guardan sólo las dos notas: reenviar el perfil completo desde una
+  // pantalla de lectura escribiría de vuelta lo que la candidata haya cambiado.
+  const guardarNotas = async () => {
     setGuardando(true);
     const res = await fetch(`/api/admin/perfiles/${id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        estado_agencia:      perfil.estado_agencia,
-        calificacion_dap:    perfil.calificacion_dap,
-        score_dap:           perfil.score_dap,
-        nota_dap:            perfil.nota_dap,
-        notas_agencia:       perfil.notas_agencia,
-      }),
+      body: JSON.stringify({ nota_dap: perfil.nota_dap, notas_agencia: perfil.notas_agencia }),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok) decir("Valoración guardada");
-    else decir(data.error || "No se pudo guardar", "error");
+    if (res.ok && data.ok) decir("Notas guardadas");
+    else decir(data.error || "No se pudieron guardar", "error");
     setGuardando(false);
   };
 
-  // Aprobar tiene su propia ruta y su propia llamada. Guardar la valoración no
-  // la toca, y ella no toca la valoración.
-  const alternarAprobacion = async () => {
-    setAprobando(true);
-    const aprobada = Number(perfil.evaluacion_aprobada) !== 1;
-    const res  = await fetch("/api/admin/aprobar-evaluacion", {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usuario_id: perfil.id, aprobada }),
+  /** Aprobar, No califica o revertir. Devuelve true si salió bien. */
+  const decidir = async (cuerpo) => {
+    setGuardando(true);
+    const res  = await fetch(`/api/admin/perfiles/${id}/decision`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo),
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok) {
-      set("evaluacion_aprobada", data.evaluacion_aprobada);
-      decir(data.mensaje);
-    } else {
-      decir(data.error || "No se pudo cambiar la aprobación", "error");
-    }
-    setAprobando(false);
+    setGuardando(false);
+    if (!res.ok) { decir(data.error || "No se pudo registrar la decisión", "error"); return false; }
+    decir(data.mensaje);
+    await Promise.all([cargarPerfil(), cargarEstado()]);
+    return true;
+  };
+
+  const mover = async (etapa) => {
+    setGuardando(true);
+    const res  = await fetch(`/api/admin/perfiles/${id}/etapa`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ etapa }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setGuardando(false);
+    if (!res.ok) decir(data.error || "No se pudo mover", "error");
+    else { decir(`Ahora en «${etapaPorId(etapa)?.label}»`); cargarEstado(); }
   };
 
   if (cargando) return (
@@ -234,25 +288,20 @@ export default function AdminFichaCandidataPage() {
         usuario={perfil}
         modo="revision"
         titulo="Ficha de la candidata"
-        subtitulo="Lo mismo que ella ve, más la valoración del equipo."
+        subtitulo="Lo mismo que ella ve, más la decisión del equipo."
         rutaEdicion={sec => `/admin/perfiles/${id}/editar?parte=${sec.parte}&seccion=${sec.id}`}
         observaciones={observaciones}
-        onObservacion={cargarObservaciones}
+        onObservacion={alObservar}
+        recorrido={estado ? { etapa: estado.etapa, agencia: estado.agencia?.nombre || null, historial: estado.historial } : null}
         bloqueInterno={
-          <BloqueInterno form={perfil} set={set} onGuardar={guardarInterno} guardando={guardando}
-            aprobacion={{
-              alternar: alternarAprobacion,
-              ocupado:  aprobando,
-              // La Parte 1 es la evaluación; es la que decide si hay perfil que
-              // aprobar. Es una pista para pintar: la ruta lo vuelve a verificar.
-              puede:    parteCompleta(1, perfil),
-              // Vacíos y valores inválidos: sin los segundos, una fecha
-              // imposible dejaba el botón apagado con "Falta: " en blanco.
-              faltan:   [
-                ...faltantesDeParte(1, perfil).map(c => c.label),
-                ...invalidosDeParte(1, perfil).map(c => `${c.label} (${c.error})`),
-              ],
-            }} />
+          <BloqueDecision form={perfil} set={set} estado={estado} agencias={agencias}
+            onDecidir={decidir} onMover={mover} onGuardarNotas={guardarNotas} ocupado={guardando}
+            // Pista para pintar: la ruta lo vuelve a verificar.
+            puedeAprobar={parteCompleta(1, perfil)}
+            faltan={[
+              ...faltantesDeParte(1, perfil).map(c => c.label),
+              ...invalidosDeParte(1, perfil).map(c => `${c.label} (${c.error})`),
+            ]} />
         }
         isMobile={isMobile}
       />

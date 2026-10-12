@@ -45,6 +45,7 @@ const BLOQUEADAS = new Set([
   // Las fija sólo POST /api/dashboard/perfil/enviar: si llegaran por aquí, la
   // candidata podría reabrir una parte enviada mandándolas en null.
   "parte1_enviada_at","parte2_enviada_at",
+  "decision_dap","decision_dap_at","decision_dap_motivo",
 ]);
 
 export async function PUT(req) {
