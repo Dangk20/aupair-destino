@@ -11,6 +11,7 @@ import {
   MessageCircleIcon, UsersIcon, ShieldIcon, CreditCardIcon,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import { formatoMoneda } from "@/lib/moneda";
 
 const SECCIONES = [
   { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#12A46B", bg:"#E6F9F0" },
@@ -57,8 +58,8 @@ function ModalVer({ u, onClose }) {
             {label:"Código referido", val:u.codigo_referido||"Sin código"},
             {label:"Código promo",    val:u.codigo_promo_usado||"—"},
             {label:"Referida por",    val:u.referente_nombre||"—"},
-            {label:"Pago",            val:u.monto_pagado?`$${u.monto_pagado} USD`:"—"},
-            {label:"Comisión",        val:u.comision_generada?`$${u.comision_generada} USD`:"—"},
+            {label:"Pago",            val:u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"—"},
+            {label:"Comisión",        val:u.comision_generada!=null?formatoMoneda(u.comision_generada, u.moneda_pago):"—"},
             {label:"Registro",        val:u.created_at?new Date(u.created_at).toLocaleDateString("es-CO"):"—"},
           ].map((s,i)=>(
             <div key={i} className="bg-[#FBF4F6] border border-[#F5E1E7] rounded-xl px-3 py-2.5">
@@ -318,7 +319,14 @@ function ModalAccesos({ u, onClose, onToggle }) {
 
 /* ── Modal Pago — versión corregida con type="button" explícito ── */
 function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar }) {
-  const [monto, setMonto] = useState(String(usuaria.monto_pagado||"35"));
+  // R9: propone el precio del cupo configurado, en pesos (antes, 35 fijo en USD).
+  const [monto, setMonto] = useState("");
+  const [precio, setPrecio] = useState(null);
+  useEffect(() => {
+    fetch("/api/pago/precio").then(r=>r.ok?r.json():{}).then(d=>{
+      if (d.precio) { setPrecio(d.precio); setMonto(m => m === "" ? String(d.precio) : m); }
+    }).catch(()=>{});
+  }, []);
   const [guardando, setGuardando] = useState(false);
 
   const handleConfirmar = async () => {
@@ -337,7 +345,7 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
           <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:"0 0 6px" }}>{titulo}</h2>
           <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
           <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-            <span style={{ fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.6 }}>Monto (USD)</span>
+            <span style={{ fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.6 }}>Monto (COP)</span>
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9C8790",fontWeight:600 }}>$</span>
               <input
@@ -348,10 +356,10 @@ function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar
               />
             </div>
             <div style={{ display:"flex",gap:8,marginTop:4 }}>
-              {["0","29","35","300"].map(p=>(
+              {[["0","Cortesía"], ...(precio ? [[String(precio), "Precio del cupo"]] : [])].map(([p, etiqueta])=>(
                 <button key={p} type="button" onClick={()=>setMonto(p)}
-                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#A0435F":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#A0435F":"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-                  ${p}
+                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#A0435F":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#A0435F":"#9C8790",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                  {etiqueta} · {formatoMoneda(p)}
                 </button>
               ))}
             </div>
@@ -395,7 +403,6 @@ export default function AdminUsuariosPage() {
   const [modalNuevo,        setModalNuevo]        = useState(false);
   const [modalAccesos,      setModalAccesos]      = useState(null);
   const [modalPago,         setModalPago]         = useState(null);
-  const [modalEditPago,     setModalEditPago]     = useState(null);
   const [modalCambiarRol,   setModalCambiarRol]   = useState(null);
   const [cargandoRol,       setCargandoRol]       = useState(null);
   const [toast,             setToast]             = useState(null);
@@ -461,25 +468,9 @@ export default function AdminUsuariosPage() {
     }
   };
 
-  const corregirMonto = async(usuarioId, monto) => {
-  try {
-    const res = await fetch("/api/admin/toggle-acceso", {
-      method:"PUT",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ usuario_id: usuarioId, monto: Number(monto) }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      setModalEditPago(null); // ← cerrar DESPUÉS del fetch
-      showToast("Monto corregido ✓");
-      await cargar();
-    } else {
-      showToast(data.error || "Error al corregir monto", "error");
-    }
-  } catch(e) {
-    showToast("Error de conexión", "error");
-  }
-};
+  // «Corregir monto» se retiró con R9: editaba el libro heredado de referidos,
+  // que ya no se muestra. Un monto se corrige anulando y confirmando la venta
+  // en Ventas, el flujo dueño (lib/ventas-aupair.js).
 
   const guardarEdicion = async(id, form) => {
     await fetch(`/api/admin/usuarias/${id}`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
@@ -534,7 +525,7 @@ export default function AdminUsuariosPage() {
 
   const exportar = () => {
     const lineas = ["ID|Nombre|Email|Progreso|Código|Pago",
-      ...filtrados.map(u=>`${u.id}|${u.nombre} ${u.apellido}|${u.email}|${u.porcentaje||0}%|${u.codigo_referido||"—"}|${u.tiene_acceso?`$${u.monto_pagado||35} USD`:"Gratis"}`)
+      ...filtrados.map(u=>`${u.id}|${u.nombre} ${u.apellido}|${u.email}|${u.porcentaje||0}%|${u.codigo_referido||"—"}|${u.tiene_acceso?(u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"Sin venta"):"Gratis"}`)
     ].join("\n");
     const a = Object.assign(document.createElement("a"),{href:`data:text/plain;charset=utf-8,${encodeURIComponent(lineas)}`,download:"usuarios.txt"});
     a.click(); showToast("Exportado ✓");
@@ -768,15 +759,9 @@ export default function AdminUsuariosPage() {
                         {u.tiene_acceso?(
                           <div style={{ display:"flex",alignItems:"center",gap:4 }}>
                             <div>
-                              <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{u.monto_pagado?`$${u.monto_pagado} USD`:"$35 USD"}</p>
+                              <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"Sin venta"}</p>
                               <span style={{ fontSize:9,background:"#E6F9F0",color:"#12A46B",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
                             </div>
-                            <button
-                              type="button"
-                              onClick={()=>setModalEditPago({...u})}
-                              style={{ width:20,height:20,borderRadius:6,background:"#FFF4EC",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                              <PencilIcon size={9} style={{ color:"#E8853B" }}/>
-                            </button>
                           </div>
                         ):<span style={{ fontSize:10,color:"#C9A9B4" }}>—</span>}
                       </div>
@@ -904,16 +889,6 @@ export default function AdminUsuariosPage() {
         />
       )}
 
-      {modalEditPago && (
-        <ModalPago
-          usuaria={modalEditPago}
-          titulo="Corregir monto de pago"
-          subtitulo="Editando pago de"
-          gradiente="linear-gradient(90deg,#12A46B,#90d060)"
-          onClose={()=>setModalEditPago(null)}
-          onConfirmar={async(monto)=>{ await corregirMonto(modalEditPago.id, monto); }}
-        />
-      )}
     </div>
   );
 }

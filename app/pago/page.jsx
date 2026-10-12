@@ -2,8 +2,10 @@
 // app/pago/page.jsx — Rediseño Panel Candidata (borgoña).
 // Activar acompañamiento: resumen + incluye + CÓDIGO DE DESCUENTO + medio de pago.
 // El código ancla la comisión al asociado; "Continuar" registra la venta (/api/ventas).
+// El precio del cupo, en COP, lo fija el admin en Configuración (R9): se lee de
+// /api/pago/precio. Sin precio configurado no se muestra uno inventado.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,9 +13,9 @@ import {
   Users, ClipboardCheck, Plane, MessageCircle, BookMarked, Lock,
 } from "lucide-react";
 import { T } from "@/lib/tema";
+import { formatoMoneda } from "@/lib/moneda";
 
 const WHATSAPP_NUMBER = "13478886836";
-const PRECIO_REGULAR  = 35;
 
 const INCLUYE = [
   { icon: Users,          text: "Presentación de tu perfil a agencias aliadas" },
@@ -34,14 +36,23 @@ export default function PagoPage() {
   const router = useRouter();
   const [codigo,          setCodigo]          = useState("");
   const [codigoAplicado,  setCodigoAplicado]  = useState(false);
-  const [precioConCodigo, setPrecioConCodigo] = useState(29);
+  const [precioCupo,      setPrecioCupo]      = useState(undefined);   // undefined = cargando; null = sin configurar
+  const [precioConCodigo, setPrecioConCodigo] = useState(null);
+  const [monedaCodigo,    setMonedaCodigo]    = useState("COP");
   const [validando,       setValidando]       = useState(false);
   const [errorCodigo,     setErrorCodigo]     = useState("");
   const [metodo,          setMetodo]          = useState("Nequi");
   const [registrando,     setRegistrando]     = useState(false);
   const [enviado,         setEnviado]         = useState(false);
 
-  const precioFinal = codigoAplicado ? precioConCodigo : PRECIO_REGULAR;
+  useEffect(() => {
+    fetch("/api/pago/precio").then(r => r.ok ? r.json() : {}).then(d => setPrecioCupo(d.precio ?? null)).catch(() => setPrecioCupo(null));
+  }, []);
+
+  const precioFinal = codigoAplicado ? precioConCodigo : precioCupo;
+  const monedaFinal = codigoAplicado ? monedaCodigo : "COP";
+  const hayPrecio   = precioFinal !== null && precioFinal !== undefined;
+  const textoPrecio = hayPrecio ? formatoMoneda(precioFinal, monedaFinal) : null;
 
   const aplicarCodigo = async () => {
     const c = codigo.trim().toUpperCase();
@@ -55,6 +66,7 @@ export default function PagoPage() {
       const data = await res.json();
       if (res.ok && data.ok) {
         setPrecioConCodigo(Number(data.precio_final));
+        setMonedaCodigo(data.moneda || "COP");
         setCodigoAplicado(true);
         await fetch("/api/codigos-promo/usar", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ codigo:c }) }).catch(()=>{});
       } else {
@@ -67,9 +79,10 @@ export default function PagoPage() {
   };
 
   const waLink = () => {
+    const por = textoPrecio ? ` por ${textoPrecio}` : "";
     const txt = codigoAplicado
-      ? `¡Hola! Tengo el código ${codigo.toUpperCase()} y quiero activar mi acompañamiento en Destino Au Pair por $${precioFinal} USD (${metodo}). ¿Cómo procedo?`
-      : `¡Hola! Quiero activar mi acompañamiento en Destino Au Pair por $${precioFinal} USD (${metodo}). ¿Cómo procedo?`;
+      ? `¡Hola! Tengo el código ${codigo.toUpperCase()} y quiero activar mi acompañamiento en Destino Au Pair${por} (${metodo}). ¿Cómo procedo?`
+      : `¡Hola! Quiero activar mi acompañamiento en Destino Au Pair${por} (${metodo}). ¿Cómo procedo?`;
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(txt)}`;
   };
 
@@ -120,9 +133,14 @@ export default function PagoPage() {
             <div style={{ fontSize:10.5, fontWeight:700, letterSpacing:".1em", opacity:.9 }}>ACTIVAR ACOMPAÑAMIENTO</div>
             <div style={{ fontSize:19, fontWeight:700, marginTop:5, lineHeight:1.25 }}>Tu proceso completo hacia la agencia</div>
             <div style={{ display:"flex", alignItems:"baseline", gap:8, marginTop:14 }}>
-              {codigoAplicado && <div style={{ fontSize:16, textDecoration:"line-through", opacity:.7 }}>${PRECIO_REGULAR}</div>}
-              <div style={{ fontSize:34, fontWeight:800 }}>${precioFinal}</div>
-              <div style={{ fontSize:12, opacity:.9 }}>USD · pago único</div>
+              {/* El precio tachado sólo si está en la misma moneda que el del código */}
+              {codigoAplicado && precioCupo && monedaCodigo === "COP" && (
+                <div style={{ fontSize:16, textDecoration:"line-through", opacity:.7 }}>{formatoMoneda(precioCupo)}</div>
+              )}
+              {hayPrecio
+                ? <><div style={{ fontSize:30, fontWeight:800 }}>{textoPrecio}</div>
+                    <div style={{ fontSize:12, opacity:.9 }}>· pago único</div></>
+                : <div style={{ fontSize:20, fontWeight:700 }}>{precioCupo === undefined ? "…" : "Precio por confirmar"}</div>}
             </div>
           </div>
 
@@ -150,7 +168,7 @@ export default function PagoPage() {
             {codigoAplicado ? (
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:T.greenBg, border:"1px solid #BEEAD3", borderRadius:12, padding:"11px 14px" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, color:"#0E8F5E", fontWeight:600, fontSize:13 }}>
-                  <Check size={15}/> Código <b>{codigo.toUpperCase()}</b> aplicado · ${precioConCodigo} USD
+                  <Check size={15}/> Código <b>{codigo.toUpperCase()}</b> aplicado · {formatoMoneda(precioConCodigo, monedaCodigo)}
                 </div>
                 <button onClick={()=>{ setCodigoAplicado(false); setCodigo(""); setErrorCodigo(""); }} style={{ background:"none", border:"none", color:T.textSoft, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:3 }}><X size={13}/>Quitar</button>
               </div>

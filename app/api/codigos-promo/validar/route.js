@@ -2,6 +2,7 @@
 // Ruta pública — valida un código antes de pagar
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
+import { precioCupo, precioConCodigo, SIN_PRECIO } from "@/lib/ventas-aupair";
 
 export async function POST(req) {
   const { codigo } = await req.json();
@@ -25,10 +26,16 @@ export async function POST(req) {
   if (c.usos_max !== null && c.usos_actuales >= c.usos_max)
     return NextResponse.json({ error: "Este código ya alcanzó su límite de usos" }, { status: 400 });
 
+  // El precio con el cupón sale del precio del cupo configurado (R9).
+  const precio = precioConCodigo(c, await precioCupo());
+  if (!precio) return NextResponse.json({ error: SIN_PRECIO }, { status: 409 });
+
   return NextResponse.json({
     ok: true,
     codigo: c.codigo,
-    precio_final: c.precio_final,
+    precio_final: precio.monto,
+    moneda: precio.moneda,
+    descuento_porcentaje: c.descuento_porcentaje,
     descripcion: c.descripcion,
     usos_restantes: c.usos_max ? c.usos_max - c.usos_actuales : null,
   });

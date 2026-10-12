@@ -8,6 +8,7 @@ import {
   Calendar, AlertCircle, CheckCircle2, Clock, Wallet,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import { formatoMoneda, formatoTotales } from "@/lib/moneda";
 
 function pad(n) { return String(n).padStart(2,"0"); }
 // La API devuelve la fecha como ISO completa ("2026-05-31T00:00:00.000Z"),
@@ -30,22 +31,38 @@ function isVencido(f) {
 const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
 const LC = { fontSize:11, fontWeight:700, color:"#6B7280", textTransform:"uppercase", letterSpacing:".6px", display:"block", marginBottom:5 };
 
+/** Lo que se ve como precio de un cupón: su % (y lo que paga), o el precio fijo heredado. */
+const precioCupon = (c) => c.descuento_porcentaje != null
+  ? `−${Number(c.descuento_porcentaje)}%${c.precio_actual ? ` · ${formatoMoneda(c.precio_actual.monto, c.precio_actual.moneda)}` : ""}`
+  : formatoMoneda(c.precio_final, c.moneda);
+
 /* ── Modal crear/editar código ── */
 function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
   const [form, setForm] = useState(editando ? {
     codigo: editando.codigo,
-    precio_final: editando.precio_final,
+    descuento_porcentaje: editando.descuento_porcentaje != null ? Number(editando.descuento_porcentaje) : "",
     usos_max: editando.usos_max || "",
     fecha_expiracion: editando.fecha_expiracion?.split("T")[0] || "",
     descripcion: editando.descripcion || "",
     asociada_id: editando.asociada_id || "",
     comision_porcentaje: Number(editando.comision_porcentaje) || 0,
   } : {
-    codigo: "", precio_final: 29, usos_max: "", fecha_expiracion: "", descripcion: "",
+    codigo: "", descuento_porcentaje: 0, usos_max: "", fecha_expiracion: "", descripcion: "",
     asociada_id: "", comision_porcentaje: 0,
   });
 
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  // R9: el cupón es un % sobre el precio del cupo configurado. Un cupón viejo
+  // de precio fijo (`legado`) lo conserva hasta que se le ponga un porcentaje.
+  const [cupo, setCupo] = useState(null);
+  useEffect(() => {
+    fetch("/api/pago/precio").then(r=>r.ok?r.json():{}).then(d=>setCupo(d.precio||null)).catch(()=>{});
+  }, []);
+  const legado  = editando && editando.descuento_porcentaje == null;
+  const pct     = form.descuento_porcentaje;
+  const pctOk   = pct !== "" && Number(pct) >= 0 && Number(pct) <= 100;
+  const precioForm = cupo && pctOk ? Math.round(cupo * (1 - Number(pct) / 100)) : null;
 
   // Al elegir asociada, proponer 20% de comisión si estaba en 0.
   const setAsociada = (v) => setForm(f=>({
@@ -88,21 +105,28 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
             </div>
           </div>
 
-          {/* Precio */}
+          {/* Descuento — R9: un % sobre el precio del cupo configurado */}
           <div>
-            <label style={LC}>Precio final (USD) *</label>
+            <label style={LC}>Descuento (%) *</label>
             <div style={{ display:"flex",gap:8 }}>
-              {[25,29,35].map(p=>(
-                <button key={p} onClick={()=>set("precio_final",p)}
-                  style={{ flex:1,padding:"10px",borderRadius:10,border:`1.5px solid ${form.precio_final===p?"#A0435F":"#F5E1E7"}`,background:form.precio_final===p?"#FBF4F6":"#fff",color:form.precio_final===p?"#A0435F":"#6B7280",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
-                  ${p}
+              {[0,10,15,20].map(p=>(
+                <button key={p} type="button" onClick={()=>set("descuento_porcentaje",p)}
+                  style={{ flex:1,padding:"10px",borderRadius:10,border:`1.5px solid ${form.descuento_porcentaje===p?"#A0435F":"#F5E1E7"}`,background:form.descuento_porcentaje===p?"#FBF4F6":"#fff",color:form.descuento_porcentaje===p?"#A0435F":"#6B7280",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                  {p}%
                 </button>
               ))}
-              <input type="number" min="1" value={form.precio_final} onChange={e=>set("precio_final",Number(e.target.value))}
+              <input type="number" min="0" max="100" step="1" value={form.descuento_porcentaje}
+                onChange={e=>set("descuento_porcentaje",e.target.value===""?"":Number(e.target.value))}
                 style={{ ...IC,width:80,textAlign:"center",fontWeight:700 }}/>
             </div>
-            <p style={{ fontSize:11,color:"#9C8790",margin:"5px 0 0" }}>
-              El precio normal es $35. Con este código el cliente paga ${form.precio_final} USD.
+            <p style={{ fontSize:11,color:legado?"#E8853B":"#9C8790",margin:"5px 0 0" }}>
+              {legado && !pctOk
+                ? `Este cupón tenía un precio fijo de ${formatoMoneda(editando.precio_final, editando.moneda)}. Ponle un descuento para atarlo al precio del cupo, en pesos.`
+                : !cupo
+                ? "Configura el precio del cupo en Configuración para ver cuánto paga quien use el cupón."
+                : pctOk
+                ? `Precio del cupo ${formatoMoneda(cupo)} → con este cupón paga ${formatoMoneda(precioForm)}. Si cambias el precio del cupo, el cupón lo sigue.`
+                : "El porcentaje que se descuenta del precio del cupo."}
             </p>
           </div>
 
@@ -174,13 +198,13 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
                 <div>
                   <p style={{ fontFamily:"monospace",fontSize:18,fontWeight:800,color:"#4A2A38",letterSpacing:2,margin:0 }}>{form.codigo}</p>
                   <p style={{ fontSize:12,color:"#A0435F",margin:"2px 0 0" }}>
-                    Precio especial: <strong>${form.precio_final} USD</strong>
+                    {pctOk ? `${Number(pct)}% de descuento` : "Sin descuento definido"}{precioForm != null && <> · paga <strong>{formatoMoneda(precioForm)}</strong></>}
                     {form.usos_max ? ` · Máx. ${form.usos_max} usos` : " · Usos ilimitados"}
                     {form.fecha_expiracion ? ` · Vence ${fmtFecha(form.fecha_expiracion)}` : ""}
                   </p>
                 </div>
-                <div style={{ background:"#A0435F",color:"#fff",fontSize:18,fontWeight:800,padding:"8px 14px",borderRadius:10 }}>
-                  ${form.precio_final}
+                <div style={{ background:"#A0435F",color:"#fff",fontSize:15,fontWeight:800,padding:"8px 14px",borderRadius:10 }}>
+                  {pctOk ? `−${Number(pct)}%` : "—"}
                 </div>
               </div>
             </div>
@@ -191,7 +215,8 @@ function ModalCodigo({ editando, asociadas, onClose, onGuardar, loading }) {
           <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #E5E7EB",background:"#fff",color:"#6B7280",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
             Cancelar
           </button>
-          <button onClick={()=>onGuardar(form)} disabled={loading||!form.codigo||!form.precio_final}
+          {/* Un cupón heredado se puede editar sin ponerle %: conserva su precio fijo. */}
+          <button onClick={()=>{ const { descuento_porcentaje, ...resto } = form; onGuardar(pctOk ? form : resto); }} disabled={loading||!form.codigo||!(pctOk||legado)}
             style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#A0435F,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:(loading||!form.codigo)?0.6:1 }}>
             {loading?"Guardando...":`✓ ${editando?"Guardar cambios":"Crear código"}`}
           </button>
@@ -272,7 +297,11 @@ export default function AdminCodigosPromoPage() {
   const totalActivos    = codigos.filter(c=>c.activo&&!isVencido(c.fecha_expiracion)).length;
   const totalUsos       = codigos.reduce((s,c)=>s+(Number(c.usos_confirmados)||0),0);
   const totalPendientes = codigos.reduce((s,c)=>s+(Number(c.aplicaciones_pendientes)||0),0);
-  const totalRecaudado  = codigos.reduce((s,c)=>s+(Number(c.total_recaudado)||0),0);
+  // Por moneda (R9): no se suman pesos con dólares.
+  const totalRecaudado  = codigos.reduce((t,c)=>{
+    for (const [m,v] of Object.entries(c.recaudado_por_moneda||{})) t[m]=(t[m]||0)+v;
+    return t;
+  },{});
 
   return (
     <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
@@ -303,7 +332,7 @@ export default function AdminCodigosPromoPage() {
             { n:totalActivos,            label:"Códigos activos",      color:"#A0435F",bg:"#FBF4F6",Icono:Tag },
             { n:totalUsos,               label:"Usos confirmados",     color:"#12A46B",bg:"#E6F9F0",Icono:CheckCircle2 },
             { n:totalPendientes,         label:"Aplicados sin pagar",  color:"#E8853B",bg:"#FFF4EC",Icono:Clock },
-            { n:`$${totalRecaudado.toFixed(0)}`, label:"Recaudado con códigos", color:"#A0435F",bg:"#FBF4F6",Icono:Wallet },
+            { n:formatoTotales(totalRecaudado), label:"Recaudado con códigos", color:"#A0435F",bg:"#FBF4F6",Icono:Wallet },
           ].map((s,i)=>(
             <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:isMobile?"12px":"16px 20px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
               <div style={{ width:isMobile?36:44,height:isMobile?36:44,borderRadius:12,background:s.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:s.color }}><s.Icono size={isMobile?17:20}/></div>
@@ -367,10 +396,15 @@ export default function AdminCodigosPromoPage() {
                         {/* Precio en mobile — inline */}
                         {isMobile && (
                           <div style={{ marginLeft:"auto",background:"#FBF4F6",borderRadius:10,padding:"6px 12px",textAlign:"center" }}>
-                            <p style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:800,color:"#A0435F",margin:0,lineHeight:1 }}>${c.precio_final} <span style={{ fontSize:11,fontWeight:500,color:"#9C8790" }}>USD</span></p>
+                            <p style={{ fontFamily:"Georgia,serif",fontSize:15,fontWeight:800,color:"#A0435F",margin:0,lineHeight:1 }}>{precioCupon(c)}</p>
                           </div>
                         )}
                       </div>
+                      {c.descuento_porcentaje == null && (
+                        <span style={{ display:"inline-block",fontSize:11,fontWeight:700,color:"#E8853B",background:"#FFF4EC",border:"1px solid #F6D3B5",borderRadius:99,padding:"2px 10px",margin:"0 0 4px" }}>
+                          Precio fijo en {c.moneda}: ponle un % de descuento
+                        </span>
+                      )}
                       {c.descripcion && <p style={{ fontSize:12,color:"#9C8790",margin:0 }}>{c.descripcion}</p>}
                       {c.asociada_nombre && (
                         <div style={{ display:"inline-flex",alignItems:"center",gap:5,background:"#FCE8EE",border:"1px solid #f3c6d3",borderRadius:99,padding:"3px 10px",marginTop:6 }}>
@@ -386,8 +420,8 @@ export default function AdminCodigosPromoPage() {
                     {!isMobile && (
                     <div style={{ textAlign:"center",background:"#FBF4F6",borderRadius:14,padding:"10px 18px",flexShrink:0 }}>
                       <p style={{ fontSize:10,color:"#9C8790",margin:"0 0 2px",textTransform:"uppercase",letterSpacing:".5px" }}>Precio especial</p>
-                      <p style={{ fontFamily:"Georgia,serif",fontSize:24,fontWeight:800,color:"#A0435F",margin:0,lineHeight:1 }}>${c.precio_final}</p>
-                      <p style={{ fontSize:10,color:"#9C8790",margin:"2px 0 0" }}>USD</p>
+                      <p style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:800,color:"#A0435F",margin:0,lineHeight:1.1 }}>{c.descuento_porcentaje != null ? `−${Number(c.descuento_porcentaje)}%` : formatoMoneda(c.precio_final, c.moneda)}</p>
+                      {c.descuento_porcentaje != null && <p style={{ fontSize:10.5,color:"#9C8790",margin:"3px 0 0" }}>{c.precio_actual ? `paga ${formatoMoneda(c.precio_actual.monto, c.precio_actual.moneda)}` : "precio sin configurar"}</p>}
                     </div>
                     )}
 
@@ -418,7 +452,7 @@ export default function AdminCodigosPromoPage() {
                       {/* Recaudado */}
                       <div style={{ display:"flex",alignItems:"center",gap:6 }}>
                         <DollarSign size={12} style={{ color:"#9C8790" }}/>
-                        <span style={{ fontSize:11,color:"#6B7280" }}>${Number(c.total_recaudado||0).toFixed(0)} USD recaudados</span>
+                        <span style={{ fontSize:11,color:"#6B7280" }}>{formatoTotales(c.recaudado_por_moneda)} recaudados</span>
                       </div>
                       {/* Vencimiento */}
                       <div style={{ display:"flex",alignItems:"center",gap:6 }}>

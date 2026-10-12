@@ -8,8 +8,10 @@ import {
   CreditCardIcon, CheckCircleIcon, ClockIcon, TagIcon,
   RefreshCwIcon, UserIcon, Check, Ban, X,
 } from "lucide-react";
+import { formatoMoneda, formatoTotales } from "@/lib/moneda";
 
-const money = (n) => `$${Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} USD`;
+// Cada monto con su moneda (R9): las ventas anteriores siguen en USD.
+const money = (n, moneda) => formatoMoneda(Number(n || 0), moneda);
 const fecha = (s) => (s ? new Date(s).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" }) : "—");
 
 export default function VentasAdminPage() {
@@ -44,7 +46,7 @@ export default function VentasAdminPage() {
       if (data.ok) {
         if (accion === "confirmar") {
           setToast(data.comision
-            ? `✓ Pago confirmado · comisión ${money(data.comision.monto_comision)} (${data.comision.porcentaje}%)`
+            ? `✓ Pago confirmado · comisión ${money(data.comision.monto_comision, data.comision.moneda)} (${data.comision.porcentaje}%)`
             : "✓ Pago confirmado y acceso habilitado");
         } else {
           setToast("Solicitud anulada");
@@ -93,7 +95,7 @@ export default function VentasAdminPage() {
         <Stat icon={ClockIcon}       label="Pendientes"  value={stats.pendientes || 0}  color="#E8853B" />
         <Stat icon={CheckCircleIcon} label="Confirmadas"  value={stats.confirmadas || 0} color="#12A46B" />
         <Stat icon={CreditCardIcon}  label="Total ventas" value={stats.total || 0}       color="#A0435F" />
-        <Stat icon={TagIcon}         label="Ingresos"     value={money(stats.ingresos_confirmados)} color="#A0435F" />
+        <Stat icon={TagIcon}         label="Ingresos"     value={formatoTotales(stats.ingresos_por_moneda)} color="#A0435F" />
       </div>
 
       {/* Tabs */}
@@ -140,7 +142,7 @@ export default function VentasAdminPage() {
                 ) : (
                   <span className="text-[10px] text-[#C9A9B4] bg-[#f7f0f2] px-2.5 py-1 rounded-full">Directo</span>
                 )}
-                <span className="text-[15px] font-bold text-[#3A2530] w-[92px] text-right">{money(v.monto)}</span>
+                <span className="text-[15px] font-bold text-[#3A2530] w-[92px] text-right">{money(v.monto, v.moneda)}</span>
                 {v.estado === "pendiente" ? (
                   <div className="flex items-center gap-2">
                     <button onClick={() => setModal({ venta: v, accion: "confirmar" })} title="Confirmar pago"
@@ -183,8 +185,8 @@ export default function VentasAdminPage() {
               </h3>
               <p className="text-[13px] text-[#9C8790] text-center leading-relaxed mb-1">
                 {esConfirmar
-                  ? <>Vas a confirmar el pago de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto)}</b>.</>
-                  : <>Vas a anular la solicitud de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto)}</b>.</>}
+                  ? <>Vas a confirmar el pago de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto, v.moneda)}</b>.</>
+                  : <>Vas a anular la solicitud de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto, v.moneda)}</b>.</>}
               </p>
               <p className="text-[12px] text-[#C9A9B4] text-center mb-5">
                 {esConfirmar

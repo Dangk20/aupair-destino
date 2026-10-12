@@ -190,6 +190,7 @@ const INVENTARIO = [
   ["POST", "/conversaciones/[id]/mensajes", "sesion"],
   ["POST", "/conversaciones/[id]/entrar", "sesion"],
   ["GET", "/documentos/[id]", "sesion"],
+  ["GET", "/pago/precio", "sesion"],
   ["GET", "/sesion-recursos/[id]/archivo", "sesion"],
   ["GET", "/sesiones-public", "publica"],
   ["GET", "/ventas", "sesion"],

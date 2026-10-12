@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { porMoneda } from "@/lib/moneda";
 
 export async function GET(req) {
   const guard = requiereAdmin(req);
@@ -27,6 +28,7 @@ export async function GET(req) {
          CONCAT(u.nombre, ' ', u.apellido)   AS candidata,
          u.email                             AS email,
          v.monto,
+         v.moneda,
          v.estado,
          v.tipo,
          v.codigo_texto                      AS codigo,
@@ -52,6 +54,11 @@ export async function GET(req) {
          COALESCE(SUM(CASE WHEN estado='confirmado' THEN monto END),0) AS ingresos_confirmados
        FROM ventas`
     );
+    // R9: los ingresos no se suman entre monedas.
+    const [ingresos] = await dbAupair.query(
+      "SELECT moneda, SUM(monto) AS total FROM ventas WHERE estado = 'confirmado' GROUP BY moneda"
+    );
+    stats.ingresos_por_moneda = porMoneda(ingresos);
 
     return NextResponse.json({ ventas, stats });
   } catch (err) {

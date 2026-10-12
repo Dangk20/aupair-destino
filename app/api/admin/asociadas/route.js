@@ -3,10 +3,12 @@ import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
 
-// Comisión y precio por defecto del código que nace con cada asociada.
-// El admin puede ajustarlos después desde /admin/codigos-promo.
+// Comisión por defecto del código que nace con cada asociada. El código nace
+// sin descuento: quien lo usa paga el precio del cupo configurado (R9; antes
+// nacía con un precio fijo de 29 dólares). El admin ajusta el descuento y la
+// comisión desde /admin/codigos-promo.
 const COMISION_DEFAULT = 20;
-const PRECIO_CODIGO_DEFAULT = 29;
+const DESCUENTO_DEFAULT = 0;
 
 /* ── Genera un código único en codigos_promo (4 letras del nombre + 4 dígitos) ── */
 async function generarCodigoUnico(nombre) {
@@ -37,9 +39,9 @@ async function asegurarCodigoPromo({ asociadaId, nombre, apellido }) {
 
   const codigo = await generarCodigoUnico(nombre);
   await dbAupair.query(
-    `INSERT INTO codigos_promo (codigo, precio_final, asociada_id, comision_porcentaje, descripcion, activo)
-     VALUES (?, ?, ?, ?, ?, 1)`,
-    [codigo, PRECIO_CODIGO_DEFAULT, asociadaId, COMISION_DEFAULT, `Código de ${`${nombre} ${apellido}`.trim()}`]
+    `INSERT INTO codigos_promo (codigo, precio_final, moneda, descuento_porcentaje, asociada_id, comision_porcentaje, descripcion, activo)
+     VALUES (?, NULL, 'COP', ?, ?, ?, ?, 1)`,
+    [codigo, DESCUENTO_DEFAULT, asociadaId, COMISION_DEFAULT, `Código de ${`${nombre} ${apellido}`.trim()}`]
   );
   await dbAupair.query(
     "UPDATE usuarios SET codigo_referido = ? WHERE id = ?",

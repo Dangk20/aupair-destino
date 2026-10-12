@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
+import { precioCupo, precioConCodigo } from "@/lib/ventas-aupair";
 
 export async function POST(req) {
   const session = getSessionFromRequest(req);
@@ -27,7 +28,9 @@ export async function POST(req) {
       [c.codigo, session.id]
     );
 
-    return NextResponse.json({ ok: true, precio_final: c.precio_final });
+    // El precio con el cupón sale del precio del cupo configurado (R9).
+    const precio = precioConCodigo(c, await precioCupo());
+    return NextResponse.json({ ok: true, precio_final: precio?.monto ?? null, moneda: precio?.moneda ?? null });
 
   } catch (err) {
     console.error("[usar codigo promo]", err);

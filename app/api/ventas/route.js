@@ -9,7 +9,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
-import { resolverCodigo, PRECIO_REGULAR } from "@/lib/ventas-aupair";
+import { resolverCodigo, importeVenta, SIN_PRECIO } from "@/lib/ventas-aupair";
 
 export async function POST(req) {
   const session = getSessionFromRequest(req);
@@ -22,7 +22,9 @@ export async function POST(req) {
     // Resolver código (si lo hay) contra codigos_promo
     const codigo = codigoTexto ? await resolverCodigo(codigoTexto) : null;
     const codigoPromoId = codigo?.id || null;
-    const monto = codigo ? Number(codigo.precio_final) : PRECIO_REGULAR;
+    const importe = await importeVenta(codigo);
+    if (!importe) return NextResponse.json({ error: SIN_PRECIO }, { status: 409 });
+    const { monto, moneda } = importe;
     const tipo = codigo ? "con_codigo" : "normal";
 
     // Un usuario no debería acumular varias intenciones pendientes:
@@ -36,23 +38,23 @@ export async function POST(req) {
     if (pendiente) {
       await dbAupair.query(
         `UPDATE ventas
-            SET monto = ?, codigo_promo_id = ?, codigo_texto = ?, tipo = ?, created_at = NOW()
+            SET monto = ?, moneda = ?, codigo_promo_id = ?, codigo_texto = ?, tipo = ?, created_at = NOW()
           WHERE id = ?`,
-        [monto, codigoPromoId, codigo ? codigoTexto : null, tipo, pendiente.id]
+        [monto, moneda, codigoPromoId, codigo ? codigoTexto : null, tipo, pendiente.id]
       );
       ventaId = pendiente.id;
     } else {
       const [res] = await dbAupair.query(
-        `INSERT INTO ventas (usuario_id, monto, estado, codigo_promo_id, codigo_texto, tipo)
-         VALUES (?, ?, 'pendiente', ?, ?, ?)`,
-        [session.id, monto, codigoPromoId, codigo ? codigoTexto : null, tipo]
+        `INSERT INTO ventas (usuario_id, monto, moneda, estado, codigo_promo_id, codigo_texto, tipo)
+         VALUES (?, ?, ?, 'pendiente', ?, ?, ?)`,
+        [session.id, monto, moneda, codigoPromoId, codigo ? codigoTexto : null, tipo]
       );
       ventaId = res.insertId;
     }
 
     return NextResponse.json({
       ok: true,
-      venta: { id: ventaId, monto, tipo, estado: "pendiente", codigo: codigo ? codigoTexto : null },
+      venta: { id: ventaId, monto, moneda, tipo, estado: "pendiente", codigo: codigo ? codigoTexto : null },
     });
   } catch (err) {
     console.error("[ventas POST]", err);
@@ -66,7 +68,7 @@ export async function GET(req) {
 
   try {
     const [[venta]] = await dbAupair.query(
-      `SELECT id, monto, estado, tipo, codigo_texto, created_at, confirmado_at
+      `SELECT id, monto, moneda, estado, tipo, codigo_texto, created_at, confirmado_at
          FROM ventas WHERE usuario_id = ? ORDER BY created_at DESC LIMIT 1`,
       [session.id]
     );

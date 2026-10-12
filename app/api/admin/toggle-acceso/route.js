@@ -61,7 +61,8 @@ export async function POST(req) {
   const session = guard.session;
 
   try {
-    const { id, tiene_acceso, monto = 35, seccion, valor } = await req.json();
+    // Sin monto, la venta toma el del código o el precio del cupo (R9).
+    const { id, tiene_acceso, monto, seccion, valor } = await req.json();
     if (!id) return NextResponse.json({ error: "id requerido" }, { status: 400 });
 
     // ── Toggle de una sección puntual (no toca ventas ni códigos) ──────────
@@ -79,8 +80,10 @@ export async function POST(req) {
     let result;
     if (activar) {
       result = await confirmarAccesoUsuario(usuarioId, { monto });
-      if (!result.ok) return NextResponse.json(result, { status: 404 });
-      await registrarPagoReferido(usuarioId, monto);
+      if (!result.ok) return NextResponse.json(result, { status: result.sinPrecio ? 409 : 404 });
+      // Libro heredado de referidos: recibe el monto de la venta real.
+      const [[v]] = await dbAupair.query("SELECT monto FROM ventas WHERE id = ?", [result.ventaId]);
+      await registrarPagoReferido(usuarioId, v?.monto ?? monto);
     } else {
       result = await retirarAccesoUsuario(usuarioId);
       await dbAupair.query(

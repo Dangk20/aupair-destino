@@ -8,6 +8,8 @@ import {
   Eye, EyeOff, Lock,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import { formatoMoneda } from "@/lib/moneda";
+
 
 const IC = (extra={}) => ({ width:"100%", border:"1.5px solid #E5E7EB", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box", ...extra });
 const LC = { fontSize:11, fontWeight:700, color:"#6B7280", textTransform:"uppercase", letterSpacing:".6px", display:"block", marginBottom:5 };
@@ -166,6 +168,18 @@ export default function AdminConfiguracionPage() {
                   <label style={LC}>WhatsApp de contacto</label>
                   <input value={config.whatsapp||""} onChange={e=>set("whatsapp",e.target.value)} style={IC()} placeholder="13478886836"/>
                   <p style={{ fontSize:11,color:"#9C8790",margin:"4px 0 0" }}>Sin + ni espacios</p>
+                </div>
+                {/* R9: el precio del cupo, en pesos. Lo leen /pago, las ventas
+                    sin código y el código que nace con cada asociada. */}
+                <div>
+                  <label style={LC}>Precio del cupo (COP)</label>
+                  <input type="number" min="1" step="1" inputMode="numeric" value={config.precio_cupo_cop||""}
+                    onChange={e=>set("precio_cupo_cop",e.target.value.replace(/\D/g,""))} style={IC()} placeholder="Ej. 150000"/>
+                  <p style={{ fontSize:11,color:config.precio_cupo_cop?"#9C8790":"#C0392B",margin:"4px 0 0" }}>
+                    {config.precio_cupo_cop
+                      ? `Se cobra ${formatoMoneda(config.precio_cupo_cop)}. Los cupones descuentan su porcentaje sobre este precio.`
+                      : "Sin precio configurado no se pueden registrar ventas sin código."}
+                  </p>
                 </div>
               </div>
             </div>

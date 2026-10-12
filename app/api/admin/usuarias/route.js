@@ -36,8 +36,13 @@ export async function GET(req) {
         u.codigo_promo_usado,
         COUNT(p.id)                                        AS sesiones_completadas,
         ROUND(COUNT(p.id) / ? * 100)                       AS porcentaje,
-        rr.monto_pagado,
-        ROUND(rr.monto_pagado * ref.porcentaje / 100, 0)   AS comision_generada,
+        -- R9: el pago y la comisión salen de la venta confirmada, con su
+        -- moneda; ya no del libro heredado de referidos (referido_registros).
+        (SELECT v.monto  FROM ventas v WHERE v.usuario_id = u.id AND v.estado = 'confirmado' ORDER BY v.id DESC LIMIT 1) AS monto_pagado,
+        (SELECT v.moneda FROM ventas v WHERE v.usuario_id = u.id AND v.estado = 'confirmado' ORDER BY v.id DESC LIMIT 1) AS moneda_pago,
+        (SELECT c.monto_comision FROM comisiones c JOIN ventas v ON v.id = c.venta_id
+          WHERE v.usuario_id = u.id AND v.estado = 'confirmado' AND c.estado <> 'anulada'
+          ORDER BY v.id DESC LIMIT 1)                       AS comision_generada,
         ref.nombre                                         AS referente_nombre,
         ref.email                                          AS referente_email
       FROM usuarios u

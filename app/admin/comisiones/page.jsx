@@ -9,8 +9,10 @@ import {
   HandCoinsIcon, CheckCircleIcon, ClockIcon, TagIcon,
   RefreshCwIcon, UserIcon, Check, Ban, WalletIcon,
 } from "lucide-react";
+import { formatoMoneda, formatoTotales } from "@/lib/moneda";
 
-const money = (n) => `$${Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} USD`;
+// Cada monto con su moneda (R9): las comisiones anteriores siguen en USD.
+const money = (n, moneda) => formatoMoneda(Number(n || 0), moneda);
 const fecha = (s) => (s ? new Date(s).toLocaleString("es-CO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" }) : "—");
 
 export default function ComisionesAdminPage() {
@@ -90,9 +92,9 @@ export default function ComisionesAdminPage() {
 
       {/* Totales */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Stat icon={ClockIcon}       label="Por pagar"          value={money(totales.por_pagar)} color="#E8853B" />
-        <Stat icon={CheckCircleIcon} label="Ya pagado"          value={money(totales.pagado)}    color="#12A46B" />
-        <Stat icon={WalletIcon}      label="Histórico"          value={money(totales.historico)} color="#A0435F" />
+        <Stat icon={ClockIcon}       label="Por pagar"          value={formatoTotales(totales.por_moneda?.por_pagar)} color="#E8853B" />
+        <Stat icon={CheckCircleIcon} label="Ya pagado"          value={formatoTotales(totales.por_moneda?.pagado)}    color="#12A46B" />
+        <Stat icon={WalletIcon}      label="Histórico"          value={formatoTotales(totales.por_moneda?.historico)} color="#A0435F" />
         <Stat icon={HandCoinsIcon}   label="Comisiones vivas"   value={(totales.total || 0) - (totales.n_anuladas || 0)} color="#A0435F" />
       </div>
 
@@ -151,7 +153,7 @@ export default function ComisionesAdminPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-semibold text-[#3A2530] truncate">{c.asociada}</p>
                 <p className="text-[11px] text-[#9C8790] truncate">
-                  por la venta de {c.candidata} · {money(c.monto_venta)} × {Number(c.porcentaje)}%
+                  por la venta de {c.candidata} · {money(c.monto_venta, c.moneda)} × {Number(c.porcentaje)}%
                 </p>
                 <p className="text-[10px] text-[#C9A9B4] mt-0.5">
                   {c.estado === "pagada" ? `Pagada ${fecha(c.pagada_at)}` : `Generada ${fecha(c.created_at)}`}
@@ -164,7 +166,7 @@ export default function ComisionesAdminPage() {
                   </span>
                 )}
                 <span className={`text-[15px] font-bold w-[92px] text-right ${c.estado === "anulada" ? "text-[#C9A9B4] line-through" : "text-[#3A2530]"}`}>
-                  {money(c.monto_comision)}
+                  {money(c.monto_comision, c.moneda)}
                 </span>
                 {c.estado === "pendiente" ? (
                   <button onClick={() => setModal(c)} title="Marcar como pagada"
@@ -196,7 +198,7 @@ export default function ComisionesAdminPage() {
             </div>
             <h2 className="text-[16px] font-bold text-[#3A2530] mb-1.5">¿Ya le pagaste a {modal.asociada}?</h2>
             <p className="text-[13px] text-[#9C8790] leading-relaxed mb-5">
-              Vas a registrar el pago de <b className="text-[#3A2530]">{money(modal.monto_comision)}</b> por
+              Vas a registrar el pago de <b className="text-[#3A2530]">{money(modal.monto_comision, modal.moneda)}</b> por
               la venta de {modal.candidata}. Queda con la fecha de hoy y deja de contar en “por pagar”.
             </p>
             <div className="flex gap-2">

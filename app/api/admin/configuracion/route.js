@@ -28,6 +28,14 @@ export async function PUT(req) {
   try {
     const body = await req.json();
 
+    // R9: el precio del cupo es un entero positivo en pesos, o nada.
+    if ("precio_cupo_cop" in body && body.precio_cupo_cop !== "" && body.precio_cupo_cop !== null) {
+      const n = Number(body.precio_cupo_cop);
+      if (!Number.isInteger(n) || n <= 0) {
+        return NextResponse.json({ error: "El precio del cupo debe ser un número entero de pesos, mayor que cero." }, { status: 400 });
+      }
+    }
+
     for (const [clave, valor] of Object.entries(body)) {
       await dbAupair.query(
         "INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = ?",

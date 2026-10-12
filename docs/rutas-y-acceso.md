@@ -264,6 +264,7 @@ Retiradas en `chat-candidata`: `/admin/mensajes` y `/dashboard/mensajes`
 |---|---|---|---|
 | `/auth/me` | GET | sesión | ✅ |
 | `/codigos-promo/usar` | POST | sesión | ✅ |
+| `/pago/precio` | GET | sesión | ✅ — el precio del cupo (`configuracion.precio_cupo_cop`) para `/pago`; change `divisa-cop` |
 | `/documentos/[id]` | GET | sesión + dueña, rol revisor o su agencia (`candidataDeAgencia`) | ✅ — Sprint 0.0; agencia en `panel-agencia` |
 | `/sesion-recursos/[id]/archivo` | GET | sesión + admin, o la sesión del curso desbloqueada para la usuaria (`lib/curso-aupair.js`) | ✅ — Sprint 0.0; criterio cambiado en `recursos-por-video` |
 | `/ventas` | POST, GET | sesión + propiedad | 🟡 revisar en 2.5 |

@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { porMoneda } from "@/lib/moneda";
 
 export async function GET(req) {
   const guard = requiereAdmin(req);
@@ -45,6 +46,7 @@ export async function GET(req) {
          c.monto_venta,
          c.porcentaje,
          c.monto_comision,
+         c.moneda,
          c.estado,
          c.created_at,
          c.pagada_at
@@ -78,6 +80,22 @@ export async function GET(req) {
        ${filtroTotales}`,
       paramsTotales
     );
+
+    // R9: los montos no se suman entre monedas: por_pagar, pagado e histórico
+    // también por moneda, para el encabezado.
+    const [porM] = await dbAupair.query(
+      `SELECT c.moneda,
+         COALESCE(SUM(CASE WHEN c.estado='pendiente' THEN c.monto_comision END),0) AS por_pagar,
+         COALESCE(SUM(CASE WHEN c.estado='pagada'    THEN c.monto_comision END),0) AS pagado,
+         COALESCE(SUM(CASE WHEN c.estado<>'anulada'  THEN c.monto_comision END),0) AS historico
+       FROM comisiones c ${filtroTotales} GROUP BY c.moneda`,
+      paramsTotales
+    );
+    totales.por_moneda = {
+      por_pagar: porMoneda(porM, "por_pagar"),
+      pagado:    porMoneda(porM, "pagado"),
+      historico: porMoneda(porM, "historico"),
+    };
 
     // Para el desplegable de filtro: sólo asociadas que tienen comisiones.
     const [asociadas] = await dbAupair.query(
