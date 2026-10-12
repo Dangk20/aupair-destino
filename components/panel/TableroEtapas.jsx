@@ -19,7 +19,7 @@
 // ════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List, Eye, MessageCircle } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List, Eye, MessageCircle, ChevronDown } from "lucide-react";
 import { T } from "@/lib/tema";
 import { ETAPAS, SALIDAS, etapaPorId, posicion } from "@/lib/etapas-candidata";
 import VistaRapida from "@/components/panel/VistaRapida";
@@ -37,8 +37,20 @@ const COLOR = {
   no_califica: T.danger, no_continua: T.neutral,
 };
 
-/** El menú ⋯ para mover a otra etapa. Lo usan la tarjeta y la fila de la lista. */
-function MenuMover({ c, movibles, onMover, style }) {
+/** La píldora de la etapa, con su color. */
+const Pildora = ({ etapa, children }) => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: T.ink, background: T.softFill, padding: "3px 10px", borderRadius: 8 }}>
+    <span style={{ width: 7, height: 7, borderRadius: "50%", background: COLOR[etapa] }} />
+    {etapaPorId(etapa)?.label || etapa}
+    {children}
+  </span>
+);
+
+/**
+ * El menú para mover a otra etapa. En la tarjeta se abre con ⋯ (`etapa`
+ * ausente); en la lista, desde la propia etapa: la píldora es el botón.
+ */
+function MenuMover({ c, movibles, onMover, style, etapa = false }) {
   // `menu` = dónde abrirlo. Va en posición fija: dentro del carril o de la
   // tabla (que tienen scroll) un menú absoluto queda recortado.
   const [menu, setMenu] = useState(null);
@@ -46,7 +58,8 @@ function MenuMover({ c, movibles, onMover, style }) {
   const abrir = () => {
     if (menu) return setMenu(null);
     const r = caja.current.getBoundingClientRect();
-    setMenu({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    // Desde la etapa (a la izquierda de la fila) abre hacia la derecha.
+    setMenu(etapa ? { top: r.bottom + 4, left: r.left } : { top: r.bottom + 4, right: window.innerWidth - r.right });
   };
   // Se cierra al tocar fuera o al desplazar (quedaría flotando lejos del botón).
   useEffect(() => {
@@ -60,14 +73,22 @@ function MenuMover({ c, movibles, onMover, style }) {
 
   return (
     <div ref={caja} style={style} onClick={(e) => e.stopPropagation()}>
-      <button type="button" onClick={abrir} aria-label={`Mover a ${c.nombre} a otra etapa`} title="Mover a otra etapa"
-        style={{ width: 24, height: 24, borderRadius: 8, border: "none",
-                 background: menu ? T.lilac : "transparent", color: T.textSoft, cursor: "pointer",
-                 display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <MoreVertical size={16} />
-      </button>
+      {etapa ? (
+        <button type="button" onClick={abrir} aria-label={`Etapa de ${c.nombre}: ${etapaPorId(c.etapa)?.label}. Cambiar`} title="Cambiar de etapa"
+          style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: T.font,
+                   borderRadius: 8, outline: menu ? `2px solid ${T.primary3}` : "none" }}>
+          <Pildora etapa={c.etapa}><ChevronDown size={13} style={{ color: T.textSoft, marginLeft: 2 }} /></Pildora>
+        </button>
+      ) : (
+        <button type="button" onClick={abrir} aria-label={`Mover a ${c.nombre} a otra etapa`} title="Mover a otra etapa"
+          style={{ width: 24, height: 24, borderRadius: 8, border: "none",
+                   background: menu ? T.lilac : "transparent", color: T.textSoft, cursor: "pointer",
+                   display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MoreVertical size={16} />
+        </button>
+      )}
       {menu && (
-        <div role="menu" style={{ position: "fixed", top: menu.top, right: menu.right, zIndex: 50, background: "#fff", borderRadius: 12,
+        <div role="menu" style={{ position: "fixed", top: menu.top, left: menu.left, right: menu.right, zIndex: 50, background: "#fff", borderRadius: 12,
                                   boxShadow: "0 12px 28px rgba(58,37,48,.18)", border: `1px solid ${T.border}`, padding: 6, minWidth: 190 }}>
           <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: ".06em", color: T.textSoft, padding: "4px 8px" }}>MOVER A</div>
           {movibles.filter((id) => id !== c.etapa).map((id) => (
@@ -195,10 +216,11 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
                 </button>
               </td>
               <td style={td}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: T.ink, background: T.softFill, padding: "3px 10px", borderRadius: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: COLOR[c.etapa] }} />
-                  {etapaPorId(c.etapa)?.label || c.etapa}
-                </span>
+                {/* La etapa se cambia desde la etapa. Las que se calculan de los
+                    datos (antes de la agencia) quedan fijas. */}
+                {movibles.includes(c.etapa)
+                  ? <MenuMover c={c} movibles={movibles} onMover={onMover} etapa style={{ position: "relative", display: "inline-block" }} />
+                  : <Pildora etapa={c.etapa} />}
               </td>
               <td style={td}>{dias(c.desde) || vacio("—")}</td>
               <td style={td}>{c.telefono ? <a href={`tel:${c.telefono}`} style={{ color: T.neutral, textDecoration: "none" }}>{c.telefono}</a> : vacio("Sin teléfono")}</td>
@@ -206,7 +228,7 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
               <td style={td}>{c.ciudad || vacio("Sin ciudad")}</td>
               <td style={td}><span style={{ fontSize: 11, fontWeight: 600, color: T.primary, background: T.lilac, padding: "3px 10px", borderRadius: 8 }}>{c.score}%</span></td>
               {conAgencia && <td style={td}>{c.agencia || vacio("Sin agencia")}</td>}
-              <td style={{ ...td, width: 110 }}>
+              <td style={{ ...td, width: 80 }}>
                 {/* Dos accesos: el perfil completo y el chat (vista rápida). */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                   <Link href={hrefFicha(c.id)} title="Ver perfil" aria-label={`Ver el perfil de ${c.nombre}`} style={icono}>
@@ -216,7 +238,6 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
                     <MessageCircle size={16} />
                     {c.no_leidos > 0 && <span style={{ position: "absolute", top: 3, right: 3, width: 8, height: 8, borderRadius: "50%", background: T.primary, border: "1.5px solid #fff" }} />}
                   </button>
-                  {movibles.includes(c.etapa) && <MenuMover c={c} movibles={movibles} onMover={onMover} style={{ position: "relative" }} />}
                 </div>
               </td>
             </tr>

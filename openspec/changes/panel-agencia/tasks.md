@@ -22,7 +22,8 @@
 ## 3b. Ajustes tras la revisión de Daniel (2026-10-12)
 
 - [x] 3b.1 `TableroEtapas`: las salidas como últimas columnas de la misma fila
-- [x] 3b.2 `TableroEtapas`: vista «Lista» con el mismo menú para mover; la vista elegida se recuerda
+- [x] 3b.2 `TableroEtapas`: vista «Lista»; la vista elegida se recuerda
+- [x] 3b.4 En la lista, la etapa se cambia desde la columna Etapa (la píldora abre las etapas); sin ⋯ en la fila. Verificado: el menú abre bajo la píldora y mover a «Elección de plan» funciona
 - [ ] 3b.3 Verificar en Playwright: agencia y admin, tablero y lista; mover desde la lista
 
 ## 4. Verificación

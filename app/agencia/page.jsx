@@ -45,7 +45,7 @@ export default function AgenciaInicioPage() {
       <div>
         <div style={{ fontSize: isMobile ? 21 : 26, fontWeight: 700, lineHeight: 1.1 }}>Mis candidatas</div>
         <div style={{ fontSize: 13.5, color: T.textSoft, marginTop: 3 }}>
-          Las candidatas que Destino Au Pair aprobó y te envió. Arrástralas a su etapa o usa el menú de cada tarjeta.
+          Las candidatas que Destino Au Pair aprobó y te envió. En el tablero, arrástralas a su etapa; en la lista, cambia la etapa desde la columna Etapa.
         </div>
       </div>
       {candidatas === null

@@ -30,12 +30,12 @@ La agencia SHALL entrar a un tablero con el mismo componente que el del admin, c
 
 ### Requirement: El tablero también se ve como lista
 
-El tablero SHALL ofrecer dos vistas de las mismas candidatas, «Tablero» y «Lista», con el mismo componente para el admin y la agencia. La lista SHALL mostrar por candidata: nombre, etapa, tiempo en la etapa, teléfono, correo, ciudad y porcentaje diligenciado (y la agencia, en la del admin), ordenada por etapa, con el mismo menú para moverla y un acceso a su ficha. La vista elegida SHALL recordarse en el navegador.
+El tablero SHALL ofrecer dos vistas de las mismas candidatas, «Tablero» y «Lista», con el mismo componente para el admin y la agencia. La lista SHALL mostrar por candidata: nombre, etapa, tiempo en la etapa, teléfono, correo, ciudad y porcentaje diligenciado (y la agencia, en la del admin), ordenada por etapa. La etapa SHALL cambiarse desde la propia columna Etapa: la píldora de una etapa movible abre las etapas a las que puede pasar; las etapas calculadas quedan fijas. Cada fila SHALL tener un acceso a su ficha. La vista elegida SHALL recordarse en el navegador.
 
 #### Scenario: La agencia cambia a la lista
 
 - **WHEN** la agencia pulsa «Lista» en «Mis candidatas»
-- **THEN** ve sus candidatas en filas, ordenadas por etapa, y puede moverlas desde el menú ⋯ de cada fila
+- **THEN** ve sus candidatas en filas, ordenadas por etapa, y cambia la etapa de cada una tocando su etapa
 
 ### Requirement: La agencia abre la misma ficha, con sus permisos
 
