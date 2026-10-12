@@ -24,7 +24,7 @@
 - [x] 3b.1 `TableroEtapas`: las salidas como últimas columnas de la misma fila
 - [x] 3b.2 `TableroEtapas`: vista «Lista»; la vista elegida se recuerda
 - [x] 3b.4 En la lista, la etapa se cambia desde la columna Etapa (la píldora abre las etapas); sin ⋯ en la fila. Verificado: el menú abre bajo la píldora y mover a «Elección de plan» funciona
-- [ ] 3b.3 Verificar en Playwright: agencia y admin, tablero y lista; mover desde la lista
+- [x] 3b.3 Verificar en Playwright: agencia y admin, tablero y lista; mover desde la lista
 
 ## 4. Verificación
 
@@ -46,5 +46,9 @@
 
 ## 5. Despliegue
 
-- [ ] 5.1 Contar `agencia_evaluaciones` en producción antes de desplegar
-- [ ] 5.2 Junto con `etapas-candidata` (`deploy/desplegar.sh`)
+- [x] 5.1 Contar `agencia_evaluaciones` en producción antes de desplegar
+- [x] 5.2 Junto con `etapas-candidata` (`deploy/desplegar.sh`)
+
+### Despliegue (2026-10-12)
+
+`deploy/desplegar.sh` con 009 y 010; respaldo previo `/var/respaldos-dap/20261012-1939`; 632 aserciones en verde dentro del contenedor. En producción: 2 agencias, `agencia_evaluaciones` vacía (0 filas: el flujo heredado no tenía datos), 3 mensajes viejos copiados a 3 conversaciones, historial rellenado (13 registros, 4 aprobadas). Quedan 4 aprobadas sin agencia: se asignan desde la ficha.
