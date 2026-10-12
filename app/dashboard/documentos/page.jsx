@@ -175,11 +175,11 @@ export default function DocumentosPage() {
                 <div style={{ fontWeight:600,fontSize:14,color:T.text,lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.label}</div>
                 <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:perdido?"#C0392B":up?T.primary:T.textSoft,fontWeight:600 }}>
                   {up && !perdido && <Check size={12}/>}
-                  {perdido?"Vuelve a subirlo":obs?"Te pedimos corregirlo":up?"Cargado":"Pendiente"}
+                  {perdido?"Vuelve a subirlo":obs?"Te pedimos corregirlo":subido?.estado==="rechazado"?"Rechazado · súbelo de nuevo":up?"Cargado":"Pendiente"}
                 </div>
                 {obs && <div style={{ fontSize:11.5,color:T.amber,marginTop:3,lineHeight:1.4 }}>{obs.texto}</div>}
               </div>
-              {perdido || obs ? (
+              {perdido || obs || subido?.estado === "rechazado" ? (
                 <button onClick={()=>setModal(r)}
                   style={{ background:perdido?"#C0392B":T.amber,color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontFamily:T.font,fontWeight:700,fontSize:12.5,cursor:"pointer",flexShrink:0 }}>
                   Volver a subir

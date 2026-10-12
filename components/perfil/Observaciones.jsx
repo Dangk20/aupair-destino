@@ -21,6 +21,19 @@ import { seccionDe, elementoDe } from "@/lib/observaciones-perfil";
 import { PARTE1, PARTE2 } from "@/lib/campos-perfil";
 import CampoEditable from "@/components/perfil/CampoEditable";
 import FotoUpload from "@/components/dashboard/FotoUpload";
+import DocumentoUpload from "@/components/dashboard/DocumentoUpload";
+
+// Las fotos de la cédula se suben en la Parte 1 · Información personal, pero no
+// están declaradas en campos-perfil.js. Sin esto, una observación sobre esa
+// sección ("la cédula está borrosa") no tendría dónde volver a subirlas: el
+// formulario de una parte enviada ya no se abre.
+const FOTOS_CEDULA = [
+  { name: "cedula_frontal_url",   label: "Cédula · lado frontal" },
+  { name: "cedula_posterior_url", label: "Cédula · lado posterior" },
+];
+const conFotosDeCedula = (obs) =>
+  (obs.tipo === "seccion" && Number(obs.parte) === 1 && obs.seccion === "personal") ||
+  (obs.tipo === "campo" && obs.campo?.startsWith("cedula_"));
 
 const ESTADO = {
   abierta:  { texto: "Abierta · la candidata puede corregir", color: T.amber, bg: T.amberBg },
@@ -184,10 +197,14 @@ function camposDe(obs) {
 
 function Correccion({ obs, perfil, onGuardado }) {
   const campos = camposDe(obs);
-  const [valores, setValores] = useState(() =>
-    Object.fromEntries(campos.map((c) => [c.name, c.tipo === "fecha"
-      ? String(perfil?.[c.name] ?? "").slice(0, 10) : (perfil?.[c.name] ?? "")]))
-  );
+  const fotos  = conFotosDeCedula(obs)
+    ? FOTOS_CEDULA.filter((f) => obs.tipo === "seccion" || f.name === obs.campo)
+    : [];
+  const [valores, setValores] = useState(() => Object.fromEntries([
+    ...campos.map((c) => [c.name, c.tipo === "fecha"
+      ? String(perfil?.[c.name] ?? "").slice(0, 10) : (perfil?.[c.name] ?? "")]),
+    ...fotos.map((f) => [f.name, perfil?.[f.name] ?? ""]),
+  ]));
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
 
@@ -222,6 +239,10 @@ function Correccion({ obs, perfil, onGuardado }) {
               <CampoEditable key={c.name} campo={c} valor={valores[c.name]}
                 obligatorio={false} marcarHeredado={false}
                 onChange={(name, v) => setValores((x) => ({ ...x, [name]: v }))} />
+            ))}
+            {fotos.map((f) => (
+              <DocumentoUpload key={f.name} label={f.label} value={valores[f.name]}
+                onChange={(v) => setValores((x) => ({ ...x, [f.name]: v }))} />
             ))}
           </div>
           {error && <div style={{ fontSize: 12.5, color: T.danger, marginTop: 8 }}>{error}</div>}

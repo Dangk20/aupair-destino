@@ -37,6 +37,8 @@ const BLOQUEADAS = new Set([
   "vio_bienvenida","codigo_referido","codigo_promo_usado",
   "reset_token","reset_token_expiry",
   "score_dap","calificacion_dap","nota_dap","notas_agencia","evaluacion_aprobada",
+  // Lo escriben el admin y la agencia; la candidata no se pone su propio estado.
+  "estado_agencia",
   "zona_horaria","formato_fecha","tema_plataforma","idioma_plataforma",
   "privacidad_perfil","compartir_progreso",
   "notif_email","notif_plataforma","notif_mensajes","notif_reuniones",

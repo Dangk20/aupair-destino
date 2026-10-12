@@ -8,6 +8,7 @@ import Link from "next/link";
 import { LockIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon , AlertTriangle} from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import ModalSiguientePaso, { siguientePaso } from "@/components/perfil/ModalSiguientePaso";
+import { ubicacionesDeCampo } from "@/lib/observaciones-perfil";
 import { ConfirmarEnvio, ParteEnviada, enviarParte } from "@/components/perfil/EnvioParte";
 import {
   PARTE2, parteCompleta, validarSeccion,
@@ -48,12 +49,23 @@ const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:12, paddin
 const IC_ERR = { ...IC, border:"1.5px solid #C0392B", background:"#FDECEC", outline:"2px solid #C0392B", outlineOffset:"1px" };
 const LC = { fontSize:10, fontWeight:700, color:"#6b4a54", textTransform:"uppercase", letterSpacing:".7px", display:"block", marginBottom:6 };
 
-function Select({ name, value, onChange, options, placeholder="", estilo }) {
+function Select({ name, value, onChange, options, placeholder="", estilo, disabled=false }) {
   return (
-    <select name={name} value={value||""} onChange={onChange} style={estilo||IC}>
+    <select name={name} value={value||""} onChange={onChange} disabled={disabled}
+      style={{ ...(estilo||IC), ...(disabled ? { background:"#FBF4F6", color:"#9C8790", cursor:"not-allowed" } : {}) }}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map(o => <option key={o}>{o}</option>)}
     </select>
+  );
+}
+
+/** Bajo un campo que también es de la Parte 1, ya enviada: se ve, no se cambia. */
+function Compartido({ visible }) {
+  if (!visible) return null;
+  return (
+    <p style={{ fontSize:11.5, color:"#9C8790", margin:"5px 0 0" }}>
+      Lo respondiste en la Parte 1, que ya enviaste. Si hay que cambiarlo, el equipo te lo pedirá.
+    </p>
   );
 }
 
@@ -114,6 +126,11 @@ export default function PerfilAgenciaPage() {
     if (String(v ?? "").trim() !== "") setFaltantes(f => f.filter(c => c.name !== k));
   };
   const hi  = e => set(e.target.name, e.target.value);
+  // Tres preguntas están en las dos partes (situación actual, licencia,
+  // medicamentos). Con la Parte 1 enviada son de ella y están cerradas: el
+  // servidor las rechazaría, así que el formulario no las ofrece para editar.
+  const cerradoPorParte1 = (name) =>
+    !!form?.parte1_enviada_at && ubicacionesDeCampo(name).some(u => u.parte === 1);
   const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
 
   // ── Validación (mismas reglas que la Parte 1) ────────────────────────────
@@ -184,7 +201,7 @@ export default function PerfilAgenciaPage() {
         const i = SECCIONES.findIndex(sec => sec.campos?.some(c => c.name === data.invalidos[0].name));
         if (i !== -1) setSeccion(i);
         señalarFaltantes(data.invalidos);
-      } else showToast("Error al guardar","error");
+      } else showToast(data.error || "Error al guardar","error");
     }
     setGuardando(false);
   };
@@ -370,7 +387,7 @@ export default function PerfilAgenciaPage() {
             {/* ── 3: Educación ── */}
             {seccion===2 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Qué haces actualmente? *</label><Select name="situacion_actual" value={form.situacion_actual} onChange={hi} placeholder="Seleccionar" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]} estilo={ic("situacion_actual")}/><Msg visible={enError("situacion_actual")}/></div>
+                <div><label style={LC}>¿Qué haces actualmente? *</label><Select name="situacion_actual" value={form.situacion_actual} onChange={hi} disabled={cerradoPorParte1("situacion_actual")} placeholder="Seleccionar" options={["Estudio","Trabajo","No hago nada","Desempeño otra actividad"]} estilo={ic("situacion_actual")}/><Msg visible={enError("situacion_actual")}/><Compartido visible={cerradoPorParte1("situacion_actual")}/></div>
                 <div><label style={LC}>Carrera / Profesión</label><input name="carrera_graduada" value={form.carrera_graduada||""} onChange={hi} style={ic("carrera_graduada")} placeholder="Ej: Enfermería"/><Msg visible={enError("carrera_graduada")}/></div>
                 <div><label style={LC}>¿Tienes curso de primeros auxilios?</label><Select name="curso_primeros_auxilios" value={form.curso_primeros_auxilios} onChange={hi} placeholder="Seleccionar" options={["Si","No","Lo estoy haciendo"]} estilo={ic("curso_primeros_auxilios")}/><Msg visible={enError("curso_primeros_auxilios")}/></div>
               </div>
@@ -379,7 +396,7 @@ export default function PerfilAgenciaPage() {
             {/* ── 4: Conducción ── */}
             {seccion===3 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Tienes licencia? *</label><Select name="licencia_conduccion" value={form.licencia_conduccion} onChange={hi} placeholder="Seleccionar" options={["Si","No","Está en proceso"]} estilo={ic("licencia_conduccion")}/><Msg visible={enError("licencia_conduccion")}/></div>
+                <div><label style={LC}>¿Tienes licencia? *</label><Select name="licencia_conduccion" value={form.licencia_conduccion} onChange={hi} disabled={cerradoPorParte1("licencia_conduccion")} placeholder="Seleccionar" options={["Si","No","Está en proceso","No, pero tengo habilidades y la puedo obtener en menos de un mes"]} estilo={ic("licencia_conduccion")}/><Msg visible={enError("licencia_conduccion")}/><Compartido visible={cerradoPorParte1("licencia_conduccion")}/></div>
                 <div><label style={LC}>Tipo de licencia *</label><Select name="tipo_licencia" value={form.tipo_licencia} onChange={hi} placeholder="Seleccionar" options={["Categoría A","Categoría B","Categoría B1","Categoría C","No aplica"]} estilo={ic("tipo_licencia")}/><Msg visible={enError("tipo_licencia")}/></div>
               </div>
               <div><label style={LC}>Habilidad de conducción</label><Select name="habilidad_conduccion" value={form.habilidad_conduccion} onChange={hi} placeholder="Seleccionar" options={["Nulas","Puedo conducir pero no lo hago bien.","Conduzco bien pero me falta práctica.","Me siento muy cómoda y segura."]} estilo={ic("habilidad_conduccion")}/><Msg visible={enError("habilidad_conduccion")}/></div>
@@ -399,7 +416,7 @@ export default function PerfilAgenciaPage() {
             {/* ── 7: Salud ── */}
             {seccion===6 && (<>
               <div style={G1}>
-                <div><label style={LC}>¿Enfermedad con medicamentos constantes? *</label><Select name="enfermedad_medicamentos" value={form.enfermedad_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]} estilo={ic("enfermedad_medicamentos")}/><Msg visible={enError("enfermedad_medicamentos")}/></div>
+                <div><label style={LC}>¿Enfermedad con medicamentos constantes? *</label><Select name="enfermedad_medicamentos" value={form.enfermedad_medicamentos} onChange={hi} disabled={cerradoPorParte1("enfermedad_medicamentos")} placeholder="Seleccionar" options={["Si","No"]} estilo={ic("enfermedad_medicamentos")}/><Msg visible={enError("enfermedad_medicamentos")}/><Compartido visible={cerradoPorParte1("enfermedad_medicamentos")}/></div>
                 <div><label style={LC}>¿Alergias a medicamentos?</label><Select name="alergia_medicamentos" value={form.alergia_medicamentos} onChange={hi} placeholder="Seleccionar" options={["Si","No"]} estilo={ic("alergia_medicamentos")}/><Msg visible={enError("alergia_medicamentos")}/></div>
                 <div><label style={LC}>Dieta especial *</label><Select name="dieta_especial" value={form.dieta_especial} onChange={hi} placeholder="Seleccionar" options={["Ninguna","Vegetariana","Vegana","Sin gluten","Sin lactosa","Otra"]} estilo={ic("dieta_especial")}/><Msg visible={enError("dieta_especial")}/></div>
                 <div><label style={LC}>¿Fumadora?</label><Select name="fumadora" value={form.fumadora} onChange={hi} placeholder="Seleccionar" options={["No","Sí","Exfumadora"]} estilo={ic("fumadora")}/><Msg visible={enError("fumadora")}/></div>

@@ -68,15 +68,20 @@ export async function POST(req) {
     // Un documento ya cargado está cerrado: reemplazarlo exige una observación
     // abierta sobre él (R3). Se comprueba ANTES de guardar el archivo, para no
     // dejar huérfanos en el almacenamiento.
-    // Excepción: si el archivo del registro se perdió del almacenamiento, no
-    // hay nada que revisar y volver a subirlo siempre se permite.
+    // Dos excepciones en las que volver a subirlo siempre se permite:
+    //   · el archivo del registro se perdió del almacenamiento: no hay nada que revisar;
+    //   · el admin lo rechazó: rechazar ya es pedir otro (era el flujo de antes).
     const [previo] = await dbAupair.query(
-      "SELECT id, url FROM documentos_usuario WHERE usuario_id = ? AND tipo_doc = ?",
+      "SELECT id, url, estado FROM documentos_usuario WHERE usuario_id = ? AND tipo_doc = ?",
       [session.id, tipo_doc]
     );
-    const reabren = previo.length ? await observacionesDeDocumento(session.id, tipo_doc) : [];
-    const perdido = previo.length && !(await archivoDisponible(previo[0].url));
-    if (previo.length && !reabren.length && !perdido) return respuestaDocumentoCerrado();
+    // Se consultan aunque no haya registro: si la candidata quitó el documento
+    // reabierto antes de volver a subirlo, la observación sigue abierta y
+    // esta subida es la que la atiende.
+    const reabren   = await observacionesDeDocumento(session.id, tipo_doc);
+    const perdido   = previo.length && !(await archivoDisponible(previo[0].url));
+    const rechazado = previo.length && previo[0].estado === "rechazado";
+    if (previo.length && !reabren.length && !perdido && !rechazado) return respuestaDocumentoCerrado();
 
     // Guardar fuera de public/ — ver lib/almacenamiento-archivos.js
     const referencia = await guardarDocumento({
@@ -134,12 +139,13 @@ export async function DELETE(req) {
 
   try {
     const [[doc]] = await dbAupair.query(
-      "SELECT url, tipo_doc FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
+      "SELECT url, tipo_doc, estado FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
       [id, session.id]
     );
-    // Cargado = cerrado. Quitarlo sólo con una observación que lo reabra; antes
-    // se podía borrar incluso un documento ya aprobado.
-    if (doc && !(await observacionesDeDocumento(session.id, doc.tipo_doc)).length) {
+    // Cargado = cerrado. Quitarlo sólo si el admin lo rechazó o una
+    // observación lo reabre; antes se podía borrar incluso uno ya aprobado.
+    if (doc && doc.estado !== "rechazado"
+        && !(await observacionesDeDocumento(session.id, doc.tipo_doc)).length) {
       return respuestaDocumentoCerrado();
     }
     if (doc?.url) await borrarDocumento(doc.url);

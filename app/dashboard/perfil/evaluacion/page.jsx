@@ -231,7 +231,7 @@ export default function PerfilEvaluacionPage() {
         if (i !== -1 && i !== paso) setPaso(i);
         señalarFaltantes(data.invalidos);
         setToast("No se guardó: revisa el campo señalado");
-      } else setToast("Error al guardar");
+      } else setToast(data.error || "Error al guardar");
       setTimeout(()=>setToast(null),2500);
     }
     setGuardando(false);

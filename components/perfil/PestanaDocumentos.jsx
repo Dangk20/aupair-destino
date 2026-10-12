@@ -312,7 +312,9 @@ export default function PestanaDocumentos({
           // Un documento cargado está cerrado para la candidata (R3): sólo lo
           // quita o reemplaza si una observación abierta lo reabre.
           const obsDoc    = observacionesDe(observaciones, { tipoDoc: r.tipo });
-          const reabierto = obsDoc.some(o => o.estado === "abierta");
+          // Un documento rechazado también se puede volver a subir: rechazar
+          // ya es pedir otro.
+          const reabierto = obsDoc.some(o => o.estado === "abierta") || doc?.estado === "rechazado";
 
           return (
             <div key={r.tipo} style={{
