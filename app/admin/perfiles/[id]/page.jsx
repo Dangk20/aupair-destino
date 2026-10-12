@@ -94,6 +94,14 @@ function BloqueDecision({ form, set, estado, agencias, onDecidir, onMover, onGua
               <XCircle size={14} /> No califica
             </button>
           </>)}
+          {/* Aprobadas antes de que existiera la relación con la agencia: se
+              les asigna sin revertir la aprobación. */}
+          {decidida === "aprobada" && !estado?.agencia && (
+            <button type="button" disabled={ocupado} onClick={() => setAbierto(abierto === "aprobar" ? null : "aprobar")}
+              style={{ ...BTN(), background:T.green, color:"#fff", border:"none" }}>
+              <CheckCircle2 size={14} /> Asignar agencia
+            </button>
+          )}
           {decidida && (
             <button type="button" disabled={ocupado} onClick={() => onDecidir({ accion:"revertir" })}
               style={{ ...BTN(), background:"#fff", color:T.textSoft, border:`1px solid ${T.border}` }}>

@@ -60,6 +60,12 @@ export async function PUT(req, { params }) {
          ON DUPLICATE KEY UPDATE agencia_id = VALUES(agencia_id), etapa = 'evaluacion', etapa_desde = NOW()`,
         [candidataId, agencia.id]
       );
+      // Ya estaba aprobada (antes de que existiera la relación): sólo se le
+      // asigna la agencia; no se repite el hecho ni el correo de aprobación.
+      if (u.decision_dap === "aprobada") {
+        await registrarHecho({ candidataId, evento: "agencia_asignada", agenciaId: agencia.id, actor });
+        return NextResponse.json({ ok: true, mensaje: `Asignada a ${agencia.nombre}` });
+      }
       await registrarHecho({ candidataId, evento: "aprobada", agenciaId: agencia.id, actor });
       avisarEvaluacionAprobada(candidataId);
       return NextResponse.json({ ok: true, mensaje: `Aprobada y enviada a ${agencia.nombre}` });
