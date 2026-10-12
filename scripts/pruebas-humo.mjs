@@ -148,6 +148,7 @@ const INVENTARIO = [
   ["GET", "/agencia/candidatas/[id]/documentos", "rol:agencia"],
   ["PUT", "/agencia/candidatas/[id]/etapa", "rol:agencia"],
   ["GET", "/agencia/tablero", "rol:agencia"],
+  ["GET", "/asociada/comisiones", "rol:asociada"],
   ["PUT", "/asociada/perfil", "rol:asociada"],
   ["GET", "/asociada/reuniones", "rol:asociada"],
   ["POST", "/asociada/reuniones/[id]/confirmar", "rol:asociada"],

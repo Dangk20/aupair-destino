@@ -183,6 +183,7 @@ Nivel objetivo: **rol asociada**. Las seis lo verifican.
 
 | Ruta | Métodos | Estado | Propiedad |
 |---|---|---|---|
+| `/asociada/comisiones` | GET | ✅ | opera sobre `session.id` (`listarComisiones({ asociadaId: session.id, paraAsociada: true })`); change `comisiones-asociada` (R18) |
 | `/asociada/perfil` | PUT | ✅ | opera sobre `session.id` |
 | `/asociada/reuniones` | GET | ✅ | — |
 | `/asociada/reuniones/[id]/confirmar` | POST | ✅ | 🟡 revisar en 2.5 |
