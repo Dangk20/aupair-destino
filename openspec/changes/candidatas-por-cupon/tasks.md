@@ -15,7 +15,7 @@
 
 - [x] 3.1 `GET /api/admin/asociadas`: `candidatas` y `pagaron` por la regla, sin `referidos`; ajustar `/admin/asociadas` a esos campos
 - [x] 3.2 `GET /api/admin/asociadas/[id]`: candidatas con `tablero({ asociadaId })`; `DELETE` sin la columna y con los cupones de la asociada en `asociada_id = NULL`
-- [x] 3.3 `/admin/asociadas/[id]`: lista de sus candidatas en lugar de asignar/desasignar
+- [x] 3.3 `/admin/asociadas/[id]`: lista de sus candidatas en lugar de asignar/desasignar — y la lista `/admin/asociadas` lleva a ella (nombre y ojo); se retira el modal viejo «Detalle de la asesora», que nunca enlazaba a la página. Lo encontró Daniel al probar
 - [x] 3.4 Retirar `app/api/admin/asociadas/asignar` (y declararlo en docs y humo); encender «Asociadas» en `app/admin/layout.jsx`
 
 ## 4. Registro

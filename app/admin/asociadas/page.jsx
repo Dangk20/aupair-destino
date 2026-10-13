@@ -2,6 +2,7 @@
 // app/admin/asociadas/page.jsx
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import {
   UserPlusIcon, SearchIcon, TrashIcon, PencilIcon, EyeIcon,
   CheckIcon, XIcon, CopyIcon, UsersIcon, AlertCircleIcon, DollarSignIcon,
@@ -110,95 +111,12 @@ function ModalAsesora({ inicial, onClose, onSave }) {
   );
 }
 
-function ModalVerAsesora({ asesora, onClose }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/40 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-[#A0435F] via-[#A0435F] to-[#A0435F]"/>
-        <div className="px-6 py-5">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-serif text-[18px] font-bold text-[#4A2A38]">Detalle de la asesora</h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-xl bg-[#FCE8EE] flex items-center justify-center hover:bg-[#C77D93] transition">
-              <XIcon size={14} className="text-[#A0435F]"/>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#FCE8EE]">
-            <div className="w-14 h-14 rounded-2xl bg-[#FCE8EE] flex items-center justify-center text-[#A0435F] text-[22px] font-bold font-serif border border-[#C77D93] overflow-hidden">
-              {asesora.foto_url
-                ? <img src={asesora.foto_url} alt="" className="w-full h-full object-cover"/>
-                : (asesora.nombre?.[0] || "A")}
-            </div>
-            <div>
-              <p className="text-[16px] font-bold text-[#4A2A38]">{asesora.nombre} {asesora.apellido}</p>
-              <p className="text-[12px] text-[#9C8790]">{asesora.email}</p>
-              {asesora.telefono && <p className="text-[12px] text-[#9C8790]">{asesora.telefono}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label:"Código de referida",   val: asesora.codigo_referido || "Sin código" },
-              { label:"Comisión asignada",    val: asesora.comision_porcentaje != null ? `${Number(asesora.comision_porcentaje)}%` : "—" },
-              { label:"Ciudad",               val: asesora.ciudad || "—" },
-              { label:"País",                 val: asesora.pais || "—" },
-              { label:"Candidatas por su cupón", val: asesora.candidatas || 0 },
-              { label:"Pagaron con su cupón",   val: asesora.pagaron || 0 },
-              { label:"Registrada el",        val: asesora.created_at ? new Date(asesora.created_at).toLocaleDateString("es-CO") : "—" },
-            ].map((item,i)=>(
-              <div key={i} className="bg-[#FBF4F6] rounded-xl px-3 py-2.5">
-                <p className="text-[10px] text-[#9C8790] font-semibold uppercase tracking-wide">{item.label}</p>
-                <p className="text-[13px] font-bold text-[#4A2A38] mt-0.5">{item.val}</p>
-              </div>
-            ))}
-          </div>
-
-          <button onClick={onClose}
-            className="w-full mt-5 border border-[#F5E1E7] text-[#9C8790] text-[13px] font-medium py-2.5 rounded-xl hover:bg-[#FBF4F6] transition">
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalEliminar({ asesora, onClose, onConfirm }) {
-  const [eli, setEli] = useState(false);
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/40 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center px-6 py-7">
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-          <TrashIcon size={22} className="text-red-500"/>
-        </div>
-        <h3 className="font-serif text-[17px] font-bold text-[#4A2A38] mb-2">¿Eliminar asesora?</h3>
-        <p className="text-[13px] text-[#9C8790] mb-6">
-          Vas a eliminar a <strong>{asesora.nombre} {asesora.apellido}</strong>. Esta acción no se puede deshacer.
-        </p>
-        <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-[#F5E1E7] text-[#9C8790] text-[13px] py-2.5 rounded-xl hover:bg-[#FBF4F6] transition">
-            Cancelar
-          </button>
-          <button onClick={async()=>{setEli(true);await onConfirm();setEli(false);onClose();}} disabled={eli}
-            className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white text-[13px] font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
-            {eli ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : <TrashIcon size={13}/>}
-            {eli ? "Eliminando…" : "Sí, eliminar"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminAsociadasPage() {
   const [asociadas, setAsociadas]   = useState([]);
   const [loading,   setLoading]     = useState(true);
   const [busqueda,  setBusqueda]    = useState("");
   const [modalNueva,setModalNueva]  = useState(false);
   const [modalEditar,setModalEditar]= useState(null);
-  const [modalVer,  setModalVer]    = useState(null);
   const [modalEliminar,setModalEliminar] = useState(null);
   const [toast,     setToast]       = useState(null);
   const [copiado,   setCopiado]     = useState(null);
@@ -331,7 +249,7 @@ export default function AdminAsociadasPage() {
                             : <span className="text-[#A0435F] text-[13px] font-bold">{a.nombre?.[0]}</span>}
                         </div>
                         <div>
-                          <p className="text-[13px] font-semibold text-[#4A2A38]">{a.nombre} {a.apellido}</p>
+                          <Link href={`/admin/asociadas/${a.id}`} className="text-[13px] font-semibold text-[#4A2A38] hover:text-[#A0435F] hover:underline">{a.nombre} {a.apellido}</Link>
                           <p className="text-[11px] text-[#9C8790]">{a.email}</p>
                         </div>
                       </div>
@@ -350,9 +268,10 @@ export default function AdminAsociadasPage() {
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1">
-                        <button onClick={()=>setModalVer(a)} className="w-7 h-7 rounded-lg bg-[#FCE8EE] hover:bg-[#C77D93] flex items-center justify-center transition" title="Ver detalles">
+                        {/* Su página: datos, cupones y sus candidatas por etapa (`candidatas-por-cupon`). */}
+                        <Link href={`/admin/asociadas/${a.id}`} className="w-7 h-7 rounded-lg bg-[#FCE8EE] hover:bg-[#C77D93] flex items-center justify-center transition" title="Ver sus candidatas">
                           <EyeIcon size={13} className="text-[#A0435F]"/>
-                        </button>
+                        </Link>
                         <button onClick={()=>setModalEditar(a)} className="w-7 h-7 rounded-lg bg-[#FCE8EE] hover:bg-[#F5E1E7] flex items-center justify-center transition" title="Editar">
                           <PencilIcon size={13} className="text-[#A0435F]"/>
                         </button>
@@ -385,7 +304,6 @@ export default function AdminAsociadasPage() {
       {(modalNueva || modalEditar) && (
         <ModalAsesora inicial={modalEditar} onClose={()=>{setModalNueva(false);setModalEditar(null);}} onSave={handleSave}/>
       )}
-      {modalVer && <ModalVerAsesora asesora={modalVer} onClose={()=>setModalVer(null)}/>}
       {modalEliminar && <ModalEliminar asesora={modalEliminar} onClose={()=>setModalEliminar(null)} onConfirm={handleEliminar}/>}
     </div>
   );
