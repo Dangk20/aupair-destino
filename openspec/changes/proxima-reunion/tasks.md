@@ -12,4 +12,4 @@
 
 ## 3. Despliegue
 
-- [ ] 3.1 Sin migración: `deploy/desplegar-codigo.sh`, junto con `candidatas-por-cupon` y `candidatas-una-vista`
+- [x] 3.1 Sin migración: `deploy/desplegar-codigo.sh`, junto con `candidatas-por-cupon` y `candidatas-una-vista` — desplegado el 13 oct con `deploy/desplegar-codigo.sh`; humo en producción 626 en verde, 0 en rojo

@@ -18,4 +18,4 @@
 
 ## 4. Despliegue
 
-- [ ] 4.1 Sin migración: `deploy/desplegar-codigo.sh`, junto con `candidatas-por-cupon` y `proxima-reunion`
+- [x] 4.1 Sin migración: `deploy/desplegar-codigo.sh`, junto con `candidatas-por-cupon` y `proxima-reunion` — desplegado el 13 oct con `deploy/desplegar-codigo.sh`; humo en producción 626 en verde, 0 en rojo

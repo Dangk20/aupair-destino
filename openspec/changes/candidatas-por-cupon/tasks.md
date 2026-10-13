@@ -33,4 +33,4 @@
 
 ## 6. Despliegue
 
-- [ ] 6.1 Sin migración: `deploy/desplegar-codigo.sh` (o junto con el siguiente lote)
+- [x] 6.1 Sin migración: `deploy/desplegar-codigo.sh` (o junto con el siguiente lote) — desplegado el 13 oct con `deploy/desplegar-codigo.sh`; humo en producción 626 en verde, 0 en rojo
