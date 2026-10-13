@@ -26,5 +26,5 @@
 
 ## 4. Despliegue
 
-- [ ] 4.1 Medir en producción cuántas pasan de «En revisión» a «Diligenciando» y decirlo al desplegar
-- [ ] 4.2 `deploy/desplegar-codigo.sh` (sin migración)
+- [x] 4.1 Medir en producción cuántas pasan de «En revisión» a «Diligenciando» y decirlo al desplegar
+- [x] 4.2 Desplegado el 2026-10-13 con `divisa-cop` (`deploy/desplegar.sh`). De las 9 no aprobadas, sólo una tiene los 8 obligatorios: las otras 8 quedan en «Diligenciando»

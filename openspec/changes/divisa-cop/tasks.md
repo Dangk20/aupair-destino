@@ -45,4 +45,4 @@
 
 ## 5. Despliegue
 
-- [ ] 5.1 `deploy/desplegar.sh`; configurar el precio en producción en cuanto suba
+- [x] 5.1 `deploy/desplegar.sh`; configurar el precio en producción en cuanto suba — desplegado el 2026-10-13 (respaldo `/var/respaldos-dap/20261013-0003`, 643 en verde); precio 150.000 COP; los 4 cupones heredados en USD se borraron por decisión de Daniel (ventas y comisiones conservadas, sin el vínculo al código)

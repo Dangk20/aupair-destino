@@ -24,4 +24,4 @@
 
 ## 4. Despliegue
 
-- [ ] 4.1 Junto con `divisa-cop` (`deploy/desplegar.sh`)
+- [x] 4.1 Junto con `divisa-cop` (`deploy/desplegar.sh`) — desplegado el 2026-10-13
