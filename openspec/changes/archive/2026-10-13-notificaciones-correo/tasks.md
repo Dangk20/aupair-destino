@@ -146,8 +146,9 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
       habría rebotado, y los rebotes duros desgastan la reputación de envío. Se
       añadió a `NOTIF_EXCLUIR_EMAILS`. La lista viva en producción es
       `pruebadestino1@gmail.com,admin@destinoaupair.com`.
-- [ ] 8.8 Anotar el despliegue y su verificación en
+- [x] 8.8 Anotar el despliegue y su verificación en
       `tech/cronograma-sprints-aupair.md`.
+     *(Cierre 2026-10-13: anotado: fila del 5–7 ago y sección «Notificaciones por correo — desplegado el 7 de agosto de 2026» del cronograma.)*
 
 ## 9. Con la clienta
 
@@ -165,21 +166,25 @@ clienta y el dominio está verificado. Queda sólo llevar la clave al servidor.
       la clienta y la cuenta de servicio. Los dos correos siguen en
       `NOTIF_EXCLUIR_EMAILS` como red de seguridad. Verificado después:
       586 aserciones de humo en verde y el sitio en 200.
-- [ ] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
+- [x] 9.3 Decidir si `revision@destino-aupair.local` sigue existiendo como
       cuenta de revisión o se retira. Igual con `admin@destinoaupair.com`, que
       es un admin de producción con un dominio que no existe: o se corrige la
       dirección, o se retira la cuenta.
-- [ ] 9.4 Confirmar si los avisos deben llegar también a
+     *(Cierre 2026-10-13: trasladada a las preguntas abiertas a la clienta (estado del producto). `admin@destinoaupair.com` ya se retiró (9.2).)*
+- [x] 9.4 Confirmar si los avisos deben llegar también a
       `hola@destino-aupair.com` (el `email_contacto` de la tabla
       `configuracion`) o sólo a los admins.
-- [ ] 9.5 Registrar R6 como trabajo adicional al contrato cerrado, con lo que
+     *(Cierre 2026-10-13: trasladada a las preguntas abiertas a la clienta.)*
+- [x] 9.5 Registrar R6 como trabajo adicional al contrato cerrado, con lo que
       quedó dentro y lo que sigue pendiente de cotizar (notificaciones en
       plataforma, avisos de mensajería, recordatorios programados, avisos a
       agencias y asociadas).
-- [ ] 9.6 Comprobar en la consola de Google Workspace si el buzón
+     *(Cierre 2026-10-13: registrado: R6 figura entre lo que «se cotiza aparte» en el cronograma (sección de la reunión del 5 de agosto).)*
+- [x] 9.6 Comprobar en la consola de Google Workspace si el buzón
       `grexya.admin@destino-aupair.com` existe de verdad. Es admin en
       producción y recibe los avisos; si no hay buzón, cada aviso le rebota y
       hay que excluirlo o cambiarle el correo.
+     *(Cierre 2026-10-13: trasladada a las preguntas abiertas a la clienta (requiere la consola de Google Workspace).)*
 - [x] 9.7 Rotar la clave de Resend. **Decisión de Daniel el 2026-08-07: no se
       rota por ahora.** Queda anotado que se compartió por chat durante este
       trabajo, por si más adelante se quiere cerrar ese cabo.

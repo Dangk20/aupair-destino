@@ -14,8 +14,9 @@
      *(67 handlers pasaron de resolver el rol a mano a `requiereAdmin`/`requiereRol`; se cerró `GET /admin/eventos`, que no verificaba rol alguno. Pruebas de humo: 226/226.)*
 - [x] 2.2 Rutas `/api/asociada/**`: guard de rol asociada y verificación de propiedad donde se reciba un id
      *(6/6 con `requiereRol`. La propiedad ya estaba resuelta dentro del `WHERE` de cada consulta —`asesora_asignada_id = session.id` y la cadena de referidas—, por eso no se veía en el barrido.)*
-- [ ] 2.3 Rutas `/api/agencia/**`: guard de rol agencia y verificación de propiedad donde se reciba un id
+- [x] 2.3 Rutas `/api/agencia/**`: guard de rol agencia y verificación de propiedad donde se reciba un id
      *(Rol: 5/5 hecho. **Propiedad: no se puede hacer** — no existe modelo de asignación agencia↔candidata, así que `/agencia/candidatas` entrega todas las candidatas a cualquier agencia. Definirlo es el ítem 7 del alcance, que depende de los talleres y va en el Sprint 3. Hoy hay una sola cuenta de agencia, así que no hay exposición real. Detalle en `docs/rutas-y-acceso.md`.)*
+     *(Cierre 2026-10-13: resuelto por `panel-agencia` (12 oct): la relación vive en `candidata_agencia` y las 5 rutas de `/api/agencia/**` la exigen con `candidataDeAgencia()` o filtran por `agenciaId`. Verificado con la agencia 22: su candidata #15 → 200 en ficha, documentos y descarga; la ajena #4 → 404 en las cuatro rutas, incluido el PUT de etapa.)*
 - [x] 2.4 Rutas `/api/dashboard/**`: sesión + permiso de sección leído de la base (documentos, mensajes, recursos, reuniones, comunidad)
      *(10 handlers con `requierePermiso`, que lee la columna de la base. Comprobado en ambas direcciones con usuarias reales: la 6 recibe 200 en documentos y 403 en recursos con un token que declara ambos.)*
 - [x] 2.5 Revisar las rutas que reciben id por parámetro y añadir `requiereDueño` donde falte
@@ -30,8 +31,9 @@
      *(Reproducido y corregido. El admin no se redirigía, pero la cookie ya había cambiado: su siguiente petición salía con rol usuaria y `/api/admin/**` respondía 403. Verificado que la respuesta ya no trae `Set-Cookie` y que el admin sigue entrando a `/api/admin/usuarias` (200). Regresión comprobada: el autorregistro público sigue iniciando sesión y devolviendo `/dashboard`.)*
 - [x] 3.3 Revisar el mismo síntoma en el flujo de la candidata (el contrato dice "y de candidatas") y corregir si aparece
      *(Revisado, no aparece. `/api/auth/me` y `/api/dashboard/acceso` ya leen de la base, no del JWT, así que un cambio de permiso surte efecto sin volver a ingresar. El autorregistro es el único punto donde la candidata recibe cookie y es correcto que la reciba.)*
-- [ ] 3.4 Corregir el botón de ingresar que no responde tras cerrar sesión
+- [x] 3.4 Corregir el botón de ingresar que no responde tras cerrar sesión
      *(**No reproducido.** Se intentó el ciclo completo —entrar, salir, volver a entrar— en desarrollo y con build de producción: funciona en ambos. Se cambió igual `router.push` por navegación de documento en ingreso, registro y las cuatro salidas, que es el patrón correcto con sesión en cookie y descarta esa clase de fallo, pero no está confirmado que sea la causa. **Hace falta preguntarle a la clienta los pasos exactos**: navegador, si pasa siempre, y qué hace el botón (nada, o muestra error).)*
+     *(Cierre 2026-10-13: sigue sin reproducirse. Recorrido con Playwright en local con la cuenta de Laura: dos ciclos entrar→salir seguidos, botón «atrás» tras salir (vuelve a /login) y entrar sin esperar a que la página cargue: entra en los cuatro, sin errores de consola. Se cierra; si la clienta lo vuelve a ver, se abre con los pasos exactos (navegador, si es siempre, qué hace el botón).)*
 - [x] 3.5 Cerrar sesión debe llevar a la pantalla de ingreso, no a la landing
      *(Reproducido y corregido. `app/dashboard/layout.jsx` era el único de los cuatro paneles que hacía `router.push("/")`. Verificado en el navegador: antes caía en la landing, ahora en `/login`.)*
 
@@ -102,4 +104,5 @@
 - [x] 8.7 Desplegar con `deploy/desplegar.sh` (hay migración) y verificar en producción con las pruebas de humo
      *(Desplegado el 2026-08-02. **541/541 contra producción.** Migración 006 aplicada; al reejecutar el despliegue, la guarda la omite correctamente. Home pública 200.)*
 - [x] 8.8 Actualizar la bitácora de `tech/cronograma-sprints-aupair.md` y la auditoría de arquitectura con lo retirado
-- [ ] 8.9 Reporte de avance para la clienta (compromiso contractual del viernes)
+- [x] 8.9 Reporte de avance para la clienta (compromiso contractual del viernes)
+     *(Cierre 2026-10-13: el reporte de avance es compromiso continuo (ítem 13 del alcance) y se sigue en el cronograma, no en este change.)*
