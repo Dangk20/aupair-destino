@@ -15,7 +15,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Save, CheckCircle2, XCircle, Undo2, Eye, EyeOff, MessageSquareWarning } from "lucide-react";
+import { ChevronLeft, Save, CheckCircle2, XCircle, Undo2, Eye, EyeOff, MessageSquareWarning, Download } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 import { parteCompleta, faltantesDeParte, invalidosDeParte } from "@/lib/campos-perfil";
@@ -286,10 +286,18 @@ export default function AdminFichaCandidataPage() {
         </div>
       )}
 
-      <Link href="/admin/perfiles"
-        style={{ display:"inline-flex", alignItems:"center", gap:6, color:T.textSoft, textDecoration:"none", fontSize:13, border:`1px solid ${T.border}`, padding:"7px 12px", borderRadius:10, alignSelf:"flex-start" }}>
-        <ChevronLeft size={14} /> Candidatas
-      </Link>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+        <Link href="/admin/perfiles"
+          style={{ display:"inline-flex", alignItems:"center", gap:6, color:T.textSoft, textDecoration:"none", fontSize:13, border:`1px solid ${T.border}`, padding:"7px 12px", borderRadius:10 }}>
+          <ChevronLeft size={14} /> Candidatas
+        </Link>
+        {/* La hoja de vida en PDF y los documentos, en un ZIP. Estaba sólo en
+            la lista vieja de candidatas (change `candidatas-una-vista`). */}
+        <a href={`/api/admin/perfiles/${id}/descargar`}
+          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:10, background:T.primary, color:"#fff", fontSize:12.5, fontWeight:700, textDecoration:"none" }}>
+          <Download size={14} /> Descargar perfil
+        </a>
+      </div>
 
       <FichaCandidata
         perfil={perfil}

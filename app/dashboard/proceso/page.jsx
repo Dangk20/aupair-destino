@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Bell, Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+import { proximaReunion } from "@/lib/reuniones";
 import LineaDeTiempo from "@/components/perfil/LineaDeTiempo";
 import { etapaPorId } from "@/lib/etapas-candidata";
 
@@ -26,12 +27,12 @@ export default function MiDestinoPage() {
     Promise.all([
       safe(fetch("/api/auth/me"),{user:null}),
       safe(fetch("/api/dashboard/proceso"),null),
-      safe(fetch("/api/dashboard/reunion"),null),
+      safe(fetch("/api/dashboard/reuniones"),null),
       safe(fetch("/api/dashboard/documentos"),{docs:[],docs_requeridos:[]}),
       safe(fetch("/api/dashboard/historial"),null),
     ]).then(([me,proc,reu,dd,hist])=>{
       setRecorrido(hist);
-      setUser(me?.user||null); setPasos(proc?.pasos||[]); setReunion(reu?.reunion||null);
+      setUser(me?.user||null); setPasos(proc?.pasos||[]); setReunion(proximaReunion(reu?.reuniones||[]));
       const total=(dd?.docs_requeridos||[]).length;
       const subidos=new Set((dd?.docs||[]).map(d=>d.tipo_doc));
       const count=(dd?.docs_requeridos||[]).filter(r=>subidos.has(r.tipo)).length;

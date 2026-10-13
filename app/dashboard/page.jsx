@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+import { proximaReunion } from "@/lib/reuniones";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -29,13 +30,13 @@ export default function DashboardPage() {
       safe(fetch("/api/auth/me"),              {user:null}),
       safe(fetch("/api/dashboard/sesiones"),   null),
       safe(fetch("/api/dashboard/proceso"),    null),
-      safe(fetch("/api/dashboard/reunion"),    null),
+      safe(fetch("/api/dashboard/reuniones"),    null),
       safe(fetch("/api/dashboard/documentos"), {docs:[],docs_requeridos:[]}),
     ]).then(([me,ses,proc,reu,docsData]) => {
       setUser(me?.user||null);
       setSesData(ses);
       setProceso(proc);
-      setReunion(reu?.reunion||null);
+      setReunion(proximaReunion(reu?.reuniones||[]));
       setDocs(docsData||{docs:[],docs_requeridos:[]});
       if(me?.user&&!me.user.vio_bienvenida) setBienvenida(true);
       setLoading(false);

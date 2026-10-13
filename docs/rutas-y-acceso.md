@@ -80,24 +80,17 @@ existió) se retiraron en `candidatas-por-cupon` (2026-10-13): `/asociada/stats`
 |---|---|---|
 | `/api/admin/reuniones` | `reuniones.fecha` no existe · además sin consumidor | Sprint 3 |
 
-### Una ruta que se llama y no existe
+### La ruta en singular que no existía
 
-`/dashboard` y `/dashboard/proceso` piden **`/api/dashboard/reunion`** (en
-singular) y esa ruta no existe: la real es `/api/dashboard/reuniones`, y
-además devuelve `{ reuniones: [...] }` mientras las dos páginas leen
-`.reunion`. Es decir, **el recuadro "Tu próxima reunión" de la pantalla de
-inicio de la candidata nunca ha mostrado una reunión**: siempre dice "aún no
-tienes una agendada", tenga o no tenga.
+`/dashboard` y `/dashboard/proceso` pedían `/api/dashboard/reunion` (en
+singular), que nunca existió: el recuadro «Tu próxima reunión» jamás mostró
+una. Desde `proxima-reunion` (2026-10-13) piden `/api/dashboard/reuniones` y
+muestran la próxima no cancelada (`lib/reuniones.js`).
 
-No se arregla aquí. Es un cambio de comportamiento visible en la primera
-pantalla que ve una candidata, así que va por su propia propuesta —
-corresponde al Sprint 2, junto con el dashboard con datos reales.
-
-**Seis archivos consultan `usuarios.asesora_asignada_id` y la columna no
-existe ni en local ni en producción.** El módulo de la asociada nunca
-funcionó. `/api/auth/register` también la usa para asignar asesora
-automáticamente, pero envuelto en un `try/catch` con `console.warn`: falla en
-silencio en cada registro, así que esa asignación automática jamás ocurrió.
+**`usuarios.asesora_asignada_id` nunca existió** ni en local ni en
+producción: el módulo de la asociada no funcionó hasta `candidatas-por-cupon`
+(2026-10-13), que retiró las seis consultas. Hoy las candidatas de una
+asociada son las que llegaron por su cupón (`lib/asociada-aupair.js`).
 
 Se descubrió el 2026-08-02 al migrar el panel de la asociada a la cáscara
 compartida. Las pruebas de humo no lo habían detectado porque sólo
@@ -120,7 +113,7 @@ lo haga es un defecto.
 | `/api/codigos-promo/validar` | POST | La candidata valida su código antes de pagar, en el flujo público. |
 | `/api/sesiones-public` | GET | Alimenta la landing (`sections/HeroSection1.jsx`). |
 
-## `/api/admin/**` — 38 rutas, 69 handlers
+## `/api/admin/**` — 37 rutas, 68 handlers
 
 Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 
@@ -140,7 +133,6 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/eventos` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones`, `/dashboard/reuniones` |
 | `/admin/pagos/movimientos` | GET | ✅ | `/admin/pagos` |
 | `/admin/pagos/stats` | GET | ✅ | `/admin`, `/admin/pagos` |
-| `/admin/perfiles` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]` | GET, PUT | ✅ | `/admin/perfiles/[id]` |
 | `/admin/perfiles/[id]/descargar` | GET | ✅ | `/admin/perfiles` |
 | `/admin/perfiles/[id]/documentos` | GET, PUT, DELETE | ✅ | `/admin/perfiles/[id]` |
@@ -148,7 +140,7 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/perfiles/[id]/decision` | PUT | ✅ | `/admin/perfiles/[id]` — dueño único de la decisión del equipo; reemplaza a `/admin/aprobar-evaluacion` (`etapas-candidata`) |
 | `/admin/perfiles/[id]/etapa` | PUT | ✅ | `/admin/perfiles/[id]`, `/admin/perfiles/tablero` |
 | `/admin/perfiles/[id]/historial` | GET | ✅ | `/admin/perfiles/[id]` |
-| `/admin/tablero` | GET | ✅ | `/admin/perfiles/tablero` |
+| `/admin/tablero` | GET | ✅ | `/admin/perfiles` (pantalla Candidatas, `candidatas-una-vista`) |
 | `/admin/recursos` | GET, POST, DELETE | ✅ | `/admin/sesiones` |
 | `/admin/referidos` | GET, POST | ✅ | `/admin`, `/admin/referidos` |
 | `/admin/referidos/[id]` | PUT, DELETE | ✅ | `/admin/referidos` |
