@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { EyeIcon, EyeOffIcon, Mail, Lock, User, Users, ShieldCheck, Star, Cake } from "lucide-react";
@@ -74,6 +74,22 @@ function RegisterContent() {
     codigo_referido: searchParams.get("ref") || "",
   });
 
+  // R11: registro con un cupo transferido (/register?invitacion=…). El correo
+  // es el de la invitación y no se edita; el cupo ya está pago.
+  const invitacion = searchParams.get("invitacion");
+  const [inv, setInv] = useState(invitacion ? null : false);   // null = validando
+  useEffect(() => {
+    if (!invitacion) return;
+    fetch(`/api/auth/invitacion?token=${encodeURIComponent(invitacion)}`)
+      .then(async (r) => ({ ok: r.ok, d: await r.json().catch(() => ({})) }))
+      .then(({ ok, d }) => {
+        if (ok) { setInv(d); setForm((f) => ({ ...f, email: d.email })); }
+        else setInv({ error: d.error || "Esta invitación no es válida." });
+      })
+      .catch(() => setInv({ error: "No se pudo validar la invitación. Recarga la página." }));
+  }, [invitacion]);
+  const conCupo = !!(inv && !inv.error);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
@@ -95,7 +111,8 @@ function RegisterContent() {
           nombre: form.nombre, apellido: form.apellido,
           fecha_nacimiento: form.fecha_nacimiento,
           email: form.email, password: form.password,
-          codigo_referido: form.codigo_referido || null,
+          codigo_referido: conCupo ? null : form.codigo_referido || null,
+          ...(conCupo ? { invitacion } : {}),
         }),
       });
       const data = await res.json();
@@ -243,8 +260,23 @@ function RegisterContent() {
               Crea tu{" "}<span className="italic text-[#7c5cc4]">cuenta</span>
             </h1>
             <p className="text-center text-[13px] xl:text-[14px] text-[#7060a0] mb-7">
-              Es gratis — Da el primer paso sin compromiso.
+              {conCupo ? "Tu cupo en el programa ya está pago." : "Es gratis — Da el primer paso sin compromiso."}
             </p>
+
+            {invitacion && inv === null && (
+              <div className="text-center text-[13px] text-[#7060a0] mb-5">Validando tu invitación…</div>
+            )}
+            {conCupo && (
+              <div className="bg-[#ede9f8] border border-[#d6ccf0] text-[#1a0a3d] text-[13px] px-4 py-3 rounded-xl mb-5 leading-relaxed">
+                🎟️ Te transfirieron un cupo en Destino Au Pair. Crea tu cuenta con <strong>{inv.email}</strong> y empieza tu proceso: no tienes que pagar.
+              </div>
+            )}
+            {inv?.error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-xl mb-5 leading-relaxed">
+                {inv.error}{" "}
+                <Link href="/login" className="font-semibold underline">Ir a iniciar sesión</Link>
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-xl mb-5">
@@ -252,7 +284,7 @@ function RegisterContent() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {inv !== null && !inv?.error && <form onSubmit={handleSubmit} className="space-y-4">
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -284,7 +316,8 @@ function RegisterContent() {
                 <label className="block text-[10px] xl:text-[11px] font-bold tracking-[2px] uppercase text-[#1a0a3d] mb-1.5">Correo electrónico</label>
                 <div className="relative">
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#b0a0d0]" strokeWidth={1.5}/>
-                  <input name="email" type="email" placeholder="tu@correo.com" value={form.email} onChange={handleChange} required className={inputBase}/>
+                  <input name="email" type="email" placeholder="tu@correo.com" value={form.email} onChange={handleChange} required readOnly={conCupo}
+                    className={`${inputBase}${conCupo ? " bg-[#f4f1fa] text-[#7060a0] cursor-not-allowed" : ""}`}/>
                 </div>
               </div>
 
@@ -314,7 +347,7 @@ function RegisterContent() {
                 </div>
               </div>
 
-              <div>
+              {!conCupo && <div>
                 <label className="block text-[10px] xl:text-[11px] font-bold tracking-[2px] uppercase text-[#1a0a3d] mb-1.5">
                   Código de referido <span className="text-[#b0a0d0] normal-case font-normal">(opcional)</span>
                 </label>
@@ -325,7 +358,7 @@ function RegisterContent() {
                     onChange={e => setForm({...form, codigo_referido: e.target.value.toUpperCase()})}
                     className={inputBase}/>
                 </div>
-              </div>
+              </div>}
 
               <label className="flex items-start gap-3 cursor-pointer">
                 <div onClick={() => setAccepted(!accepted)}
@@ -357,7 +390,7 @@ function RegisterContent() {
                 ¿Ya tienes cuenta?{" "}
                 <Link href="/login" className="text-[#7c5cc4] font-bold hover:underline">Iniciar sesión</Link>
               </p>
-            </form>
+            </form>}
 
             <div className="mt-6 pt-5 border-t border-[#ede9f8] text-center">
               <div className="flex items-center justify-center gap-2 mb-1">

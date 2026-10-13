@@ -12,7 +12,7 @@ import { DOCS_REQUERIDOS } from "@/lib/documentos";
 import {
   observacionesDeDocumento, atenderObservaciones, respuestaDocumentoCerrado,
 } from "@/lib/bloqueo-perfil";
-import { registrarSiListaParaRevision } from "@/lib/historial-aupair";
+import { registrarHecho, registrarSiListaParaRevision } from "@/lib/historial-aupair";
 
 /* ── GET: documentos subidos por la usuaria ──────────────────────────────── */
 export async function GET(req) {
@@ -118,6 +118,10 @@ export async function POST(req) {
       docId = ins.insertId;
     }
 
+    // R10: al historial, con su tipo.
+    await registrarHecho({ candidataId: session.id, evento: existing.length > 0 ? "documento_reemplazado" : "documento_cargado",
+                           detalle: tipo_doc, actor: { id: session.id, rol: session.rol } });
+
     // El reemplazo atiende la observación y el documento se vuelve a cerrar.
     await atenderObservaciones(reabren);
     // Con la Parte 1 enviada, el último obligatorio la lleva a revisión (R14).
@@ -153,6 +157,7 @@ export async function DELETE(req) {
     }
     if (doc?.url) await borrarDocumento(doc.url);
     await dbAupair.query("DELETE FROM documentos_usuario WHERE id = ? AND usuario_id = ?", [id, session.id]);
+    if (doc) await registrarHecho({ candidataId: session.id, evento: "documento_retirado", detalle: doc.tipo_doc, actor: { id: session.id, rol: session.rol } });
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

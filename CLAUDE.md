@@ -157,6 +157,7 @@ consultas listas.
   | Correcciones pendientes | candidata | `app/api/admin/perfiles/[id]/observaciones/route.js` |
   | Reunión agendada / cancelada | admins | `app/api/dashboard/reuniones/route.js` |
   | Recuperar contraseña | quien la pide | `app/api/auth/forgot-password/route.js` |
+  | Invitación por cupo transferido | el correo invitado | `lib/transferencias-aupair.js` · `invitar()` |
 
   Los avisos a la candidata respetan `usuarios.notif_email`, leída de la base
   en cada envío. Los del admin no la consultan y van a todos los `rol='admin'`

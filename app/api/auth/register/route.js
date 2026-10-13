@@ -9,11 +9,23 @@ import {
 } from "@/lib/notificaciones-aupair";
 import { validaFechaNacimiento } from "@/lib/campos-perfil";
 import { registrarHecho } from "@/lib/historial-aupair";
+import { validar as validarInvitacion, usar as usarInvitacion } from "@/lib/transferencias-aupair";
 
 export async function POST(req) {
   try {
     // ── FIX: frontend envía nombre/apellido, no fullName/lastName ──────────
-    const { nombre, apellido, email, password, codigo_referido, fecha_nacimiento } = await req.json();
+    const body = await req.json();
+    const { nombre, apellido, password, codigo_referido, fecha_nacimiento, invitacion } = body;
+    let { email } = body;
+
+    // ── Registro por invitación (R11) ───────────────────────────────────────
+    // Quien recibe un cupo transferido se registra con el correo invitado: el
+    // del link manda, no el que venga en el cuerpo.
+    if (invitacion) {
+      const v = await validarInvitacion(invitacion);
+      if (!v.ok) return NextResponse.json({ error: v.error }, { status: 410 });
+      email = v.email;
+    }
 
     if (!nombre || !apellido || !email || !password) {
       return NextResponse.json(
@@ -55,14 +67,31 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // ── Crear usuario ───────────────────────────────────────────────────────
-    const [result] = await dbAupair.query(
-      `INSERT INTO usuarios
-        (nombre, apellido, email, password, rol, tiene_acceso, codigo_referido, fecha_nacimiento)
-       VALUES (?, ?, ?, ?, 'usuaria', FALSE, ?, ?)`,
-      [nombre, apellido, email, hashedPassword, codigo_referido?.toUpperCase() || null, fecha]
-    );
+    const crear = async (correo) => {
+      const [result] = await dbAupair.query(
+        `INSERT INTO usuarios
+          (nombre, apellido, email, password, rol, tiene_acceso, codigo_referido, fecha_nacimiento)
+         VALUES (?, ?, ?, ?, 'usuaria', FALSE, ?, ?)`,
+        [nombre, apellido, correo, hashedPassword, codigo_referido?.toUpperCase() || null, fecha]
+      );
+      // Primer hecho de su línea de tiempo.
+      await registrarHecho({
+        candidataId: result.insertId, evento: "registro",
+        actor: creadaPorAdmin ? { id: getSessionFromRequest(req).id, rol: "admin" } : { id: result.insertId, rol: "usuaria" },
+      });
+      return result.insertId;
+    };
 
-    const nuevoUsuarioId = result.insertId;
+    // Con invitación, el token se reclama una sola vez y el cupo pasa a la
+    // cuenta nueva (lib/transferencias-aupair.js).
+    let nuevoUsuarioId;
+    if (invitacion) {
+      const r = await usarInvitacion(invitacion, crear);
+      if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status || 410 });
+      nuevoUsuarioId = r.destinoId;
+    } else {
+      nuevoUsuarioId = await crear(email);
+    }
 
     // ── Asignar asesora por código de referido ──────────────────────────────
     // Si viene con código_referido, se busca si es una asesora
@@ -143,11 +172,6 @@ export async function POST(req) {
       codigo_referido: codigo_referido?.toUpperCase() || null,
     });
     avisarBienvenida(nuevoUsuarioId);
-    // Primer hecho de su línea de tiempo.
-    await registrarHecho({
-      candidataId: nuevoUsuarioId, evento: "registro",
-      actor: creadaPorAdmin ? { id: getSessionFromRequest(req).id, rol: "admin" } : { id: nuevoUsuarioId, rol: "usuaria" },
-    });
 
     // ── Token y cookie ──────────────────────────────────────────────────────
     // Esta ruta sirve a dos flujos distintos:
@@ -171,7 +195,7 @@ export async function POST(req) {
       apellido,
       email,
       rol:          "usuaria",
-      tiene_acceso: false,
+      tiene_acceso: !!invitacion,   // el cupo heredado ya está pago
     };
 
     const token    = createToken(newUser);

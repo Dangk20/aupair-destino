@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { getSessionFromRequest, unauthorized } from "@/lib/session-aupair";
 import { avisarCursoCompletado } from "@/lib/notificaciones-aupair";
+import { registrarHecho } from "@/lib/historial-aupair";
 
 export async function POST(req) {
   const session = getSessionFromRequest(req);
@@ -31,6 +32,9 @@ export async function POST(req) {
        ON DUPLICATE KEY UPDATE completada = TRUE, fecha_completado = NOW()`,
       [session.id, id_sesion]
     );
+    // R10: una vez por sesión (la referencia evita repetirlo al remarcarla).
+    const actor = { id: session.id, rol: session.rol };
+    if (session.rol === "usuaria") await registrarHecho({ candidataId: session.id, evento: "sesion_completada", detalle: sesion[0].titulo, referencia: `sesion:${sesion[0].id}`, actor });
 
     // ── ¿Terminó el curso? ──────────────────────────────────────────────────
     // El aviso es del curso entero, no de cada video: uno por sesión sería
@@ -46,6 +50,7 @@ export async function POST(req) {
     );
     if (avance.total > 0 && avance.completadas >= avance.total) {
       avisarCursoCompletado(session.id);
+      if (session.rol === "usuaria") await registrarHecho({ candidataId: session.id, evento: "curso_completado", referencia: "curso", actor });
     }
 
     return NextResponse.json({ ok: true });

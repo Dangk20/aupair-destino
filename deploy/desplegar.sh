@@ -38,6 +38,8 @@ MIGRACIONES=(
   "009_etapas_candidata|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='historial_candidata'"
   "010_conversaciones|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='conversaciones'"
   "011_moneda_cop|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='ventas' AND column_name='moneda'"
+  "012_historial_referencia|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='historial_candidata' AND column_name='referencia'"
+  "013_transferencias_cupo|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='transferencias_cupo'"
 )
 
 # ── 1. Respaldo ──────────────────────────────────────────────────────────

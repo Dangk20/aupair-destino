@@ -105,7 +105,7 @@ corregido: ahora un 500 falla salvo que esté declarado aquí.
 
 ## Rutas públicas
 
-Son las **únicas** siete que pueden responder sin sesión. Cualquier otra que
+Son las **únicas** ocho que pueden responder sin sesión. Cualquier otra que
 lo haga es un defecto.
 
 | Ruta | Método | Por qué es pública |
@@ -115,10 +115,11 @@ lo haga es un defecto.
 | `/api/auth/register` | POST | Autorregistro de la candidata. |
 | `/api/auth/forgot-password` | POST | Recuperación de contraseña. |
 | `/api/auth/reset-password` | POST | Se autoriza con el token del correo, no con sesión. |
+| `/api/auth/invitacion` | GET | Valida el token de una transferencia de cupo antes del registro (R11, change `transferir-cupo`). Sólo devuelve el correo invitado y el vencimiento. |
 | `/api/codigos-promo/validar` | POST | La candidata valida su código antes de pagar, en el flujo público. |
 | `/api/sesiones-public` | GET | Alimenta la landing (`sections/HeroSection1.jsx`). |
 
-## `/api/admin/**` — 38 rutas, 68 handlers
+## `/api/admin/**` — 39 rutas, 71 handlers
 
 Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 
@@ -160,6 +161,7 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/toggle-perfil` | POST | ✅ | — sin consumidor |
 | `/admin/usuarias` | GET, PUT | ✅ | `/admin/usuarias`, `/admin/cambiar-roles` |
 | `/admin/usuarias/[id]` | PUT | ✅ | `/admin/usuarias` |
+| `/admin/usuarias/[id]/transferir` | GET, POST, DELETE | ✅ | `/admin/usuarias` — transferir el cupo (R11, change `transferir-cupo`) |
 | `/admin/usuarios/[id]/cambiar-rol` | PUT | ✅ | `/admin/cambiar-roles` |
 | `/admin/usuarios/actividad` | GET | ✅ | `/admin/usuarias` |
 | `/admin/usuarios/stats` | GET | ✅ | `/admin/usuarias` |

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import { archivoDisponible, borrarDocumento } from "@/lib/almacenamiento-archivos";
+import { registrarHecho } from "@/lib/historial-aupair";
 
 /* ── GET: traer todos los documentos del usuario ── */
 export async function GET(req, { params }) {
@@ -82,7 +83,7 @@ export async function DELETE(req, { params }) {
     if (!doc_id) return NextResponse.json({ error: "doc_id requerido" }, { status: 400 });
 
     const [[doc]] = await dbAupair.query(
-      "SELECT url FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
+      "SELECT url, tipo_doc FROM documentos_usuario WHERE id = ? AND usuario_id = ?",
       [doc_id, id]
     );
     await dbAupair.query(
@@ -91,6 +92,7 @@ export async function DELETE(req, { params }) {
     );
     // El archivo deja de ser accesible por la ruta autenticada.
     if (doc?.url) await borrarDocumento(doc.url);
+    if (doc) await registrarHecho({ candidataId: Number(id), evento: "documento_retirado", detalle: doc.tipo_doc, actor: { id: session.id, rol: "admin" } });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[DELETE docs usuario]", err.message);
