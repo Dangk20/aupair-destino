@@ -93,71 +93,30 @@ export async function POST(req) {
       nuevoUsuarioId = await crear(email);
     }
 
-    // ── Asignar asesora por código de referido ──────────────────────────────
-    // Si viene con código_referido, se busca si es una asesora
+    // ── Código de referido ──────────────────────────────────────────────────
+    // Quedó guardado en `usuarios.codigo_referido`: si es el cupón de una
+    // asociada, de ahí sale que la candidata es suya (lib/asociada-aupair.js,
+    // change `candidatas-por-cupon`). Ya no se asigna asesora: la columna que
+    // usaba el proveedor nunca existió y el intento fallaba en cada registro.
+    // Sistema viejo de referidos: se conserva hasta que se retire entero.
     if (codigo_referido) {
       try {
-        const [[asesoraRow]] = await dbAupair.query(
-          `SELECT id FROM usuarios 
-           WHERE codigo_referido = ? AND rol = 'asociada' AND tiene_acceso = 1 LIMIT 1`,
+        const [[ref]] = await dbAupair.query(
+          "SELECT id FROM referidos WHERE codigo = ?",
           [codigo_referido.toUpperCase()]
         );
-
-        if (asesoraRow) {
-          // La usuaria se registró con código de una asesora → asignarla
+        if (ref) {
           await dbAupair.query(
-            "UPDATE usuarios SET asesora_asignada_id = ? WHERE id = ?",
-            [asesoraRow.id, nuevoUsuarioId]
-          );
-        } else {
-          // El código no pertenece a una asesora, intentar vincularlo con referidos
-          try {
-            const [[ref]] = await dbAupair.query(
-              "SELECT id FROM referidos WHERE codigo = ?",
-              [codigo_referido.toUpperCase()]
-            );
-
-            if (ref) {
-              await dbAupair.query(
-                `INSERT INTO referido_registros
-                  (usuario_id, referido_id, monto_pagado, pago_realizado)
-                 VALUES (?, ?, 0, 0)`,
-                [nuevoUsuarioId, ref.id]
-              );
-            }
-          } catch {
-            console.warn("No se pudo vincular código referido:", codigo_referido);
-          }
-        }
-      } catch (err) {
-        console.warn("Error procesando código de referido:", err);
-        // No bloqueamos el registro si falla
-      }
-    } else {
-      // Sin código de referido → asignar asesora automáticamente (round-robin)
-      try {
-        const [[asesoraRow]] = await dbAupair.query(`
-          SELECT u.id
-          FROM usuarios u
-          LEFT JOIN usuarios uu ON uu.asesora_asignada_id = u.id AND uu.rol = 'usuaria'
-          WHERE u.rol = 'asociada' AND u.tiene_acceso = 1
-          GROUP BY u.id
-          ORDER BY COUNT(uu.id) ASC
-          LIMIT 1
-        `);
-
-        if (asesoraRow) {
-          await dbAupair.query(
-            "UPDATE usuarios SET asesora_asignada_id = ? WHERE id = ?",
-            [asesoraRow.id, nuevoUsuarioId]
+            `INSERT INTO referido_registros
+              (usuario_id, referido_id, monto_pagado, pago_realizado)
+             VALUES (?, ?, 0, 0)`,
+            [nuevoUsuarioId, ref.id]
           );
         }
       } catch (err) {
-        console.warn("No se pudo asignar asesora automáticamente:", err);
+        console.warn("No se pudo vincular código referido:", codigo_referido, err.message);
       }
     }
-
-    // ── Vincular código referido ────────────────────────────────────────────
 
     // ── Avisos ──────────────────────────────────────────────────────────────
     // Van aquí, ANTES de la bifurcación de más abajo: la candidata queda

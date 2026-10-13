@@ -71,12 +71,13 @@ las pruebas de humo las declaran en `ROTAS_CONOCIDAS` en vez de fallar por
 ellas: no bloquean el despliegue, pero salen listadas en cada ejecución. Si
 una deja de estar rota, la prueba avisa para quitarla de la lista.
 
+Las cuatro que consultaban `usuarios.asesora_asignada_id` (columna que nunca
+existió) se retiraron en `candidatas-por-cupon` (2026-10-13): `/asociada/stats`,
+`/asociada/usuarias-asignadas`, `/asociada/usuarias/[id]` y
+`/admin/asociadas/asignar`. Las reemplaza `/asociada/tablero`.
+
 | Ruta | Error | Alcance |
 |---|---|---|
-| `/api/asociada/stats` | `usuarios.asesora_asignada_id` no existe | Sprint 3 |
-| `/api/asociada/usuarias-asignadas` | igual | Sprint 3 |
-| `/api/asociada/usuarias/[id]` | igual | Sprint 3 |
-| `/api/admin/asociadas/asignar` | igual | Sprint 3 |
 | `/api/admin/reuniones` | `reuniones.fecha` no existe · además sin consumidor | Sprint 3 |
 
 ### Una ruta que se llama y no existe
@@ -119,7 +120,7 @@ lo haga es un defecto.
 | `/api/codigos-promo/validar` | POST | La candidata valida su código antes de pagar, en el flujo público. |
 | `/api/sesiones-public` | GET | Alimenta la landing (`sections/HeroSection1.jsx`). |
 
-## `/api/admin/**` — 39 rutas, 71 handlers
+## `/api/admin/**` — 38 rutas, 69 handlers
 
 Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 
@@ -127,9 +128,8 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 |---|---|---|---|
 | `/admin/agencias` | GET | ✅ | `/admin/perfiles/[id]` (elegir agencia al aprobar) — `etapas-candidata` |
 | `/admin/asesoras` | GET | ✅ | `/admin/reuniones` |
-| `/admin/asociadas` | GET, POST | ✅ | `/admin/asociadas`, `/admin/codigos-promo` |
-| `/admin/asociadas/[id]` | GET, PUT, DELETE | ✅ | `/admin/asociadas/[id]` |
-| `/admin/asociadas/asignar` | GET, POST | ✅ | `/admin/asociadas/[id]` |
+| `/admin/asociadas` | GET, POST | ✅ | `/admin/asociadas`, `/admin/codigos-promo`; cuenta candidatas por cupón (`candidatas-por-cupon`) |
+| `/admin/asociadas/[id]` | GET, PUT, DELETE | ✅ | `/admin/asociadas/[id]`; sus candidatas por cupón |
 | `/admin/bd-estructura` | GET | ✅ | `/admin/bd-verificar` |
 | `/admin/codigos-promo` | GET, POST, PUT, DELETE | ✅ | `/admin/codigos-promo` |
 | `/admin/comisiones` | GET | ✅ | `/admin/comisiones` |
@@ -179,9 +179,9 @@ forma incondicional en la línea 307 — pero su `useEffect` corre igual, así q
 el navegador de la candidata seguía llamando la ruta. Cerrarla no rompió nada
 visible.
 
-## `/api/asociada/**` — 6 rutas, 6 handlers
+## `/api/asociada/**` — 4 rutas, 4 handlers
 
-Nivel objetivo: **rol asociada**. Las seis lo verifican.
+Nivel objetivo: **rol asociada**. Las cuatro lo verifican.
 
 | Ruta | Métodos | Estado | Propiedad |
 |---|---|---|---|
@@ -189,9 +189,7 @@ Nivel objetivo: **rol asociada**. Las seis lo verifican.
 | `/asociada/perfil` | PUT | ✅ | opera sobre `session.id` |
 | `/asociada/reuniones` | GET | ✅ | — |
 | `/asociada/reuniones/[id]/confirmar` | POST | ✅ | 🟡 revisar en 2.5 |
-| `/asociada/stats` | GET | ✅ | — |
-| `/asociada/usuarias-asignadas` | GET | ✅ | — |
-| `/asociada/usuarias/[id]` | GET | ✅ | 🟡 revisar en 2.5 |
+| `/asociada/tablero` | GET | ✅ | opera sobre `session.id`: sólo las que llegaron por su cupón (`lib/asociada-aupair.js`), sin contacto ni fecha de nacimiento; change `candidatas-por-cupon` |
 
 ## `/api/agencia/**` — change `panel-agencia`
 
@@ -304,7 +302,7 @@ Revisadas las 5 rutas que reciben un identificador por parámetro:
 
 | Ruta | Resultado |
 |---|---|
-| `/asociada/usuarias/[id]` | ✅ Ya acotada: el `WHERE` incluye `asesora_asignada_id = session.id` y responde 404 si la usuaria no es suya |
+| `/asociada/usuarias/[id]` | Retirada en `candidatas-por-cupon` (consultaba una columna inexistente) |
 | `/asociada/reuniones/[id]/confirmar` | ✅ Ya acotada: comprueba que la reunión sea de una de sus referidas antes de confirmarla |
 | `/ventas` | ✅ No recibe id: opera siempre sobre `session.id` |
 | `/agencia/[id]` | 🔴 **Sin acotar — no hay modelo de datos que lo permita** |

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
+import { conteoPorAsociada } from "@/lib/asociada-aupair";
 
 // Comisión por defecto del código que nace con cada asociada. El código nace
 // sin descuento: quien lo usa paga el precio del cupo configurado (R9; antes
@@ -67,23 +68,17 @@ export async function GET(req) {
         u.pais,
         u.foto_url,
         u.created_at,
-        r.id as referido_id,
-        COALESCE(
-          (SELECT cp.codigo FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1),
-          r.codigo
-        ) as codigo_referido,
-        (SELECT cp.comision_porcentaje FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1) as comision_porcentaje,
-        r.porcentaje,
-        r.estado as estado_referido,
-        COUNT(DISTINCT rr.id) as referidas_totales,
-        COUNT(DISTINCT CASE WHEN rr.pago_realizado = 1 THEN rr.id END) as referidas_pagaron
+        (SELECT cp.codigo FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1) as codigo_referido,
+        (SELECT cp.comision_porcentaje FROM codigos_promo cp WHERE cp.asociada_id = u.id ORDER BY cp.id LIMIT 1) as comision_porcentaje
       FROM usuarios u
-      LEFT JOIN referidos r ON r.email = u.email
-      LEFT JOIN referido_registros rr ON rr.referido_id = r.id
       WHERE u.rol = 'asociada'
-      GROUP BY u.id, r.id
       ORDER BY u.created_at DESC
     `);
+
+    // Candidatas por cupón (lib/asociada-aupair.js), no por el sistema viejo
+    // de referidos (change `candidatas-por-cupon`).
+    const conteo = await conteoPorAsociada();
+    for (const a of asociadas) Object.assign(a, conteo.get(a.id) || { candidatas: 0, pagaron: 0 });
 
     return NextResponse.json({ ok: true, asociadas });
   } catch (err) {

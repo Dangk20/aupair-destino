@@ -24,11 +24,8 @@ import { useNoLeidos } from "@/components/chat/useNoLeidos";
 const modulos = (noLeidos) => [
   { href: "/admin",               label: "Dashboard",     icon: LayoutDashboard },
 
-  // Su listado funciona; lo que está roto es asignar una candidata a una
-  // asesora, porque `usuarios.asesora_asignada_id` no existe en la base.
-  // Se deja apagado hasta el Sprint 3 para no ofrecer una acción que revienta.
-  { href: "/admin/asociadas",     label: "Asociadas",     icon: UsersRound,
-    disponible: false, motivo: "Asignar una candidata a su asesora todavía no funciona — Sprint 3" },
+  // Sus candidatas son las que llegan por su cupón (`candidatas-por-cupon`).
+  { href: "/admin/asociadas",     label: "Asociadas",     icon: UsersRound },
 
   { grupo: "Finanzas" },
   { href: "/admin/ventas",        label: "Ventas",        icon: CreditCard },

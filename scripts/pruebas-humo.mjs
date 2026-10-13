@@ -76,8 +76,6 @@ const INVENTARIO = [
   ["DELETE", "/admin/asociadas/[id]", "rol:admin"],
   ["GET", "/admin/asociadas/[id]", "rol:admin"],
   ["PUT", "/admin/asociadas/[id]", "rol:admin"],
-  ["GET", "/admin/asociadas/asignar", "rol:admin"],
-  ["POST", "/admin/asociadas/asignar", "rol:admin"],
   ["GET", "/admin/bd-estructura", "rol:admin"],
   ["DELETE", "/admin/codigos-promo", "rol:admin"],
   ["GET", "/admin/codigos-promo", "rol:admin"],
@@ -155,9 +153,7 @@ const INVENTARIO = [
   ["PUT", "/asociada/perfil", "rol:asociada"],
   ["GET", "/asociada/reuniones", "rol:asociada"],
   ["POST", "/asociada/reuniones/[id]/confirmar", "rol:asociada"],
-  ["GET", "/asociada/stats", "rol:asociada"],
-  ["GET", "/asociada/usuarias-asignadas", "rol:asociada"],
-  ["GET", "/asociada/usuarias/[id]", "rol:asociada"],
+  ["GET", "/asociada/tablero", "rol:asociada"],
   ["POST", "/auth/forgot-password", "publica"],
   ["POST", "/auth/login", "publica"],
   ["POST", "/auth/logout", "publica"],
@@ -209,10 +205,6 @@ const ROLES = ["admin", "asociada", "agencia", "usuaria"];
    no se detenga por ellas, pero se comprueban igual: si una deja de estar
    rota, la prueba avisa para quitarla de aquí. Nunca se borran en silencio.  */
 const ROTAS_CONOCIDAS = {
-  "/asociada/stats":              "usuarios.asesora_asignada_id no existe en la base",
-  "/asociada/usuarias-asignadas": "usuarios.asesora_asignada_id no existe en la base",
-  "/asociada/usuarias/[id]":      "usuarios.asesora_asignada_id no existe en la base",
-  "/admin/asociadas/asignar":     "usuarios.asesora_asignada_id no existe en la base",
   "/admin/reuniones":             "reuniones.fecha no existe · ruta sin consumidor, ver docs/rutas-y-acceso.md",
 };
 

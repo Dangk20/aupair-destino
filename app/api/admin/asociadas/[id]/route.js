@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
 import bcrypt from "bcryptjs";
+import { tablero } from "@/lib/tablero-aupair";
+import { perfilPublicable } from "@/lib/perfil";
 
 export async function GET(req, { params }) {
   const guard = requiereAdmin(req);
@@ -20,27 +22,17 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Asesora no encontrada" }, { status: 404 });
     }
 
-    const [usuarias] = await dbAupair.query(
-      `SELECT id, nombre, apellido, email, estado_agencia as estado
-       FROM usuarios 
-       WHERE asesora_asignada_id = ? AND rol NOT IN ('admin','asociada')
-       ORDER BY created_at DESC`,
-      [id]
-    );
-
-    const [[reuniones]] = await dbAupair.query(
-      `SELECT COUNT(*) as total, 
-        SUM(CASE WHEN estado = 'confirmada' THEN 1 ELSE 0 END) as confirmadas
-       FROM reuniones
-       WHERE asesora_id = ?`,
-      [id]
+    // Sus candidatas: las que llegaron por su cupón (change `candidatas-por-cupon`).
+    const candidatas = await tablero({ asociadaId: Number(id), actor: { id: Number(session.id), rol: "admin" } });
+    const [codigos] = await dbAupair.query(
+      "SELECT id, codigo, activo FROM codigos_promo WHERE asociada_id = ? ORDER BY id", [id]
     );
 
     return NextResponse.json({
       ok: true,
-      asociada: asociadas[0],
-      usuarias,
-      reuniones,
+      asociada: perfilPublicable(asociadas[0], "revision"),
+      candidatas,
+      codigos,
     });
   } catch (err) {
     console.error("[GET /api/admin/asociadas/[id]]", err);
@@ -109,10 +101,16 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Asesora no encontrada" }, { status: 404 });
     }
 
+    // Sus cupones siguen sirviendo como descuento, pero ya no generan comisión
+    // a nadie: si no, apuntarían a un usuario que no existe.
+    await dbAupair.query("UPDATE codigos_promo SET asociada_id = NULL WHERE asociada_id = ?", [id]);
+    // Sus horarios y las reuniones agendadas en ellos se van con ella. La
+    // reunión no tiene `asesora_id` (eso es de `disponibilidad`): el borrado
+    // viejo apuntaba a una columna inexistente y nunca dejó borrar a nadie.
     await dbAupair.query(
-      "UPDATE usuarios SET asesora_asignada_id = NULL WHERE asesora_asignada_id = ?", [id]
+      "DELETE r FROM reuniones r JOIN disponibilidad d ON d.id = r.disponibilidad_id WHERE d.asesora_id = ?", [id]
     );
-    await dbAupair.query("DELETE FROM reuniones WHERE asesora_id = ?", [id]);
+    await dbAupair.query("DELETE FROM disponibilidad WHERE asesora_id = ?", [id]);
     await dbAupair.query("DELETE FROM usuarios WHERE id = ?", [id]);
 
     return NextResponse.json({ ok: true, mensaje: "Asesora eliminada correctamente" });

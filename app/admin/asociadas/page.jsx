@@ -140,11 +140,11 @@ function ModalVerAsesora({ asesora, onClose }) {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label:"Código de referida",   val: asesora.codigo_referido || "Sin código" },
-              { label:"Comisión asignada",    val: asesora.porcentaje ? `${asesora.porcentaje}%` : "—" },
+              { label:"Comisión asignada",    val: asesora.comision_porcentaje != null ? `${Number(asesora.comision_porcentaje)}%` : "—" },
               { label:"Ciudad",               val: asesora.ciudad || "—" },
               { label:"País",                 val: asesora.pais || "—" },
-              { label:"Referidas totales",    val: asesora.referidas_totales || 0 },
-              { label:"Referidas que pagaron",val: asesora.referidas_pagaron || 0 },
+              { label:"Candidatas por su cupón", val: asesora.candidatas || 0 },
+              { label:"Pagaron con su cupón",   val: asesora.pagaron || 0 },
               { label:"Registrada el",        val: asesora.created_at ? new Date(asesora.created_at).toLocaleDateString("es-CO") : "—" },
             ].map((item,i)=>(
               <div key={i} className="bg-[#FBF4F6] rounded-xl px-3 py-2.5">
@@ -244,8 +244,8 @@ export default function AdminAsociadasPage() {
     return !q || `${a.nombre} ${a.apellido} ${a.email} ${a.codigo_referido||""}`.toLowerCase().includes(q);
   });
 
-  const totalReferidas  = asociadas.reduce((acc,a)=>acc+(a.referidas_totales||0),0);
-  const totalPagaron    = asociadas.reduce((acc,a)=>acc+(a.referidas_pagaron||0),0);
+  const totalReferidas  = asociadas.reduce((acc,a)=>acc+(a.candidatas||0),0);
+  const totalPagaron    = asociadas.reduce((acc,a)=>acc+(a.pagaron||0),0);
   const conCodigo       = asociadas.filter(a=>a.codigo_referido).length;
 
   return (
@@ -275,8 +275,8 @@ export default function AdminAsociadasPage() {
         {[
           { icon:UsersIcon,    color:"bg-[#FCE8EE] text-[#A0435F]", label:"Total asesoras",     val:asociadas.length },
           { icon:CheckIcon,    color:"bg-[#E6F9F0] text-[#12A46B]", label:"Con código activo",  val:conCodigo },
-          { icon:UserPlusIcon, color:"bg-[#FCE8EE] text-[#A0435F]", label:"Referidas totales",  val:totalReferidas },
-          { icon:DollarSignIcon,color:"bg-[#FFF4EC] text-[#E8853B]",label:"Referidas que pagaron",val:totalPagaron },
+          { icon:UserPlusIcon, color:"bg-[#FCE8EE] text-[#A0435F]", label:"Candidatas por cupón", val:totalReferidas },
+          { icon:DollarSignIcon,color:"bg-[#FFF4EC] text-[#E8853B]",label:"Pagaron con cupón",val:totalPagaron },
         ].map((s,i)=>{
           const Icon=s.icon;
           return (
@@ -315,7 +315,7 @@ export default function AdminAsociadasPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#FCE8EE]">
-                  {["Asesora","Código","Ubicación","Referidas","Pagaron","Acciones"].map((h,i)=>(
+                  {["Asesora","Código","Ubicación","Candidatas","Pagaron","Acciones"].map((h,i)=>(
                     <th key={i} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-[#9C8790] whitespace-nowrap bg-[#FBF4F6]">{h}</th>
                   ))}
                 </tr>
@@ -343,10 +343,10 @@ export default function AdminAsociadasPage() {
                       {a.ciudad && a.pais ? `${a.ciudad}, ${a.pais}` : a.ciudad || a.pais || "—"}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-[13px] font-bold text-[#4A2A38]">{a.referidas_totales || 0}</span>
+                      <span className="text-[13px] font-bold text-[#4A2A38]">{a.candidatas || 0}</span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-[13px] font-bold text-[#12A46B]">{a.referidas_pagaron || 0}</span>
+                      <span className="text-[13px] font-bold text-[#12A46B]">{a.pagaron || 0}</span>
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1">
@@ -377,7 +377,7 @@ export default function AdminAsociadasPage() {
       <div className="bg-[#FCE8EE] border border-[#F5E1E7] rounded-2xl px-5 py-3.5 flex items-start gap-3">
         <AlertCircleIcon size={16} className="text-[#A0435F] shrink-0 mt-0.5"/>
         <p className="text-[12px] text-[#7D2F47]">
-          Cada asesora obtiene su código de referida automáticamente al crearse o al cambiarle el rol a "Asociada" desde la gestión de usuarios. Ese mismo código aparece en la página de <strong>Referidos</strong>.
+          Cada asesora obtiene su código de referida automáticamente al crearse o al cambiarle el rol a "Asociada" desde la gestión de usuarios. Sus candidatas son las que se registran o pagan con un cupón suyo; el descuento y la comisión se ajustan en <strong>Códigos promo</strong>.
         </p>
       </div>
 

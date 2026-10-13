@@ -16,10 +16,14 @@
 // Mover: arrastrar la tarjeta (HTML5 nativo, sin librería) o el menú ⋯ de la
 // tarjeta o la fila. Sólo entre etapas de la agencia: las demás se calculan
 // de los datos y se deciden en la ficha.
+//
+// `soloLectura` (la asociada, change `candidatas-por-cupon`): sin vista
+// rápida, sin ficha y sin contacto; cada candidata lleva el cupón por el que
+// llegó. Lo que no se ve tampoco viene de la API.
 // ════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List, Eye, MessageCircle, ChevronDown } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, MoreVertical, LayoutGrid, List, Eye, MessageCircle, ChevronDown, Tag } from "lucide-react";
 import { T } from "@/lib/tema";
 import { ETAPAS, SALIDAS, etapaPorId, posicion } from "@/lib/etapas-candidata";
 import VistaRapida from "@/components/panel/VistaRapida";
@@ -122,17 +126,26 @@ const Foto = ({ c, size }) => c.foto_url
       {(c.nombre || "?").charAt(0).toUpperCase()}
     </div>;
 
-function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar }) {
+/** Por qué cupón llegó (sólo en el tablero de la asociada). */
+const PildoraCupon = ({ c }) => (
+  <span title={c.pago ? "Pagó su cupo con tu código" : "Se registró con tu código; todavía no paga"}
+    style={{ fontSize: 11, fontWeight: 600, color: c.pago ? T.green : T.neutral, background: c.pago ? T.greenBg : T.neutralBg,
+             padding: "3px 10px", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+    <Tag size={11} /> {c.pago ? "Pagó" : "Se registró"} con {c.cupon}
+  </span>
+);
+
+function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar, soloLectura }) {
 
   const fila  = { display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: T.neutral, minWidth: 0 };
   const corto = { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
   const vacio = (t) => <em style={{ color: T.softText, fontStyle: "normal" }}>{t}</em>;
 
   return (
-    <div draggable={movible} onClick={() => onAbrir(c)} role="button" tabIndex={0} aria-label={`Abrir a ${c.nombre}`}
-      onKeyDown={(e) => { if (e.key === "Enter") onAbrir(c); }}
+    <div draggable={movible} {...(!soloLectura && { onClick: () => onAbrir(c), role: "button", tabIndex: 0, "aria-label": `Abrir a ${c.nombre}`,
+      onKeyDown: (e) => { if (e.key === "Enter") onAbrir(c); } })}
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(c.id)); onArrastrar(c.id); }}
-      style={{ position: "relative", background: "#fff", borderRadius: 14, padding: 14, cursor: "pointer",
+      style={{ position: "relative", background: "#fff", borderRadius: 14, padding: 14, cursor: soloLectura ? "default" : "pointer",
                boxShadow: "0 1px 3px rgba(58,37,48,.06)", border: `1px solid ${T.border}`, display: "flex", flexDirection: "column", gap: 10 }}>
 
       {/* Quién es y desde cuándo está en la etapa */}
@@ -148,6 +161,7 @@ function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar }) {
 
       {/* Cómo contactarla y dónde está */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {!soloLectura && <>
         <div style={fila}>
           <Phone size={13} style={{ flexShrink: 0 }} />
           {c.telefono ? <a href={`tel:${c.telefono}`} draggable={false} onClick={(e) => e.stopPropagation()} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.telefono}</a> : vacio("Sin teléfono")}
@@ -156,6 +170,7 @@ function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar }) {
           <Mail size={13} style={{ flexShrink: 0 }} />
           {c.email ? <a href={`mailto:${c.email}`} draggable={false} onClick={(e) => e.stopPropagation()} style={{ ...corto, color: T.neutral, textDecoration: "none" }}>{c.email}</a> : vacio("Sin correo")}
         </div>
+        </>}
         <div style={fila}>
           <MapPin size={13} style={{ flexShrink: 0 }} />
           {c.ciudad ? <span style={corto}>{c.ciudad}</span> : vacio("Sin ciudad")}
@@ -164,6 +179,7 @@ function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar }) {
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         <span title="Información diligenciada" style={{ fontSize: 11, fontWeight: 600, color: T.primary, background: T.lilac, padding: "3px 10px", borderRadius: 8 }}>{c.score}% diligenciado</span>
+        {c.cupon && <PildoraCupon c={c} />}
         {c.agencia && (
           <span style={{ fontSize: 11, fontWeight: 600, color: T.neutral, background: T.neutralBg, padding: "3px 10px", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 4 }}>
             <Building2 size={11} /> {c.agencia}
@@ -184,7 +200,7 @@ const icono = { width: 32, height: 32, borderRadius: 9, border: `1px solid ${T.b
                 display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0, textDecoration: "none" };
 
 /** Las mismas candidatas en filas, ordenadas por etapa. */
-function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }) {
+function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia, soloLectura }) {
   const filas = [...candidatas].sort((a, b) => {
     const pa = posicion(a.etapa), pb = posicion(b.etapa);
     // Las salidas (posición -1) van al final, como en el tablero.
@@ -201,19 +217,24 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
         <thead>
           <tr>
             <th style={th}>CANDIDATA</th><th style={th}>ETAPA</th><th style={th}>EN LA ETAPA</th>
-            <th style={th}>TELÉFONO</th><th style={th}>CORREO</th><th style={th}>CIUDAD</th>
-            <th style={th}>DILIGENCIADO</th>{conAgencia && <th style={th}>AGENCIA</th>}<th style={th} />
+            {!soloLectura && <><th style={th}>TELÉFONO</th><th style={th}>CORREO</th></>}<th style={th}>CIUDAD</th>
+            <th style={th}>DILIGENCIADO</th>{soloLectura && <th style={th}>CUPÓN</th>}{conAgencia && <th style={th}>AGENCIA</th>}{!soloLectura && <th style={th} />}
           </tr>
         </thead>
         <tbody>
           {filas.map((c) => (
             <tr key={c.id}>
               <td style={td}>
-                <button type="button" onClick={() => onAbrir(c)}
-                  style={{ display: "flex", alignItems: "center", gap: 10, border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: T.font }}>
-                  <Avatar c={c} size={30} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{c.nombre || "Sin nombre"}</span>
-                </button>
+                {soloLectura
+                  ? <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Avatar c={c} size={30} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{c.nombre || "Sin nombre"}</span>
+                    </span>
+                  : <button type="button" onClick={() => onAbrir(c)}
+                      style={{ display: "flex", alignItems: "center", gap: 10, border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: T.font }}>
+                      <Avatar c={c} size={30} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{c.nombre || "Sin nombre"}</span>
+                    </button>}
               </td>
               <td style={td}>
                 {/* La etapa se cambia desde la etapa. Las que se calculan de los
@@ -223,12 +244,15 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
                   : <Pildora etapa={c.etapa} />}
               </td>
               <td style={td}>{dias(c.desde) || vacio("—")}</td>
+              {!soloLectura && <>
               <td style={td}>{c.telefono ? <a href={`tel:${c.telefono}`} style={{ color: T.neutral, textDecoration: "none" }}>{c.telefono}</a> : vacio("Sin teléfono")}</td>
               <td style={td}>{c.email ? <a href={`mailto:${c.email}`} style={{ color: T.neutral, textDecoration: "none" }}>{c.email}</a> : vacio("Sin correo")}</td>
+              </>}
               <td style={td}>{c.ciudad || vacio("Sin ciudad")}</td>
               <td style={td}><span style={{ fontSize: 11, fontWeight: 600, color: T.primary, background: T.lilac, padding: "3px 10px", borderRadius: 8 }}>{c.score}%</span></td>
+              {soloLectura && <td style={td}>{c.cupon ? <PildoraCupon c={c} /> : vacio("—")}</td>}
               {conAgencia && <td style={td}>{c.agencia || vacio("Sin agencia")}</td>}
-              <td style={{ ...td, width: 80 }}>
+              {!soloLectura && <td style={{ ...td, width: 80 }}>
                 {/* Dos accesos: el perfil completo y el chat (vista rápida). */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                   <Link href={hrefFicha(c.id)} title="Ver perfil" aria-label={`Ver el perfil de ${c.nombre}`} style={icono}>
@@ -239,7 +263,7 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
                     {c.no_leidos > 0 && <span style={{ position: "absolute", top: 3, right: 3, width: 8, height: 8, borderRadius: "50%", background: T.primary, border: "1.5px solid #fff" }} />}
                   </button>
                 </div>
-              </td>
+              </td>}
             </tr>
           ))}
         </tbody>
@@ -248,7 +272,7 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia }
   );
 }
 
-export default function TableroEtapas({ candidatas = [], movibles = [], onMover, hrefFicha, columnas = null }) {
+export default function TableroEtapas({ candidatas = [], movibles = [], onMover, hrefFicha, columnas = null, soloLectura = false }) {
   const [vista, setVista] = useState("tablero");
   const [abierta, setAbierta] = useState(null);
   // Lo que se abrió en esta visita ya no tiene punto (el servidor ya lo marcó leído).
@@ -306,7 +330,7 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
         </div>
         {tarjetas.map((c) => (
           <Tarjeta key={c.id} c={conPunto(conAgencia ? c : { ...c, agencia: null })} movible={movibles.includes(c.etapa)} movibles={movibles}
-            onMover={onMover} onAbrir={setAbierta} onArrastrar={setArrastrando} />
+            onMover={onMover} onAbrir={setAbierta} onArrastrar={setArrastrando} soloLectura={soloLectura} />
         ))}
         {!tarjetas.length && <div style={{ fontSize: 11.5, color: T.softText, textAlign: "center", padding: "18px 0", border: `1.5px dashed ${T.border}`, borderRadius: 14 }}>Sin candidatas</div>}
       </div>
@@ -330,13 +354,13 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
         {boton("lista", List, "Lista")}
       </div>
       {vista === "lista"
-        ? <Lista candidatas={candidatas.map(conPunto)} movibles={movibles} onMover={onMover} onAbrir={setAbierta} hrefFicha={hrefFicha} conAgencia={conAgencia} />
+        ? <Lista candidatas={candidatas.map(conPunto)} movibles={movibles} onMover={onMover} onAbrir={setAbierta} hrefFicha={hrefFicha} conAgencia={conAgencia} soloLectura={soloLectura} />
         : <div ref={carril} onDragOver={desplazarSiBorde} onDragEnd={() => { setArrastrando(null); setEncima(null); }}
             style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
             {lista.map((e) => columna(e))}
             {salidas.map((s) => columna(s, true))}
           </div>}
-      {abierta && (
+      {abierta && !soloLectura && (
         <VistaRapida candidata={(({ agencia, ...x }) => (conAgencia ? { ...x, agencia } : x))(candidatas.find((x) => x.id === abierta.id) || abierta)} hrefFicha={hrefFicha}
           onCerrar={() => setAbierta(null)} onLeido={(id) => setVistas((v) => new Set(v).add(id))} />
       )}
