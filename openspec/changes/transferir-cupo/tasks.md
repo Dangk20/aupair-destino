@@ -43,4 +43,4 @@
 
 ## 6. Despliegue
 
-- [ ] 6.1 Junto con `historial-usuario` (`deploy/desplegar.sh`)
+- [x] 6.1 Junto con `historial-usuario` (`deploy/desplegar.sh`) — desplegado el 13 oct; respaldo `/var/respaldos-dap/20261013-0129`, humo 662 en verde

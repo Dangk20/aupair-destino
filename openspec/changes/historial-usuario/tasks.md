@@ -34,4 +34,4 @@
 
 ## 5. Despliegue
 
-- [ ] 5.1 Junto con `transferir-cupo` (`deploy/desplegar.sh`; la 012 antes que la 013)
+- [x] 5.1 Junto con `transferir-cupo` (`deploy/desplegar.sh`; la 012 antes que la 013) — desplegado el 13 oct; respaldo `/var/respaldos-dap/20261013-0129`, humo 662 en verde
