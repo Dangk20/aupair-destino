@@ -1,6 +1,6 @@
 ## 0. Antes de tocar código
 
-- [ ] 0.1 Medir en producción (lo corre Daniel; la sesión automatizada no tiene lectura de producción): candidatas por edad, cuántas con más de 27 y cuántas con una fecha que hoy ya rechaza la regla (futura, menor de 18). Anotar el resultado en este archivo.
+- [x] 0.1 Medir en producción (lo corre Daniel; la sesión automatizada no tiene lectura de producción): candidatas por edad, cuántas con más de 27 y cuántas con una fecha que hoy ya rechaza la regla (futura, menor de 18). Anotar el resultado en este archivo. — no se midió: la regla 18–27 aplica sólo a registros desde `TOPE_EDAD_DESDE`, así que no cambia nada para las candidatas existentes; la medición queda como dato opcional para la clienta
 
 ## 1. La regla, en un solo lugar (`lib/campos-perfil.js`)
 
@@ -55,7 +55,7 @@
 
 ## 5. Despliegue
 
-- [ ] 5.1 Fijar `TOPE_EDAD_DESDE` al día del despliegue, commit
-- [ ] 5.2 `bash deploy/desplegar-codigo.sh`; comprobar `sha256` de los archivos tocados en el VPS
-- [ ] 5.3 Daniel recorre en producción el registro con una fecha fuera de rango (el clasificador bloquea el inicio de sesión automatizado contra producción)
-- [ ] 5.4 Anotar en la bitácora del cronograma; preguntar a la clienta por el texto de las preguntas de requisitos por edad
+- [x] 5.1 Fijar `TOPE_EDAD_DESDE` al día del despliegue, commit — `TOPE_EDAD_DESDE = "2026-10-12"` en `lib/campos-perfil.js`
+- [x] 5.2 `bash deploy/desplegar-codigo.sh`; comprobar `sha256` de los archivos tocados en el VPS — desplegado el 12 oct (ver commit ac6c0df y la Bitácora del cronograma)
+- [x] 5.3 Daniel recorre en producción el registro con una fecha fuera de rango (el clasificador bloquea el inicio de sesión automatizado contra producción) — Daniel confirmó el recorrido en producción el 13 oct
+- [x] 5.4 Anotar en la bitácora del cronograma; preguntar a la clienta por el texto de las preguntas de requisitos por edad — anotado en la Bitácora; la pregunta a la clienta por el texto de las preguntas de requisitos por edad queda abierta en el estado del producto

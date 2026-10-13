@@ -249,3 +249,49 @@ se toma en la ficha, que es donde está la información para tomarla.
   listado
 - **THEN** llega a la ficha única, y no a una pantalla que no existe
 
+### Requirement: La ficha muestra las fotos de la cédula
+
+En la sección "Información personal" de la Parte 1, la ficha SHALL mostrar, debajo de sus campos, las fotos de la cédula de la candidata, lado frontal y lado posterior, tanto a la candidata como al personal que la revisa. Una foto que falte SHALL señalarse como "Sin cargar", no esconderse. Cada foto SHALL poder verse en tamaño completo.
+
+#### Scenario: Candidata con las dos fotos cargadas
+
+- **WHEN** la candidata o el admin abren la sección "Información personal" de una candidata que subió frente y reverso
+- **THEN** ven el bloque "Cédula" con las dos fotos, rotuladas como lado frontal y lado posterior
+
+#### Scenario: Falta una de las fotos
+
+- **WHEN** la candidata sólo subió el lado frontal
+- **THEN** el lado posterior aparece como "Sin cargar"
+
+#### Scenario: Ver una foto en grande
+
+- **WHEN** se hace clic sobre una de las fotos
+- **THEN** se abre en tamaño completo
+
+### Requirement: Las notas de la ficha dicen quién las ve
+
+La ficha de revisión SHALL presentar dos notas con su visibilidad explícita: "Presentación para la agencia", que ve la agencia, y "Notas internas", que sólo ve el equipo. NO SHALL presentar como interno un dato que vea la agencia.
+
+#### Scenario: El admin escribe una nota interna
+
+- **WHEN** el admin escribe en "Notas internas"
+- **THEN** la nota no le llega ni a la candidata ni a la agencia
+
+### Requirement: La ficha de revisión muestra la etapa, el score y la línea de tiempo
+
+La ficha de revisión SHALL mostrar en su encabezado la etapa actual, la agencia si la tiene y el score, y SHALL incluir la línea de tiempo de la candidata.
+
+#### Scenario: Abrir la ficha de una candidata en Visa
+
+- **WHEN** el admin abre la ficha de una candidata en Visa
+- **THEN** ve "Visa", su agencia, su score y su línea de tiempo
+
+### Requirement: La ficha se dibuja según los permisos de quien la mira
+
+La ficha SHALL recibir el rol de quien la mira (propio, equipo o agencia) y decidir qué acciones mostrar con una tabla de permisos declarada en un único lugar: editar, observar, gestionar documentos, ver lo interno, descargar y mover la etapa. Los permisos de la ficha SHALL ser sólo una guía para dibujar: la autorización la deciden las rutas.
+
+#### Scenario: Mismos datos, distintas acciones
+
+- **WHEN** la candidata, el equipo y la agencia abren la misma ficha
+- **THEN** ven el mismo perfil con la misma presentación, y cada uno sólo las acciones de su rol
+

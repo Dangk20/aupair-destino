@@ -35,6 +35,6 @@
 
 ## 5. Despliegue
 
-- [ ] 5.1 `bash deploy/desplegar-codigo.sh`; comprobar `sha256` de los archivos tocados en el VPS
-- [ ] 5.2 Daniel sube un recurso real en producción y lo descarga con una cuenta de candidata
-- [ ] 5.3 Anotar en la bitácora como trabajo adicional (R7) y avisar a la clienta que el material del curso queda abierto a quien ve el video
+- [x] 5.1 `bash deploy/desplegar-codigo.sh`; comprobar `sha256` de los archivos tocados en el VPS — desplegado el 12 oct (ver commit ac6c0df y la Bitácora del cronograma)
+- [x] 5.2 Daniel sube un recurso real en producción y lo descarga con una cuenta de candidata — Daniel confirmó el recorrido en producción el 13 oct
+- [x] 5.3 Anotar en la bitácora como trabajo adicional (R7) y avisar a la clienta que el material del curso queda abierto a quien ve el video — anotado en la Bitácora (fila del 12 oct, adicional R7); el aviso a la clienta va en el reporte de avance

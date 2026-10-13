@@ -12,4 +12,4 @@
 
 ## 3. Despliegue
 
-- [ ] 3.1 Junto con `edad-y-aviso-documentos`, `recursos-por-video` y `bloqueo-y-observaciones-perfil`
+- [x] 3.1 Junto con `edad-y-aviso-documentos`, `recursos-por-video` y `bloqueo-y-observaciones-perfil` — desplegado el 12 oct (ver commit ac6c0df y la Bitácora del cronograma)

@@ -64,6 +64,6 @@
 
 ## 7. Despliegue
 
-- [ ] 7.1 `bash deploy/desplegar.sh` (lleva migración); comprobar `sha256`
-- [ ] 7.2 Daniel recorre en producción: observar un campo de una candidata de prueba y corregirlo
-- [ ] 7.3 Anotar en la bitácora como trabajo adicional (R3)
+- [x] 7.1 `bash deploy/desplegar.sh` (lleva migración); comprobar `sha256` — desplegado el 12 oct (ver commit ac6c0df y la Bitácora del cronograma)
+- [x] 7.2 Daniel recorre en producción: observar un campo de una candidata de prueba y corregirlo — Daniel confirmó el recorrido en producción el 13 oct
+- [x] 7.3 Anotar en la bitácora como trabajo adicional (R3) — anotado en la Bitácora (fila del 12 oct, adicional R3)

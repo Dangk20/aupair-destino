@@ -27,6 +27,16 @@ Al subir, el servidor SHALL aceptar sólo PDF y Word (`.pdf`, `.doc`, `.docx`) d
 - **WHEN** una candidata solicita un recurso de una sesión que para ella está bloqueada
 - **THEN** el sistema responde 403 y no entrega el archivo
 
+#### Scenario: Candidata con acceso a recursos
+
+- **WHEN** una candidata con `acceso_recursos` activo solicita un recurso de una sesión que para ella está bloqueada
+- **THEN** el sistema responde 403: el permiso ya no decide, decide la sesión
+
+#### Scenario: Candidata sin acceso a recursos
+
+- **WHEN** una candidata sin `acceso_recursos` solicita un recurso de una sesión disponible o completada para ella
+- **THEN** el sistema responde con el archivo como descarga
+
 #### Scenario: Recurso cuyo archivo no está disponible
 
 - **WHEN** se solicita un recurso cuyo archivo no está en el almacenamiento

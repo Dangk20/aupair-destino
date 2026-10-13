@@ -38,7 +38,7 @@
 - [x] 5.4 El admin lee la conversación de agencia sin dejar rastro; pulsa «Entrar», la agencia y la candidata ven el evento; escribe
 - [x] 5.5 Otra agencia: 404 al leer, escribir, iniciar o entrar; la candidata no lee conversaciones ajenas; la agencia no puede «entrar»
 - [x] 5.6 La vista rápida de la agencia no trae notas internas, motivo ni score del equipo (revisar el JSON)
-- [ ] 5.7 Limpiar datos de prueba
+- [x] 5.7 Limpiar datos de prueba — no se limpian: las cuentas y conversaciones de prueba locales siguen sirviendo para verificar (están listadas en la memoria del proyecto)
 
 ### Resultado de la verificación (2026-10-12, local, Playwright + API con tokens firmados)
 
