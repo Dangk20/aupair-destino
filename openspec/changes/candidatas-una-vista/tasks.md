@@ -11,10 +11,10 @@
 
 ## 3. Verificación
 
-- [ ] 3.1 `npm run build` y `node scripts/pruebas-humo.mjs` sin rojos
-- [ ] 3.2 Playwright como admin: «Candidatas» abre el tablero; buscar «Laura» deja sólo a Laura; filtrar «En revisión» deja sólo esas; la lista sigue cambiando la etapa desde la columna Etapa; Exportar descarga un CSV con las filas filtradas; `/admin/perfiles/tablero` redirige — 14 candidatas en el tablero; «laura» deja 2 de 14 (las dos Laura Recorrido, #14 y #25); «En revisión» deja sólo a #14; 3 botones «Cambiar de etapa» en la lista; CSV `candidatas-2026-10-13.csv` con BOM y la etapa «En revisión»; la redirección llega a `/admin/perfiles`
-- [ ] 3.3 Ficha: «Descargar perfil» responde 200 con un ZIP
-- [ ] 3.4 Sin errores en la consola
+- [x] 3.1 `npm run build` y `node scripts/pruebas-humo.mjs` sin rojos — build bien; humo 626 en verde, 0 en rojo
+- [x] 3.2 Playwright como admin: «Candidatas» abre el tablero; buscar «Laura» deja sólo a Laura; filtrar «En revisión» deja sólo esas; la lista sigue cambiando la etapa desde la columna Etapa; Exportar descarga un CSV con las filas filtradas; `/admin/perfiles/tablero` redirige — 14 candidatas en el tablero; «laura» deja 2 de 14 (las dos Laura Recorrido, #14 y #25); «En revisión» deja sólo a #14; 3 botones «Cambiar de etapa» en la lista; CSV `candidatas-2026-10-13.csv` con BOM y la etapa «En revisión»; la redirección llega a `/admin/perfiles`
+- [x] 3.3 Ficha: «Descargar perfil» responde 200 con un ZIP — `/api/admin/perfiles/14/descargar`: 200, application/zip, 17 KB
+- [x] 3.4 Sin errores en la consola — 0 errores
 
 ## 4. Despliegue
 
