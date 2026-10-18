@@ -2,12 +2,18 @@
 // app/admin/ventas/page.jsx — Recepción de pagos (Sprint 0.0)
 // Lista las intenciones de pago reales (tabla ventas) y permite confirmarlas.
 // Confirmar dispara: acceso de la candidata + comisión al asociado (si hay código).
+//
+// Desde `usuarios-administracion` es el ÚNICO lugar donde se da o se quita el
+// acceso pagado: «Registrar pago» (pagó por fuera, sin solicitud), anular una
+// venta confirmada (retira el acceso) y «Transferir cupo». Antes eran un
+// interruptor y un botón en Usuarios.
 
 import { useEffect, useState, useCallback } from "react";
 import {
   CreditCardIcon, CheckCircleIcon, ClockIcon, TagIcon,
-  RefreshCwIcon, UserIcon, Check, Ban, X,
+  RefreshCwIcon, UserIcon, Check, Ban, X, Plus, ArrowRightLeft,
 } from "lucide-react";
+import ModalTransferir from "@/components/admin/ModalTransferir";
 import { formatoMoneda, formatoTotales } from "@/lib/moneda";
 
 // Cada monto con su moneda (R9): las ventas anteriores siguen en USD.
@@ -22,6 +28,8 @@ export default function VentasAdminPage() {
   const [procesando, setProcesando] = useState(false);
   const [modal, setModal]     = useState(null); // { venta, accion:'confirmar'|'anular' }
   const [toast, setToast]     = useState("");
+  const [transferir, setTransferir] = useState(null); // { id, nombre, apellido }
+  const [registrar, setRegistrar]   = useState(false);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -84,9 +92,14 @@ export default function VentasAdminPage() {
         <h1 className="text-[22px] font-bold text-[#3A2530] flex items-center gap-2">
           <CreditCardIcon size={22} className="text-[#A0435F]" /> Ventas
         </h1>
-        <button onClick={cargar} className="flex items-center gap-1.5 text-[12px] text-[#A0435F] hover:text-[#7a2f45] transition">
-          <RefreshCwIcon size={13} className={loading ? "animate-spin" : ""} /> Actualizar
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={cargar} className="flex items-center gap-1.5 text-[12px] text-[#A0435F] hover:text-[#7a2f45] transition">
+            <RefreshCwIcon size={13} className={loading ? "animate-spin" : ""} /> Actualizar
+          </button>
+          <button onClick={() => setRegistrar(true)} className="flex items-center gap-1.5 text-[12px] font-semibold text-white bg-[#A0435F] hover:bg-[#7D2F47] px-3.5 py-2 rounded-xl transition">
+            <Plus size={14} /> Registrar pago
+          </button>
+        </div>
       </div>
       <p className="text-[13px] text-[#9C8790] mb-5">Intenciones de pago de las candidatas. Confirma cuando recibas el pago.</p>
 
@@ -159,9 +172,19 @@ export default function VentasAdminPage() {
                     <Ban size={13} /> Anulada
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#12A46B] whitespace-nowrap">
-                    <CheckCircleIcon size={14} /> Confirmada
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#12A46B] whitespace-nowrap">
+                      <CheckCircleIcon size={14} /> Confirmada
+                    </span>
+                    <button onClick={() => setTransferir({ id: v.usuario_id, nombre: v.candidata, apellido: "" })} title="Transferir cupo"
+                      className="w-9 h-9 rounded-xl bg-[#FFF4EC] hover:bg-[#ffe9d6] text-[#E8853B] border border-[#F5D6BC] flex items-center justify-center transition">
+                      <ArrowRightLeft size={15} />
+                    </button>
+                    <button onClick={() => setModal({ venta: v, accion: "anular" })} title="Anular venta y retirar el acceso"
+                      className="w-9 h-9 rounded-xl bg-[#FDECEC] hover:bg-[#fbdada] text-[#c0392b] border border-[#f3c9c9] flex items-center justify-center transition">
+                      <Ban size={16} />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -181,17 +204,19 @@ export default function VentasAdminPage() {
                 {esConfirmar ? <Check size={26} /> : <Ban size={24} />}
               </div>
               <h3 className="text-[17px] font-bold text-[#3A2530] text-center mb-1">
-                {esConfirmar ? "Confirmar pago" : "Anular solicitud"}
+                {esConfirmar ? "Confirmar pago" : v.estado === "confirmado" ? "Anular venta" : "Anular solicitud"}
               </h3>
               <p className="text-[13px] text-[#9C8790] text-center leading-relaxed mb-1">
                 {esConfirmar
                   ? <>Vas a confirmar el pago de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto, v.moneda)}</b>.</>
-                  : <>Vas a anular la solicitud de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto, v.moneda)}</b>.</>}
+                  : <>Vas a anular {v.estado === "confirmado" ? "la venta" : "la solicitud"} de <b className="text-[#3A2530]">{v.candidata}</b> por <b className="text-[#3A2530]">{money(v.monto, v.moneda)}</b>.</>}
               </p>
               <p className="text-[12px] text-[#C9A9B4] text-center mb-5">
                 {esConfirmar
                   ? <>Se habilita el acceso completo{v.codigo ? <> y se genera la comisión del código <b>{v.codigo}</b></> : ""}.</>
-                  : "No habilita acceso ni genera comisión. Podrá volver a solicitar el pago."}
+                  : v.estado === "confirmado"
+                    ? <>Se le retira el acceso{v.codigo ? <>, se anula la comisión y se libera el cupo del código <b>{v.codigo}</b></> : ""}.</>
+                    : "No habilita acceso ni genera comisión. Podrá volver a solicitar el pago."}
               </p>
               <div className="flex gap-3">
                 <button onClick={() => !procesando && setModal(null)} disabled={procesando}
@@ -208,12 +233,108 @@ export default function VentasAdminPage() {
         );
       })()}
 
+      {transferir && <ModalTransferir u={transferir} onClose={() => { setTransferir(null); cargar(); }} />}
+      {registrar && (
+        <ModalRegistrarPago
+          onClose={() => setRegistrar(false)}
+          onListo={(msg) => { setRegistrar(false); setToast(msg); setTimeout(() => setToast(""), 4000); cargar(); }}
+        />
+      )}
+
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#3A2530] text-white text-[13px] font-medium px-5 py-3 rounded-xl shadow-lg z-50">
           {toast}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Registrar el pago de una candidata que pagó por fuera de /pago y no tiene
+ * solicitud (transferencia, efectivo). Lo confirma lib/ventas-aupair.js: venta,
+ * permisos, cupo del código y comisión, igual que «Confirmar».
+ */
+function ModalRegistrarPago({ onClose, onListo }) {
+  const [candidatas, setCandidatas] = useState(null);
+  const [buscar, setBuscar]   = useState("");
+  const [elegida, setElegida] = useState(null);
+  const [monto, setMonto]     = useState("");
+  const [error, setError]     = useState("");
+  const [ocupado, setOcupado] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/usuarias").then((r) => r.json())
+      .then((d) => setCandidatas((d.usuarias || []).filter((u) => u.rol === "usuaria" && !u.tiene_acceso && Number(u.cuenta_activa) !== 0)))
+      .catch(() => setCandidatas([]));
+  }, []);
+
+  const q = buscar.trim().toLowerCase();
+  const visibles = (candidatas || []).filter((u) => !q || `${u.nombre} ${u.apellido} ${u.email}`.toLowerCase().includes(q)).slice(0, 8);
+
+  const enviar = async () => {
+    setOcupado(true); setError("");
+    const res = await fetch("/api/admin/ventas/registrar", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario_id: elegida.id, monto: monto === "" ? undefined : Number(monto) }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) { setError(d.error || "No se pudo registrar el pago."); return; }
+    onListo(d.comision ? `✓ Pago registrado · acceso habilitado y comisión generada` : "✓ Pago registrado y acceso habilitado");
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" style={{ background: "rgba(58,20,32,.45)", backdropFilter: "blur(3px)" }}
+      onClick={(e) => e.target === e.currentTarget && !ocupado && onClose()}>
+      <div className="bg-white rounded-3xl w-full max-w-[440px] p-6 shadow-2xl">
+        <div className="flex items-start justify-between mb-1">
+          <h3 className="text-[17px] font-bold text-[#3A2530]">Registrar pago</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><X size={14} className="text-[#A0435F]" /></button>
+        </div>
+        <p className="text-[12.5px] text-[#9C8790] leading-relaxed mb-4">Para una candidata que pagó por fuera y no tiene solicitud. Se habilita su acceso y, si usó un código, se genera la comisión.</p>
+
+        {!elegida ? (
+          <>
+            <input autoFocus value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar candidata sin acceso…"
+              className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6] mb-2" />
+            <div className="max-h-[260px] overflow-y-auto space-y-1">
+              {candidatas === null && <p className="text-[12px] text-[#9C8790] py-3 text-center">Cargando…</p>}
+              {candidatas && !visibles.length && <p className="text-[12px] text-[#9C8790] py-3 text-center">Ninguna candidata sin acceso coincide.</p>}
+              {visibles.map((u) => (
+                <button key={u.id} onClick={() => setElegida(u)} className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-[#FBF4F6] transition">
+                  <p className="text-[13px] font-semibold text-[#3A2530]">{u.nombre} {u.apellido}</p>
+                  <p className="text-[11px] text-[#9C8790]">{u.email}</p>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between bg-[#FBF4F6] rounded-xl px-3 py-2.5 mb-3">
+              <div>
+                <p className="text-[13px] font-semibold text-[#3A2530]">{elegida.nombre} {elegida.apellido}</p>
+                <p className="text-[11px] text-[#9C8790]">{elegida.email}</p>
+              </div>
+              <button onClick={() => setElegida(null)} className="text-[11px] font-semibold text-[#A0435F]">Cambiar</button>
+            </div>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1">Monto recibido (COP)</label>
+            <input value={monto} onChange={(e) => setMonto(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric"
+              placeholder="Vacío = el precio del cupo o el de su código"
+              className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]" />
+          </>
+        )}
+
+        {error && <p className="text-[12px] text-[#c0392b] mt-3">{error}</p>}
+        <div className="flex gap-3 mt-5">
+          <button onClick={onClose} disabled={ocupado} className="flex-1 py-3 rounded-xl border border-[#F5E1E7] text-[#9C8790] text-[13px] font-semibold">Cancelar</button>
+          <button onClick={enviar} disabled={ocupado || !elegida}
+            className="flex-1 py-3 rounded-xl text-white text-[13px] font-semibold bg-[#12A46B] disabled:opacity-50">
+            {ocupado ? "Registrando…" : "Registrar y dar acceso"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

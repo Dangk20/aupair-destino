@@ -169,8 +169,10 @@ consultas listas.
   despliegue del 2026-07-23 hasta que se detectó el 2026-08-05.
 - **Sitio público**: `app/(publicPages)/` + `sections/`, contenido de muestra en `data/`.
 
-Utilidades del admin: `/admin/bd-verificar` (inspector del esquema en vivo) y
-`/admin/cambiar-roles` (cambio de rol; no permite degradar admins).
+Utilidades del admin: `/admin/bd-verificar` (inspector del esquema en vivo). El
+cambio de rol vive en Usuarios (`/admin/usuarias`, change `usuarios-administracion`):
+nadie cambia su propio rol ni deja el sistema sin un admin activo. Usuarios sólo
+administra cuentas; el acceso pagado se da en Ventas (`lib/ventas-aupair.js`).
 
 ## Convenciones
 

@@ -12,14 +12,14 @@
 // Los candados NO salen del JWT: /api/dashboard/acceso los lee de la base, así
 // que revocar un permiso surte efecto sin esperar al siguiente ingreso.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
-  Home, Map, BookOpen, FileText, MessageCircle,
+  Home, Map, BookOpen, FileText,
   User, Calendar, Users, FolderOpen, Settings,
 } from "lucide-react";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
-import { useNoLeidos } from "@/components/chat/useNoLeidos";
+import ChatFlotante from "@/components/chat/ChatFlotante";
 
 const SIN_ACCESO = {
   perfil: false, documentos: false, recursos: false,
@@ -28,7 +28,6 @@ const SIN_ACCESO = {
 
 export default function DashboardLayout({ children }) {
   const [accesos, setAccesos] = useState(SIN_ACCESO);
-  const mensajes = useNoLeidos();
 
   useEffect(() => {
     fetch("/api/dashboard/acceso").then(r => r.json())
@@ -48,7 +47,6 @@ export default function DashboardLayout({ children }) {
     { href: "/dashboard/proceso",    label: "Mi Destino", icon: Map,           principal: true },
     { href: "/dashboard/curso",      label: "Curso",      icon: BookOpen,      principal: true },
     { href: "/dashboard/documentos", label: "Documentos", icon: FileText,      principal: true, ...bloqueado("documentos") },
-    { href: "/dashboard/mensajes",   label: "Mensajes",   icon: MessageCircle, principal: true, badge: mensajes, ...bloqueado("mensajes") },
 
     { separador: true },
     { href: "/dashboard/perfil",        label: "Mi Perfil",     icon: User,       ...bloqueado("perfil") },
@@ -69,6 +67,10 @@ export default function DashboardLayout({ children }) {
       >
         {children}
       </PanelLayout>
+      {/* «Mensajes» dejó de ser una pestaña: es una burbuja en todas (Daniel, 17 oct). */}
+      <Suspense fallback={null}>
+        <ChatFlotante rol="usuaria" disponible={accesos.mensajes} />
+      </Suspense>
     </MobileProvider>
   );
 }

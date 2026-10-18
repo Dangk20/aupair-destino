@@ -62,7 +62,7 @@ export default function CertificadoPage() {
       </div>
 
       {/* Certificado */}
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl overflow-hidden shadow-2xl shadow-[#a0435f]/10 border border-[#F5E1E7] print:shadow-none print:rounded-none">
+      <div id="certificado" className="max-w-2xl mx-auto bg-white rounded-3xl overflow-hidden shadow-2xl shadow-[#a0435f]/10 border border-[#F5E1E7] print:shadow-none print:rounded-none">
         <div className="h-3 bg-gradient-to-r from-[#3A2530] via-[#C77D93] to-[#3A2530]"/>
         <div className="p-10 md:p-14 text-center">
           <div className="flex justify-center mb-6">
@@ -99,11 +99,17 @@ export default function CertificadoPage() {
       </div>
 
       <style jsx global>{`
+        /* Sólo el certificado, a página completa y horizontal. Antes salía en
+           blanco: la regla dependía de una clase de Tailwind escapada que no
+           coincidía, y todo quedaba oculto (candidata-datos-reales). */
         @media print {
-          body * { visibility: hidden; }
-          .print\\:shadow-none, .print\\:shadow-none * { visibility: visible; }
-          .print\\:shadow-none { position: fixed; top: 0; left: 0; width: 100%; }
-          .print\\:hidden { display: none !important; }
+          @page { size: A4 landscape; margin: 0; }
+          html, body { background: #fff !important; }
+          body * { visibility: hidden !important; }
+          #certificado, #certificado * { visibility: visible !important; }
+          #certificado { position: fixed !important; inset: 0 !important; margin: 0 !important; width: 100% !important;
+                         max-width: none !important; border: none !important; box-shadow: none !important; border-radius: 0 !important;
+                         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
     </div>

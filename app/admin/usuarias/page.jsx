@@ -1,1025 +1,491 @@
 "use client";
+// app/admin/usuarias/page.jsx — Usuarios: administración de cuentas.
+//
+// Change `usuarios-administracion` (ítem 8): quién tiene cuenta, con qué rol,
+// si está activa y a qué secciones entra. Crear con rol, editar, cambiar rol,
+// secciones, restablecer contraseña y desactivar. Nada más.
+//
+// Lo que había aquí y no era administración de usuarios se fue a su módulo:
+// pagos, «Registrar pago» y transferir cupo → Ventas; códigos → Códigos promo;
+// progreso del curso y recorrido → Candidatas. «Top referidoras» y «Actividad
+// reciente» salían de las tablas heredadas de referidos y se retiraron.
+// Las cifras se calculan de la misma lista que pintan las pestañas: cuadran.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
-  Unlock as UnlockIcon, Gift as GiftIcon, TrendingUp as TrendingUpIcon,
-  GraduationCap as GraduationCapIcon, UserCheck as UserCheckIcon,
-  Building2 as Building2Icon, BarChart2 as BarChart2Icon, Tag as TagIcon,
-  SearchIcon, UserIcon, DownloadIcon, PlusIcon, EyeIcon,
-  PencilIcon, XIcon, CheckIcon,
-  BookOpenIcon, FileTextIcon, CalendarIcon,
-  MessageCircleIcon, UsersIcon, ShieldIcon, CreditCardIcon,
-  ArrowRightLeft as TransferIcon,
+  Search, Download, Plus, X, Pencil, KeyRound, SlidersHorizontal, UserCog, Power,
+  FileText, Calendar, MessageCircle, Users, FolderOpen, User, ExternalLink, Copy, Check,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
-import { formatoMoneda } from "@/lib/moneda";
-import Link from "next/link";
-import LineaDeTiempo from "@/components/perfil/LineaDeTiempo";
+import { T } from "@/lib/tema";
 
+const ROLES = [
+  { id: "usuaria",  label: "Candidata", plural: "Candidatas" },
+  { id: "asociada", label: "Asociada",  plural: "Asociadas" },
+  { id: "agencia",  label: "Agencia",   plural: "Agencias" },
+  { id: "admin",    label: "Admin",     plural: "Admins" },
+];
+const rolLabel = (r) => ROLES.find((x) => x.id === r)?.label || (r === "usuario" ? "Candidata" : r || "—");
+
+// Las secciones que se encienden una a una. El acceso pagado (`tiene_acceso`)
+// NO está: se da en Ventas.
 const SECCIONES = [
-  { key:"tiene_acceso",      label:"Sesiones",   icon:BookOpenIcon,      color:"#12A46B", bg:"#E6F9F0" },
-  { key:"perfil_habilitado", label:"Perfil",     icon:UserIcon,          color:"#A0435F", bg:"#FCE8EE" },
-  { key:"acceso_documentos", label:"Documentos", icon:FileTextIcon,      color:"#4A2A38", bg:"#FCE8EE" },
-  { key:"acceso_recursos",   label:"Recursos",   icon:ShieldIcon,        color:"#E8853B", bg:"#FFF4EC" },
-  { key:"acceso_reuniones",  label:"Reuniones",  icon:CalendarIcon,      color:"#A0435F", bg:"#FCE8EE" },
-  { key:"acceso_mensajes",   label:"Mensajes",   icon:MessageCircleIcon, color:"#12A46B", bg:"#E6F9F0" },
-  { key:"acceso_comunidad",  label:"Comunidad",  icon:UsersIcon,         color:"#A0435F", bg:"#FBF4F6" },
+  { key: "perfil_habilitado", label: "Perfil",     Icono: User },
+  { key: "acceso_documentos", label: "Documentos", Icono: FileText },
+  { key: "acceso_recursos",   label: "Recursos",   Icono: FolderOpen },
+  { key: "acceso_reuniones",  label: "Reuniones",  Icono: Calendar },
+  { key: "acceso_mensajes",   label: "Mensajes",   Icono: MessageCircle },
+  { key: "acceso_comunidad",  label: "Comunidad",  Icono: Users },
 ];
 
-function Toggle({ active, onChange, color="#12A46B", disabled=false }) {
-  return (
-    <button onClick={()=>!disabled&&onChange(!active)} disabled={disabled}
-      style={{ width:36,height:20,borderRadius:99,border:"none",cursor:disabled?"not-allowed":"pointer",background:active?color:"#e0d0d8",position:"relative",transition:"background .2s",flexShrink:0,opacity:disabled?.5:1 }}>
-      <div style={{ width:14,height:14,borderRadius:"50%",background:"#fff",position:"absolute",top:3,left:active?19:3,transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,.2)" }}/>
-    </button>
-  );
+const activa = (u) => Number(u.cuenta_activa) !== 0;
+const nombreDe = (u) => `${u.nombre || ""} ${u.apellido || ""}`.trim() || u.email;
+const fecha = (f) => (f ? new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" }) : "—");
+
+/** CSV con BOM: Excel lo abre con las tildes bien. Sólo datos de la cuenta. */
+function exportar(filas) {
+  const celda = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lineas = [
+    ["Nombre", "Apellido", "Correo", "Teléfono", "Rol", "Estado", "Registro"],
+    ...filas.map((u) => [u.nombre, u.apellido, u.email, u.telefono, rolLabel(u.rol), activa(u) ? "Activa" : "Desactivada", fecha(u.created_at)]),
+  ].map((f) => f.map(celda).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob(["﻿" + lineas], { type: "text/csv;charset=utf-8" }));
+  Object.assign(document.createElement("a"), { href: url, download: `usuarios-${new Date().toISOString().slice(0, 10)}.csv` }).click();
+  URL.revokeObjectURL(url);
 }
 
-// R10: el historial de la candidata, el mismo de su ficha (LineaDeTiempo en
-// modo revisión, con autor y hechos internos).
-function Recorrido({ id }) {
-  const [rec, setRec] = useState(null);
-  useEffect(() => {
-    fetch(`/api/admin/perfiles/${id}/historial`).then(r => r.ok ? r.json() : null)
-      .then(d => setRec(d || { error: true })).catch(() => setRec({ error: true }));
-  }, [id]);
-  if (!rec) return <p className="text-[12px] text-[#9C8790]">Cargando historial…</p>;
-  if (rec.error) return <p className="text-[12px] text-[#C0392B]">No se pudo cargar el historial.</p>;
-  return <LineaDeTiempo etapa={rec.etapa} agencia={rec.agencia?.nombre || null} historial={rec.historial} modo="revision" />;
-}
+const campo = { width: "100%", height: 40, border: `1.5px solid ${T.border}`, borderRadius: 10, fontSize: 13, color: T.text, background: "#fff", outline: "none", fontFamily: T.font, boxSizing: "border-box", padding: "0 12px" };
 
-function ModalVer({ u, onClose }) {
-  if (!u) return null;
-  const candidata = u.rol === "usuaria";
+function Modal({ titulo, subtitulo, onCerrar, children, pie }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
-      <div className={`relative bg-white rounded-3xl shadow-2xl w-full ${candidata ? "max-w-xl" : "max-w-md"} overflow-hidden flex flex-col`} style={{ maxHeight:"calc(100vh - 32px)" }}>
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#FCE8EE] border-2 border-[#C77D93] overflow-hidden flex items-center justify-center">
-              {u.foto_url?<img src={u.foto_url} alt="" className="w-full h-full object-cover"/>:<span className="text-[#A0435F] font-bold font-serif">{u.nombre?.[0]}</span>}
-            </div>
-            <div>
-              <h3 className="font-bold text-[15px] text-[#4A2A38]">{u.nombre} {u.apellido}</h3>
-              <p className="text-[11px] text-[#9C8790]">{u.email}</p>
-            </div>
+    <div role="dialog" aria-modal="true" aria-label={titulo} onClick={onCerrar}
+      style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(58,37,48,.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 440, maxHeight: "90vh", overflowY: "auto", background: "#fff", borderRadius: 18, padding: 22, fontFamily: T.font, color: T.text, boxShadow: "0 20px 50px rgba(58,37,48,.25)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>{titulo}</div>
+            {subtitulo && <div style={{ fontSize: 12.5, color: T.textSoft, marginTop: 2 }}>{subtitulo}</div>}
           </div>
-          <div className="flex items-center gap-2">
-            {candidata && (
-              <Link href={`/admin/perfiles/${u.id}`} className="text-[12px] font-semibold text-[#4A2A38] border border-[#F5E1E7] rounded-full px-3 py-1.5 whitespace-nowrap">Ver perfil</Link>
-            )}
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-          </div>
+          <button type="button" onClick={onCerrar} aria-label="Cerrar" style={{ border: "none", background: T.lilac, width: 30, height: 30, borderRadius: "50%", cursor: "pointer", color: T.primary, display: "flex", alignItems: "center", justifyContent: "center" }}><X size={15} /></button>
         </div>
-        <div className="overflow-y-auto">
-        <div className="px-5 py-4 grid grid-cols-2 gap-3">
-          {[
-            {label:"ID",              val:`#${u.id}`},
-            {label:"Progreso",        val:`${u.porcentaje||0}% (${u.sesiones_completadas||0} ses.)`},
-            {label:"Código referido", val:u.codigo_referido||"Sin código"},
-            {label:"Código promo",    val:u.codigo_promo_usado||"—"},
-            {label:"Referida por",    val:u.referente_nombre||"—"},
-            {label:"Pago",            val:u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"—"},
-            {label:"Comisión",        val:u.comision_generada!=null?formatoMoneda(u.comision_generada, u.moneda_pago):"—"},
-            {label:"Registro",        val:u.created_at?new Date(u.created_at).toLocaleDateString("es-CO"):"—"},
-          ].map((s,i)=>(
-            <div key={i} className="bg-[#FBF4F6] border border-[#F5E1E7] rounded-xl px-3 py-2.5">
-              <p className="text-[9px] text-[#9C8790] uppercase tracking-wide mb-0.5">{s.label}</p>
-              <p className="text-[12px] font-bold text-[#4A2A38]">{s.val}</p>
-            </div>
-          ))}
-        </div>
-        <div className="px-5 pb-2">
-          <p className="text-[10px] font-bold text-[#9C8790] uppercase tracking-wide mb-2">Accesos activos</p>
-          <div className="flex flex-wrap gap-2">
-            {SECCIONES.map(s=>{
-              const activo=u[s.key]; const Icon=s.icon;
-              return (
-                <div key={s.key} style={{ display:"flex",alignItems:"center",gap:5,background:activo?s.bg:"#FBF4F6",borderRadius:99,padding:"4px 10px" }}>
-                  <Icon size={11} style={{ color:activo?s.color:"#C9A9B4" }}/>
-                  <span style={{ fontSize:11,fontWeight:600,color:activo?s.color:"#C9A9B4" }}>{s.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        {candidata && (
-          <div className="px-5 pt-4">
-            <p className="text-[10px] font-bold text-[#9C8790] uppercase tracking-wide mb-3">Recorrido e historial</p>
-            <Recorrido id={u.id}/>
-          </div>
-        )}
-        </div>
-        <div className="px-5 pb-5 pt-3">
-          <button onClick={onClose} className="w-full bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Cerrar</button>
-        </div>
+        {children}
+        {pie && <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>{pie}</div>}
       </div>
     </div>
   );
 }
 
-// R11: transferir el cupo pagado a una persona nueva (lib/transferencias-aupair.js).
-// Mientras la invitación no se use, el cupo sigue en esta cuenta.
-function ModalTransferir({ u, onClose }) {
-  const [pendiente, setPendiente] = useState(undefined);
-  const [email, setEmail] = useState("");
-  const [ocupado, setOcupado] = useState(false);
-  const [error, setError] = useState("");
-  const [link, setLink] = useState(null);
+const Boton = ({ children, onClick, disabled, tipo = "primario", type = "button" }) => (
+  <button type={type} onClick={onClick} disabled={disabled}
+    style={{ border: tipo === "secundario" ? `1.5px solid ${T.border}` : "none", borderRadius: 10, padding: "10px 16px", fontFamily: T.font, fontWeight: 700, fontSize: 13, cursor: disabled ? "default" : "pointer",
+             background: tipo === "secundario" ? "#fff" : tipo === "peligro" ? T.danger : T.primary, color: tipo === "secundario" ? T.ink : "#fff", opacity: disabled ? .55 : 1 }}>
+    {children}
+  </button>
+);
+
+const Etiqueta = ({ children }) => <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".05em", color: T.textSoft, margin: "12px 0 5px", textTransform: "uppercase" }}>{children}</div>;
+const Error = ({ texto }) => texto ? <p role="alert" style={{ fontSize: 12.5, color: T.danger, fontWeight: 600, margin: "12px 0 0" }}>{texto}</p> : null;
+
+/** Un link que el admin puede copiar si el correo no llega. */
+function LinkCopiable({ link, texto }) {
   const [copiado, setCopiado] = useState(false);
-  const url = `/api/admin/usuarias/${u.id}/transferir`;
-  const cargar = () => fetch(url).then(r => r.json()).then(d => setPendiente(d.pendiente || null)).catch(() => setPendiente(null));
-  useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const fecha = (f) => new Date(f).toLocaleDateString("es-CO", { day:"numeric", month:"long", year:"numeric", timeZone:"America/Bogota" });
+  return (
+    <div style={{ background: T.softFill, borderRadius: 12, padding: 12, fontSize: 12.5, lineHeight: 1.5 }}>
+      {texto}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+        <code style={{ flex: 1, fontSize: 11, wordBreak: "break-all", color: T.ink }}>{link}</code>
+        <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(link); setCopiado(true); } catch { /* sigue visible */ } }}
+          style={{ border: `1px solid ${T.border}`, background: "#fff", borderRadius: 8, padding: "5px 9px", fontSize: 11.5, fontWeight: 700, color: T.primary, cursor: "pointer", display: "inline-flex", gap: 5, alignItems: "center", flexShrink: 0 }}>
+          {copiado ? <><Check size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+        </button>
+      </div>
+    </div>
+  );
+}
 
-  const enviar = async (correo) => {
-    setOcupado(true); setError(""); setCopiado(false);
-    const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ email: correo }) });
-    const d = await r.json().catch(() => ({}));
+function ModalNuevo({ onCerrar, onCreado }) {
+  const [f, setF] = useState({ nombre: "", apellido: "", email: "", telefono: "", rol: "usuaria" });
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [link, setLink] = useState(null);
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+
+  const crear = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch("/api/admin/usuarias", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f) });
+    const d = await res.json().catch(() => ({}));
     setOcupado(false);
-    if (!r.ok) { setError(d.error || "No se pudo enviar la invitación."); return; }
-    setLink(d.link); setEmail(""); cargar();
+    if (!res.ok) return setError(d.error || "No se pudo crear la cuenta.");
+    setLink(d.link); onCreado();
   };
-  const cancelarla = async () => {
-    setOcupado(true); setError("");
-    const r = await fetch(url, { method:"DELETE" });
-    const d = await r.json().catch(() => ({}));
-    setOcupado(false);
-    if (!r.ok) { setError(d.error || "No se pudo cancelar."); return; }
-    setLink(null); cargar();
-  };
-  const copiar = async () => { try { await navigator.clipboard.writeText(link); setCopiado(true); } catch { /* el link sigue visible */ } };
+
+  if (link) return (
+    <Modal titulo="Cuenta creada" subtitulo={`${f.nombre} · ${rolLabel(f.rol)}`} onCerrar={onCerrar} pie={<Boton onClick={onCerrar}>Listo</Boton>}>
+      <LinkCopiable link={link} texto={<>Le enviamos a <b>{f.email}</b> un correo para crear su contraseña (vence en 72 horas). Si no le llega, compártele este link:</>} />
+    </Modal>
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <div>
-            <h3 className="font-bold text-[16px] text-[#4A2A38]">Transferir cupo</h3>
-            <p className="text-[11px] text-[#9C8790]">De {u.nombre} {u.apellido}</p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-        </div>
-        <div className="px-5 py-4 space-y-3 text-[12.5px] text-[#4A2A38] leading-relaxed">
-          <p className="text-[#9C8790]">
-            A ese correo le llega un link para crear su cuenta con este cupo; vence a los 30 días. Cuando se registre, {u.nombre} pierde el acceso (puede seguir entrando) y la venta pasa a la cuenta nueva, sin cobro. La cuenta nueva empieza de cero.
-          </p>
-          {pendiente === undefined && <p className="text-[#9C8790]">Cargando…</p>}
-          {pendiente && (
-            <div className="bg-[#FFF4EC] border border-[#F5D6BC] rounded-xl px-3 py-2.5">
-              Invitación pendiente a <strong>{pendiente.email}</strong>, vence el {fecha(pendiente.vence_at)}.
-              <div className="flex gap-2 mt-2">
-                <button disabled={ocupado} onClick={()=>enviar(pendiente.email)} className="flex-1 bg-white border border-[#F5E1E7] rounded-lg py-1.5 font-semibold text-[#A0435F]">Reenviar</button>
-                <button disabled={ocupado} onClick={cancelarla} className="flex-1 bg-white border border-[#F5E1E7] rounded-lg py-1.5 font-semibold text-[#C0392B]">Cancelar transferencia</button>
-              </div>
-            </div>
-          )}
-          {pendiente === null && (
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wide mb-1">Correo de la persona que recibe el cupo</label>
-              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com"
-                className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]"/>
-            </div>
-          )}
-          {link && (
-            <div className="bg-[#E6F9F0] border border-[#BDEBD5] rounded-xl px-3 py-2.5">
-              Enviamos la invitación. Si no le llega, compártele este link:
-              <div className="flex gap-2 mt-2 items-center">
-                <code className="flex-1 text-[10.5px] break-all text-[#4A2A38]">{link}</code>
-                <button onClick={copiar} className="shrink-0 bg-white border border-[#BDEBD5] rounded-lg px-2.5 py-1 text-[11px] font-semibold text-[#12A46B]">{copiado ? "Copiado" : "Copiar"}</button>
-              </div>
-            </div>
-          )}
-          {error && <p className="text-[#C0392B]">{error}</p>}
-        </div>
-        <div className="px-5 pb-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cerrar</button>
-          {pendiente === null && (
-            <button disabled={ocupado || !email.trim()} onClick={()=>enviar(email)} className="flex-1 bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl disabled:opacity-50">
-              {ocupado ? "Enviando…" : "Enviar invitación"}
+    <Modal titulo="Nuevo usuario" subtitulo="Recibe un correo para crear su contraseña: tú no la conoces." onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton onClick={crear} disabled={ocupado || !f.nombre.trim() || !f.email.trim()}>{ocupado ? "Creando…" : "Crear cuenta"}</Boton></>}>
+      <Etiqueta>Rol</Etiqueta>
+      <select value={f.rol} onChange={set("rol")} style={{ ...campo, cursor: "pointer" }}>
+        {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+      </select>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div><Etiqueta>Nombre</Etiqueta><input value={f.nombre} onChange={set("nombre")} style={campo} /></div>
+        <div><Etiqueta>Apellido</Etiqueta><input value={f.apellido} onChange={set("apellido")} style={campo} /></div>
+      </div>
+      <Etiqueta>Correo</Etiqueta><input type="email" value={f.email} onChange={set("email")} style={campo} />
+      <Etiqueta>Teléfono (opcional)</Etiqueta><input value={f.telefono} onChange={set("telefono")} inputMode="tel" style={campo} />
+      <Error texto={error} />
+    </Modal>
+  );
+}
+
+function ModalEditar({ u, onCerrar, onGuardado }) {
+  const [f, setF] = useState({ nombre: u.nombre || "", apellido: u.apellido || "", email: u.email || "", telefono: u.telefono || "" });
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const guardar = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch(`/api/admin/usuarias/${u.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f) });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo guardar.");
+    onGuardado("Datos actualizados");
+  };
+  return (
+    <Modal titulo="Editar datos" subtitulo={nombreDe(u)} onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton onClick={guardar} disabled={ocupado}>{ocupado ? "Guardando…" : "Guardar"}</Boton></>}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div><Etiqueta>Nombre</Etiqueta><input value={f.nombre} onChange={set("nombre")} style={campo} /></div>
+        <div><Etiqueta>Apellido</Etiqueta><input value={f.apellido} onChange={set("apellido")} style={campo} /></div>
+      </div>
+      <Etiqueta>Correo</Etiqueta><input type="email" value={f.email} onChange={set("email")} style={campo} />
+      <Etiqueta>Teléfono</Etiqueta><input value={f.telefono} onChange={set("telefono")} inputMode="tel" style={campo} />
+      {u.rol === "usuaria" && <p style={{ fontSize: 12, color: T.textSoft, margin: "12px 0 0" }}>Su perfil de candidata (formulario, documentos) se revisa en su ficha de Candidatas.</p>}
+      <Error texto={error} />
+    </Modal>
+  );
+}
+
+function ModalRol({ u, onCerrar, onGuardado }) {
+  const [rol, setRol] = useState(u.rol === "usuario" ? "usuaria" : u.rol);
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const guardar = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch(`/api/admin/usuarios/${u.id}/cambiar-rol`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nuevoRol: rol }) });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo cambiar el rol.");
+    onGuardado(d.mensaje || "Rol actualizado");
+  };
+  return (
+    <Modal titulo="Cambiar rol" subtitulo={nombreDe(u)} onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton onClick={guardar} disabled={ocupado || rol === u.rol}>{ocupado ? "Guardando…" : "Cambiar rol"}</Boton></>}>
+      <div style={{ display: "grid", gap: 8 }}>
+        {ROLES.map((r) => (
+          <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, cursor: "pointer", border: `1.5px solid ${rol === r.id ? T.primary : T.border}`, background: rol === r.id ? T.lilac : "#fff", fontSize: 13.5, fontWeight: 600 }}>
+            <input type="radio" name="rol" checked={rol === r.id} onChange={() => setRol(r.id)} style={{ accentColor: T.primary }} /> {r.label}
+          </label>
+        ))}
+      </div>
+      <p style={{ fontSize: 12, color: T.textSoft, margin: "12px 0 0", lineHeight: 1.5 }}>El cambio aplica en su próximo inicio de sesión. Una asociada atribuye ventas con un código de Códigos promo.</p>
+      <Error texto={error} />
+    </Modal>
+  );
+}
+
+function ModalSecciones({ u, onCerrar, onCambio }) {
+  const [estado, setEstado] = useState(() => Object.fromEntries(SECCIONES.map((s) => [s.key, !!Number(u[s.key])])));
+  const [error, setError] = useState(null);
+  const cambiar = async (key) => {
+    const valor = !estado[key];
+    setEstado((e) => ({ ...e, [key]: valor })); setError(null);
+    const res = await fetch("/api/admin/toggle-acceso", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: u.id, seccion: key, valor }) });
+    if (!res.ok) { setEstado((e) => ({ ...e, [key]: !valor })); setError("No se pudo actualizar la sección."); }
+    else onCambio(u.id, key, valor);
+  };
+  return (
+    <Modal titulo="Secciones" subtitulo={nombreDe(u)} onCerrar={onCerrar} pie={<Boton onClick={onCerrar}>Listo</Boton>}>
+      <div style={{ display: "grid", gap: 8 }}>
+        {SECCIONES.map(({ key, label, Icono }) => (
+          <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 12, background: estado[key] ? T.softFill : "#fff", border: `1px solid ${T.border}` }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, fontWeight: 600, color: estado[key] ? T.text : T.textSoft }}><Icono size={16} color={estado[key] ? T.primary : T.softText} /> {label}</span>
+            <button type="button" role="switch" aria-checked={estado[key]} aria-label={label} onClick={() => cambiar(key)}
+              style={{ width: 38, height: 22, borderRadius: 99, border: "none", cursor: "pointer", background: estado[key] ? T.primary : "#e0d0d8", position: "relative", flexShrink: 0 }}>
+              <span style={{ position: "absolute", top: 3, left: estado[key] ? 19 : 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left .15s" }} />
             </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalEditar({ u, onClose, onSave }) {
-  const [form, setForm] = useState({ nombre:u.nombre||"", apellido:u.apellido||"", email:u.email||"" });
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <h3 className="font-bold text-[16px] text-[#4A2A38]">Editar usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          {[{label:"Nombre",key:"nombre"},{label:"Apellido",key:"apellido"},{label:"Email",key:"email"}].map(f=>(
-            <div key={f.key}>
-              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1">{f.label}</label>
-              <input value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}
-                className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]"/>
-            </div>
-          ))}
-        </div>
-        <div className="px-5 pb-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
-          <button onClick={()=>{onSave(u.id,form);onClose();}} className="flex-1 bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Guardar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalNuevo({ onClose, onSave }) {
-  const [form, setForm] = useState({ nombre:"",apellido:"",email:"",password:"" });
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <h3 className="font-bold text-[16px] text-[#4A2A38]">Nuevo usuario</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          {[{label:"Nombre",key:"nombre",type:"text"},{label:"Apellido",key:"apellido",type:"text"},{label:"Email",key:"email",type:"email"},{label:"Contraseña",key:"password",type:"password"}].map(f=>(
-            <div key={f.key}>
-              <label className="block text-[10px] font-bold uppercase tracking-wide text-[#4A2A38] mb-1">{f.label}</label>
-              <input type={f.type} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}
-                className="w-full border border-[#F5E1E7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:border-[#C77D93] bg-[#FBF4F6]"/>
-            </div>
-          ))}
-        </div>
-        <div className="px-5 pb-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 border-2 border-[#F5E1E7] text-[#9C8790] font-semibold text-[13px] py-3 rounded-xl">Cancelar</button>
-          <button onClick={()=>{onSave(form);onClose();}} className="flex-1 bg-[#A0435F] text-white font-semibold text-[13px] py-3 rounded-xl">Crear</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalCambiarRol({ u, onClose, onCambiar, cargando }) {
-  const [paso, setPaso] = useState(1); // 1: seleccionar rol, 2: configurar código (si asociada)
-  const [rolSeleccionado, setRolSeleccionado] = useState(null);
-  const [codigoPersonalizado, setCodigoPersonalizado] = useState("");
-  const [codigoGenerado, setCodigoGenerado] = useState(null);
-
-  const rolesDisponibles = [
-    { valor: "usuaria", label: "Usuaria (Estudiante)", color: "bg-blue-100 text-blue-700", icon: "👩‍🎓" },
-    { valor: "asociada", label: "Asociada (Asesora)", color: "bg-purple-100 text-purple-700", icon: "👩‍🏫" },
-    { valor: "agencia", label: "Agencia", color: "bg-amber-100 text-amber-700", icon: "🏢" },
-    { valor: "admin", label: "Admin (Administrador)", color: "bg-red-100 text-red-700", icon: "👨‍💼" },
-  ];
-
-  const handleSeleccionarRol = (nuevoRol) => {
-    setRolSeleccionado(nuevoRol);
-    
-    // Si es asociada, ir al paso 2; si no, aplicar directamente
-    if (nuevoRol === "asociada") {
-      setPaso(2);
-    } else {
-      onCambiar(u.id, nuevoRol);
-      handleCerrar();
-    }
-  };
-
-  const handleConfirmarCambio = async () => {
-    if (rolSeleccionado === "asociada") {
-      // Pasar el código personalizado si existe
-      await onCambiar(u.id, rolSeleccionado, codigoPersonalizado);
-    }
-    handleCerrar();
-  };
-
-  const handleCerrar = () => {
-    setPaso(1);
-    setRolSeleccionado(null);
-    setCodigoPersonalizado("");
-    setCodigoGenerado(null);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={handleCerrar}/>
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#A0435F] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <div>
-            <h3 className="font-bold text-[16px] text-[#4A2A38]">
-              {paso === 1 ? "Cambiar rol de usuario" : "Configurar código de referido"}
-            </h3>
-            <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
           </div>
-          <button onClick={handleCerrar} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-        </div>
+        ))}
+      </div>
+      {u.rol === "usuaria" && (
+        <p style={{ fontSize: 12, color: T.textSoft, margin: "12px 0 0", lineHeight: 1.5 }}>
+          El acceso pagado al programa no se enciende aquí: se da en <Link href="/admin/ventas" style={{ color: T.primary, fontWeight: 700 }}>Ventas</Link> al confirmar o registrar su pago. Ahora: <b>{Number(u.tiene_acceso) ? "con acceso pagado" : "sin acceso pagado"}</b>.
+        </p>
+      )}
+      <Error texto={error} />
+    </Modal>
+  );
+}
 
-        {paso === 1 ? (
-          // PASO 1: Seleccionar rol
-          <div className="px-5 py-4 space-y-2">
-            {rolesDisponibles.map(rol => (
-              <button
-                key={rol.valor}
-                onClick={() => handleSeleccionarRol(rol.valor)}
-                disabled={u.rol === rol.valor || cargando === u.id}
-                className={`w-full p-4 rounded-xl border-2 transition text-left font-medium text-[13px] ${
-                  u.rol === rol.valor
-                    ? `${rol.color} opacity-50 cursor-not-allowed border-opacity-50`
-                    : `${rol.color} hover:opacity-80 active:opacity-100 cursor-pointer border-opacity-0 hover:border-opacity-20`
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{rol.icon} {rol.label}</span>
-                  {cargando === u.id && <div className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+function ModalRestablecer({ u, onCerrar }) {
+  const [link, setLink] = useState(null);
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const enviar = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch(`/api/admin/usuarias/${u.id}/restablecer`, { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo enviar.");
+    setLink(d.link);
+  };
+  return (
+    <Modal titulo="Restablecer contraseña" subtitulo={nombreDe(u)} onCerrar={onCerrar}
+      pie={link ? <Boton onClick={onCerrar}>Listo</Boton> : <><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton onClick={enviar} disabled={ocupado}>{ocupado ? "Enviando…" : "Enviar correo"}</Boton></>}>
+      {link
+        ? <LinkCopiable link={link} texto={<>Le enviamos a <b>{u.email}</b> el correo para crear una contraseña nueva (vence en 1 hora). Si no le llega, compártele este link:</>} />
+        : <p style={{ fontSize: 13, color: T.textSoft, margin: 0, lineHeight: 1.5 }}>Le llega a <b>{u.email}</b> un correo para crear una contraseña nueva. La actual sigue sirviendo hasta que la cambie.</p>}
+      <Error texto={error} />
+    </Modal>
+  );
+}
+
+function ModalEstado({ u, onCerrar, onGuardado }) {
+  const desactivar = activa(u);
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const guardar = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch(`/api/admin/usuarias/${u.id}/estado`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ activa: !desactivar }) });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo cambiar el estado.");
+    onGuardado(desactivar ? "Cuenta desactivada" : "Cuenta reactivada");
+  };
+  return (
+    <Modal titulo={desactivar ? "Desactivar cuenta" : "Reactivar cuenta"} subtitulo={nombreDe(u)} onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton tipo={desactivar ? "peligro" : "primario"} onClick={guardar} disabled={ocupado}>{ocupado ? "Guardando…" : desactivar ? "Desactivar" : "Reactivar"}</Boton></>}>
+      <p style={{ fontSize: 13, color: T.textSoft, margin: 0, lineHeight: 1.55 }}>
+        {desactivar
+          ? "No podrá iniciar sesión y, si tiene el panel abierto, sale en su siguiente carga. Sus datos, pagos e historial se conservan y puedes reactivarla cuando quieras."
+          : "Vuelve a poder iniciar sesión con su contraseña de siempre."}
+      </p>
+      <Error texto={error} />
+    </Modal>
+  );
+}
+
+const PILDORA_ROL = {
+  usuaria: { bg: T.lilac, color: T.primary },
+  asociada: { bg: "#FFF4EC", color: "#B4631F" },
+  agencia: { bg: "#EAF1FB", color: "#2F5E9C" },
+  admin: { bg: "#F1EEF6", color: "#5B4A7A" },
+};
+
+export default function UsuariosPage() {
+  const { isMobile } = useMobile();
+  const [usuarios, setUsuarios] = useState(null);
+  const [yo, setYo] = useState(null);
+  const [pestana, setPestana] = useState("todos");
+  const [buscar, setBuscar] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [modal, setModal] = useState(null); // { tipo, u }
+  const [aviso, setAviso] = useState(null);
+  const POR_PAGINA = 12;
+
+  const decir = (msg, tipo = "ok") => { setAviso({ msg, tipo }); setTimeout(() => setAviso(null), 3000); };
+  const cargar = () => fetch("/api/admin/usuarias").then((r) => r.json())
+    .then((d) => setUsuarios(d.usuarias || [])).catch(() => { setUsuarios([]); decir("No se pudieron cargar los usuarios", "error"); });
+
+  useEffect(() => {
+    cargar();
+    fetch("/api/auth/me").then((r) => r.json()).then((d) => setYo(d.user?.id ?? null)).catch(() => {});
+  }, []);
+
+  // Cifras y pestañas salen de la MISMA lista: cuadran por construcción.
+  const pestanas = useMemo(() => {
+    const us = usuarios || [];
+    const porRol = (id) => us.filter((u) => (u.rol === "usuario" ? "usuaria" : u.rol) === id);
+    return [
+      { id: "todos", label: "Todos", filas: us },
+      ...ROLES.map((r) => ({ id: r.id, label: r.plural, filas: porRol(r.id) })),
+      { id: "desactivadas", label: "Desactivadas", filas: us.filter((u) => !activa(u)) },
+    ];
+  }, [usuarios]);
+
+  const filtrados = useMemo(() => {
+    const q = buscar.trim().toLowerCase();
+    const base = pestanas.find((p) => p.id === pestana)?.filas || [];
+    return base.filter((u) => !q || `${u.nombre || ""} ${u.apellido || ""} ${u.email || ""} ${u.telefono || ""}`.toLowerCase().includes(q));
+  }, [pestanas, pestana, buscar]);
+
+  useEffect(() => { setPagina(1); }, [pestana, buscar]);
+  const paginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+  const visibles = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+
+  const cerrarYRecargar = (msg) => { setModal(null); if (msg) decir(msg); cargar(); };
+  const abrir = (tipo, u) => setModal({ tipo, u });
+
+  const acciones = (u) => {
+    const soyYo = yo != null && Number(u.id) === Number(yo);
+    const lista = [
+      { tipo: "editar", Icono: Pencil, titulo: "Editar datos" },
+      { tipo: "secciones", Icono: SlidersHorizontal, titulo: "Secciones" },
+      { tipo: "rol", Icono: UserCog, titulo: soyYo ? "No puedes cambiar tu propio rol" : "Cambiar rol", off: soyYo },
+      { tipo: "restablecer", Icono: KeyRound, titulo: "Restablecer contraseña" },
+      { tipo: "estado", Icono: Power, titulo: soyYo ? "No puedes desactivar tu propia cuenta" : activa(u) ? "Desactivar cuenta" : "Reactivar cuenta", off: soyYo, peligro: activa(u) },
+    ];
+    return (
+      <div style={{ display: "flex", gap: 6, justifyContent: isMobile ? "flex-start" : "flex-end", flexWrap: "wrap" }}>
+        {u.rol === "usuaria" && (
+          <Link href={`/admin/perfiles/${u.id}`} title="Ver su ficha de candidata" aria-label="Ver su ficha de candidata"
+            style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: T.textSoft, background: "#fff" }}>
+            <ExternalLink size={14} />
+          </Link>
+        )}
+        {lista.map(({ tipo, Icono, titulo, off, peligro }) => (
+          <button key={tipo} type="button" title={titulo} aria-label={titulo} disabled={off} onClick={() => abrir(tipo, u)}
+            style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: off ? "not-allowed" : "pointer",
+                     background: "#fff", color: peligro ? T.danger : T.primary, opacity: off ? .35 : 1 }}>
+            <Icono size={14} />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const PildoraRol = ({ rol }) => {
+    const c = PILDORA_ROL[rol === "usuario" ? "usuaria" : rol] || PILDORA_ROL.usuaria;
+    return <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: c.bg, color: c.color, whiteSpace: "nowrap" }}>{rolLabel(rol)}</span>;
+  };
+  const PildoraEstado = ({ u }) => activa(u)
+    ? <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: "#E6F9F0", color: "#12805A" }}>Activa</span>
+    : <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: "#F4F2EF", color: T.neutral }}>Desactivada</span>;
+  const Avatar = ({ u }) => u.foto_url
+    ? <img src={u.foto_url} alt="" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+    : <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.lilac, color: T.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>{(u.nombre || u.email || "?")[0].toUpperCase()}</div>;
+
+  return (
+    <div style={{ fontFamily: T.font, color: T.text, padding: isMobile ? "16px 16px 90px" : "28px 30px", display: "flex", flexDirection: "column", gap: 18, maxWidth: 1200, width: "100%", margin: "0 auto", boxSizing: "border-box" }}>
+      {aviso && (
+        <div style={{ position: "fixed", top: 20, right: 20, zIndex: 2000, background: aviso.tipo === "error" ? T.danger : T.ink, color: "#fff", padding: "12px 20px", borderRadius: 14, fontSize: 13, fontWeight: 600 }}>{aviso.msg}</div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: isMobile ? 21 : 26, fontWeight: 700, lineHeight: 1.1 }}>Usuarios</div>
+          <div style={{ fontSize: 13.5, color: T.textSoft, marginTop: 3 }}>Las cuentas de la plataforma: quién entra, con qué rol y a qué secciones.</div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={() => exportar(filtrados)} disabled={!filtrados.length}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, border: `1.5px solid ${T.border}`, background: "#fff", color: T.ink, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: T.font }}>
+            <Download size={14} /> Exportar
+          </button>
+          <button type="button" onClick={() => abrir("nuevo", null)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, border: "none", background: T.primary, color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: T.font }}>
+            <Plus size={14} /> Nuevo usuario
+          </button>
+        </div>
+      </div>
+
+      {/* Pestañas = cifras: el número de cada una es exactamente lo que muestra. */}
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+        {pestanas.map((p) => (
+          <button key={p.id} type="button" onClick={() => setPestana(p.id)} aria-pressed={pestana === p.id}
+            style={{ flexShrink: 0, minWidth: isMobile ? 96 : 120, textAlign: "left", padding: "10px 14px", borderRadius: 14, cursor: "pointer", fontFamily: T.font,
+                     border: `1.5px solid ${pestana === p.id ? T.primary : T.border}`, background: pestana === p.id ? T.lilac : "#fff" }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: pestana === p.id ? T.primary : T.textSoft }}>{p.label}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.ink, marginTop: 2 }}>{usuarios ? p.filas.length : "—"}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ position: "relative", maxWidth: 440 }}>
+        <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: T.softText }} />
+        <input type="search" value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar por nombre, correo o teléfono…" aria-label="Buscar usuarios"
+          style={{ ...campo, paddingLeft: 34 }} />
+      </div>
+
+      {usuarios === null ? <div style={{ fontSize: 13, color: T.textSoft }}>Cargando…</div>
+        : !filtrados.length ? <div style={{ background: "#fff", borderRadius: 16, padding: 30, textAlign: "center", fontSize: 13, color: T.textSoft }}>No hay usuarios que coincidan.</div>
+        : isMobile ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            {visibles.map((u) => (
+              <div key={u.id} style={{ background: "#fff", borderRadius: 16, padding: 14, border: `1px solid ${T.border}`, opacity: activa(u) ? 1 : .7 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <Avatar u={u} />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nombreDe(u)}</div>
+                    <div style={{ fontSize: 12, color: T.textSoft, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
+                  </div>
                 </div>
-              </button>
+                <div style={{ display: "flex", gap: 6, margin: "10px 0" }}><PildoraRol rol={u.rol} /><PildoraEstado u={u} /></div>
+                {acciones(u)}
+              </div>
             ))}
           </div>
         ) : (
-          // PASO 2: Configurar código para asociada
-          <div className="px-5 py-4 space-y-4">
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
-              <p className="text-[11px] text-[#A0435F] font-semibold mb-1">CÓDIGO DE REFERIDO</p>
-              <p className="text-[12px] text-purple-700">
-                Las nuevas usuarias que se registren con este código serán asignadas automáticamente a esta asesora.
-              </p>
-            </div>
-
-            <div>
-              <label className="text-[12px] font-bold text-[#4A2A38] mb-2 block">
-                Código personalizado (opcional)
-              </label>
-              <input
-                type="text"
-                value={codigoPersonalizado}
-                onChange={(e) => setCodigoPersonalizado(e.target.value.toUpperCase())}
-                placeholder="Ej: ANA2024, PROMO001..."
-                className="w-full px-3 py-2 border border-[#e0d0d8] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A0435F] font-mono text-[12px]"
-              />
-              <p className="text-[10px] text-[#9C8790] mt-1">
-                Dejar vacío para generar uno automáticamente
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPaso(1)}
-                className="flex-1 px-3 py-2 border border-[#F5E1E7] text-[#9C8790] rounded-xl font-medium text-[12px] hover:bg-[#FBF4F6]"
-              >
-                ← Atrás
-              </button>
-              <button
-                onClick={handleConfirmarCambio}
-                disabled={cargando === u.id}
-                className="flex-1 px-3 py-2 bg-[#A0435F] text-white rounded-xl font-medium text-[12px] hover:bg-[#A0435F] disabled:opacity-50"
-              >
-                {cargando === u.id ? "Procesando..." : "Cambiar a Asesora"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="px-5 pb-5 border-t border-[#F5E1E7]">
-          <button onClick={handleCerrar} className="w-full border border-[#F5E1E7] text-[#9C8790] text-[13px] font-semibold py-3 rounded-xl mt-3">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalAccesos({ u, onClose, onToggle }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#4A2A38]/50 backdrop-blur-sm" onClick={onClose}/>
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#A0435F] via-[#C77D93] to-[#A0435F]"/>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5E1E7]">
-          <div>
-            <h3 className="font-bold text-[16px] text-[#4A2A38]">Gestionar accesos</h3>
-            <p className="text-[11px] text-[#9C8790]">{u.nombre} {u.apellido}</p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#FCE8EE] flex items-center justify-center"><XIcon size={14} className="text-[#A0435F]"/></button>
-        </div>
-        <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
-          {SECCIONES.map(sec=>{
-            const Icon=sec.icon, activo=!!u[sec.key];
-            return (
-              <div key={sec.key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:activo?sec.bg+"80":"#FBF4F6",borderRadius:14,border:`1px solid ${activo?sec.bg:"#F5E1E7"}` }}>
-                <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                  <div style={{ width:32,height:32,borderRadius:10,background:activo?sec.bg:"#FBF4F6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                    <Icon size={15} style={{ color:activo?sec.color:"#C9A9B4" }}/>
-                  </div>
-                  <div>
-                    <p style={{ fontSize:13,fontWeight:600,color:activo?"#4A2A38":"#9C8790",margin:0 }}>{sec.label}</p>
-                    <p style={{ fontSize:10,color:activo?sec.color:"#C9A9B4",margin:0,fontWeight:600 }}>{activo?"Activo":"Desactivado"}</p>
-                  </div>
-                </div>
-                <Toggle active={activo} color={sec.color} onChange={(val)=>onToggle(u.id,sec.key,val)}/>
-              </div>
-            );
-          })}
-        </div>
-        <div className="px-5 pb-5">
-          <button onClick={onClose} className="w-full border border-[#F5E1E7] text-[#9C8790] text-[13px] font-semibold py-3 rounded-xl">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Modal Pago — versión corregida con type="button" explícito ── */
-function ModalPago({ usuaria, titulo, subtitulo, gradiente, onClose, onConfirmar }) {
-  // R9: propone el precio del cupo configurado, en pesos (antes, 35 fijo en USD).
-  const [monto, setMonto] = useState("");
-  const [precio, setPrecio] = useState(null);
-  useEffect(() => {
-    fetch("/api/pago/precio").then(r=>r.ok?r.json():{}).then(d=>{
-      if (d.precio) { setPrecio(d.precio); setMonto(m => m === "" ? String(d.precio) : m); }
-    }).catch(()=>{});
-  }, []);
-  const [guardando, setGuardando] = useState(false);
-
-  const handleConfirmar = async () => {
-    if (monto === "" || Number(monto) < 0) return;
-    setGuardando(true);
-    await onConfirmar(monto);
-    setGuardando(false);
-  };
-
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(45,26,34,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16 }}
-      onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,.15)" }}>
-        <div style={{ height:4,background:gradiente||"linear-gradient(90deg,#A0435F,#C77D93)" }}/>
-        <div style={{ padding:24 }}>
-          <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:"0 0 6px" }}>{titulo}</h2>
-          <p style={{ fontSize:13,color:"#9C8790",margin:"0 0 20px" }}>{subtitulo} <strong>{usuaria.nombre} {usuaria.apellido}</strong></p>
-          <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-            <span style={{ fontSize:11,fontWeight:700,color:"#4A2A38",textTransform:"uppercase",letterSpacing:.6 }}>Monto (COP)</span>
-            <div style={{ position:"relative" }}>
-              <span style={{ position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:14,color:"#9C8790",fontWeight:600 }}>$</span>
-              <input
-                type="number" min="0" step="1" value={monto}
-                onChange={e=>setMonto(e.target.value)}
-                autoFocus
-                style={{ width:"100%",border:"1.5px solid #F5E1E7",borderRadius:12,padding:"10px 14px 10px 32px",fontSize:16,fontWeight:700,color:"#4A2A38",outline:"none",boxSizing:"border-box" }}
-              />
-            </div>
-            <div style={{ display:"flex",gap:8,marginTop:4 }}>
-              {[["0","Cortesía"], ...(precio ? [[String(precio), "Precio del cupo"]] : [])].map(([p, etiqueta])=>(
-                <button key={p} type="button" onClick={()=>setMonto(p)}
-                  style={{ flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${monto===p?"#A0435F":"#F5E1E7"}`,background:monto===p?"#FCE8EE":"#fff",color:monto===p?"#A0435F":"#9C8790",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-                  {etiqueta} · {formatoMoneda(p)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display:"flex",gap:10,marginTop:20 }}>
-            <button type="button" onClick={onClose}
-              style={{ flex:1,padding:"10px",borderRadius:12,border:"1.5px solid #F5E1E7",background:"#fff",color:"#9C8790",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmar}
-              disabled={monto===""||Number(monto)<0||guardando}
-              style={{ flex:2,padding:"10px",borderRadius:12,border:"none",background:(monto===""||Number(monto)<0)?"#F5E1E7":"#A0435F",color:(monto===""||Number(monto)<0)?"#C9A9B4":"#fff",fontSize:13,fontWeight:600,cursor:guardando?"wait":"pointer",fontFamily:"inherit",opacity:guardando?.7:1 }}>
-              {guardando?"Guardando...":"✓ Confirmar"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════
-   MAIN PAGE
-══════════════════════════════════════════════════════════ */
-export default function AdminUsuariosPage() {
-  const { isMobile } = useMobile();
-
-  const [usuarios,      setUsuarios]      = useState([]);
-  const [stats,         setStats]         = useState(null);
-  const [actividad,     setActividad]     = useState([]);
-  const [topRef,        setTopRef]        = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [search,        setSearch]        = useState("");
-  const [codigoFiltro,  setCodigoFiltro]  = useState("");
-  const [tabActivo,     setTabActivo]     = useState("todos");
-  const [ordenar,       setOrdenar]       = useState("recientes");
-  const [modalVer,          setModalVer]          = useState(null);
-  const [modalEditar,       setModalEditar]       = useState(null);
-  const [modalNuevo,        setModalNuevo]        = useState(false);
-  const [modalAccesos,      setModalAccesos]      = useState(null);
-  const [modalPago,         setModalPago]         = useState(null);
-  const [modalCambiarRol,   setModalCambiarRol]   = useState(null);
-  const [modalTransferir,   setModalTransferir]   = useState(null);
-  const [cargandoRol,       setCargandoRol]       = useState(null);
-  const [toast,             setToast]             = useState(null);
-  const [pagina,            setPagina]            = useState(1);
-  const POR_PAGINA = isMobile ? 6 : 8;
-
-  const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
-
-  const cargar = async() => {
-    setLoading(true);
-    try {
-      const [uRes,sRes,aRes,tRes] = await Promise.all([
-        fetch("/api/admin/usuarias"),
-        fetch("/api/admin/usuarios/stats"),
-        fetch("/api/admin/usuarios/actividad"),
-        fetch("/api/admin/usuarios/top-referentes"),
-      ]);
-      const [uData,sData,aData,tData] = await Promise.all([uRes.json(),sRes.json(),aRes.json(),tRes.json()]);
-      setUsuarios(uData.usuarias||[]);
-      setStats(sData);
-      setActividad(aData.actividad||[]);
-      setTopRef(tData.referentes||[]);
-    } catch { showToast("Error cargando datos","error"); }
-    finally { setLoading(false); }
-  };
-  useEffect(()=>{ cargar(); },[]);
-
-  const toggleAcceso = (u) => {
-    if (!u.tiene_acceso) setModalPago(u);
-    else confirmarToggle(u.id, false, 0);
-  };
-
-  const confirmarToggle = async(id, tiene_acceso, monto) => {
-    setModalPago(null);
-    const res = await fetch("/api/admin/toggle-acceso", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ id, tiene_acceso, monto: Number(monto) }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      showToast(tiene_acceso ? "✓ Acceso activado" : "Acceso desactivado");
-      await cargar();
-    } else {
-      showToast(data.error || "Error al actualizar acceso", "error");
-    }
-  };
-
-  const toggleSeccion = async(usuarioId, seccion, valor) => {
-    setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,[seccion]:valor?1:0}:u));
-    setModalAccesos(prev=>prev?{...prev,[seccion]:valor?1:0}:prev);
-    const res = await fetch("/api/admin/toggle-acceso", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ id:usuarioId, seccion, valor }),
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      setUsuarios(prev=>prev.map(u=>u.id===usuarioId?{...u,[seccion]:!valor?1:0}:u));
-      showToast("Error al actualizar","error");
-    } else {
-      showToast(`${SECCIONES.find(s=>s.key===seccion)?.label} ${valor?"activado":"desactivado"} ✓`);
-    }
-  };
-
-  // «Corregir monto» se retiró con R9: editaba el libro heredado de referidos,
-  // que ya no se muestra. Un monto se corrige anulando y confirmando la venta
-  // en Ventas, el flujo dueño (lib/ventas-aupair.js).
-
-  const guardarEdicion = async(id, form) => {
-    await fetch(`/api/admin/usuarias/${id}`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    showToast("Usuario actualizado ✓");
-    await cargar();
-  };
-
-  const crearUsuario = async(form) => {
-    const res = await fetch("/api/auth/register", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    if (res.ok) { showToast("Usuario creado ✓"); await cargar(); }
-    else showToast("Error al crear usuario","error");
-  };
-
-  const handleCambiarRol = async(usuarioId, nuevoRol, codigoReferido) => {
-    setCargandoRol(usuarioId);
-    try {
-      const body = { nuevoRol };
-      if (codigoReferido) {
-        body.codigoReferido = codigoReferido;
-      }
-      
-      const res = await fetch(`/api/admin/usuarios/${usuarioId}/cambiar-rol`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const roleNames = {
-          "asociada": "Asociada",
-          "admin": "Admin",
-          "usuaria": "Usuaria",
-          "agencia": "Agencia"
-        };
-        let message = `Rol cambiado a ${roleNames[nuevoRol]} ✓`;
-        if (data.codigoReferido) {
-          message += ` | Código: ${data.codigoReferido}`;
-        }
-        showToast(message);
-        setModalCambiarRol(null);
-        await cargar();
-      } else {
-        showToast(data.error || "Error al cambiar rol", "error");
-      }
-    } catch(err) {
-      console.error("Error changing role:", err);
-      showToast("Error al cambiar el rol", "error");
-    } finally {
-      setCargandoRol(null);
-    }
-  };
-
-  const exportar = () => {
-    const lineas = ["ID|Nombre|Email|Progreso|Código|Pago",
-      ...filtrados.map(u=>`${u.id}|${u.nombre} ${u.apellido}|${u.email}|${u.porcentaje||0}%|${u.codigo_referido||"—"}|${u.tiene_acceso?(u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"Sin venta"):"Gratis"}`)
-    ].join("\n");
-    const a = Object.assign(document.createElement("a"),{href:`data:text/plain;charset=utf-8,${encodeURIComponent(lineas)}`,download:"usuarios.txt"});
-    a.click(); showToast("Exportado ✓");
-  };
-
-  const hoy = new Date();
-  const esteMes = u=>{ const d=new Date(u.created_at); return d.getMonth()===hoy.getMonth()&&d.getFullYear()===hoy.getFullYear(); };
-  const tabs = [
-    {id:"todos",     label:"Todos",      count:usuarios.length},
-    {id:"acceso",    label:"Con acceso", count:usuarios.filter(u=>u.tiene_acceso).length},
-    {id:"gratis",    label:"Gratis",     count:usuarios.filter(u=>!u.tiene_acceso).length},
-    {id:"inactivos", label:"Inactivos",  count:usuarios.filter(u=>!u.sesiones_completadas).length},
-    {id:"nuevos",    label:"Este mes",   count:usuarios.filter(esteMes).length},
-  ];
-
-  let filtrados = usuarios.filter(u=>{
-    const q=search.toLowerCase();
-    return (!q||`${u.nombre} ${u.apellido} ${u.email}`.toLowerCase().includes(q))
-      &&(!codigoFiltro||(u.codigo_referido||"").toLowerCase().includes(codigoFiltro.toLowerCase()))
-      &&(tabActivo==="todos"||tabActivo==="acceso"&&u.tiene_acceso||tabActivo==="gratis"&&!u.tiene_acceso||tabActivo==="inactivos"&&!u.sesiones_completadas||esteMes(u));
-  });
-  if (ordenar==="recientes") filtrados=[...filtrados].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  else if (ordenar==="progreso") filtrados=[...filtrados].sort((a,b)=>(b.porcentaje||0)-(a.porcentaje||0));
-  else if (ordenar==="nombre") filtrados=[...filtrados].sort((a,b)=>a.nombre.localeCompare(b.nombre));
-
-  const totalPags = Math.ceil(filtrados.length/POR_PAGINA);
-  const paginados = filtrados.slice((pagina-1)*POR_PAGINA, pagina*POR_PAGINA);
-  const s = stats||{total:0,conAcceso:0,soloGratis:0,conversion:0};
-
-  return (
-    <div style={{ display:"flex",gap:20,padding:isMobile?"14px 16px":"20px 28px",background:"#FBF4F6",minHeight:"100%",flexDirection:isMobile?"column":"row" }}>
-      <div style={{ flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:16 }}>
-
-        {toast && (
-          <div style={{ position:"fixed",top:20,right:20,zIndex:100,display:"flex",alignItems:"center",gap:8,padding:"12px 18px",borderRadius:16,boxShadow:"0 8px 24px rgba(0,0,0,.15)",fontSize:13,fontWeight:600,color:"#fff",background:toast.tipo==="error"?"#C0392B":"#A0435F" }}>
-            <CheckIcon size={14}/>{toast.msg}
-          </div>
-        )}
-
-        {/* Header */}
-        <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
-          <div>
-            <h1 style={{ fontFamily:"Georgia,serif",fontWeight:700,color:"#4A2A38",fontSize:isMobile?20:24,margin:0 }}>Usuarios registrados</h1>
-            <p style={{ fontSize:12,color:"#9C8790",margin:"2px 0 0" }}>Administra estudiantes, acceso y secciones.</p>
-          </div>
-          <div style={{ display:"flex",gap:8 }}>
-            <button onClick={exportar} style={{ display:"flex",alignItems:"center",gap:5,color:"#A0435F",fontSize:12,fontWeight:600,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit" }}>
-              <DownloadIcon size={14}/>Exportar
-            </button>
-            <button onClick={()=>setModalNuevo(true)}
-              style={{ display:"flex",alignItems:"center",gap:5,background:"#A0435F",color:"#fff",fontSize:12,fontWeight:600,padding:"8px 14px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
-              <PlusIcon size={13}/>Nuevo
-            </button>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
-          {[
-            // Estas tarjetas mostraban "+18% este mes", "+22%"… escritos a mano,
-            // con flechita verde incluida. Nadie los calculaba: eran inventados,
-            // igual que las métricas que se retiraron del Resumen en el Sprint 1.
-            // Fuera. La cifra que sí es real se queda; la variación no existe
-            // hasta que haya con qué compararla.
-            {Icono:UsersIcon,      label:"Usuarios totales",       val:s.total?.toLocaleString("es-CO")},
-            {Icono:UnlockIcon,     label:"Con acceso completo",    val:s.conAcceso?.toLocaleString("es-CO")},
-            {Icono:GiftIcon,       label:"Solo bienvenida gratis", val:s.soloGratis?.toLocaleString("es-CO")},
-            {Icono:TrendingUpIcon, label:"Conversión total",       val:`${s.conversion||0}%`},
-          ].map((st,i)=>(
-            <div key={i} style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:16,padding:isMobile?"12px":"16px 20px",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-              <st.Icono size={isMobile?18:20} style={{ color:"#A0435F",marginBottom:8 }}/>
-              <p style={{ fontSize:10,color:"#9C8790",margin:"0 0 2px",lineHeight:1.3 }}>{st.label}</p>
-              <p style={{ fontFamily:"Georgia,serif",fontWeight:700,fontSize:isMobile?20:24,color:"#4A2A38",margin:0,lineHeight:1 }}>{st.val||0}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Búsqueda */}
-        <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
-          <div style={{ flex:1,position:"relative",minWidth:160 }}>
-            <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#C9A9B4" }}/>
-            <input value={search} onChange={e=>{setSearch(e.target.value);setPagina(1);}} placeholder="Buscar por nombre o email..."
-              style={{ width:"100%",paddingLeft:30,paddingRight:12,height:38,border:"1.5px solid #F5E1E7",borderRadius:12,fontSize:12,color:"#4A2A38",outline:"none",boxSizing:"border-box",fontFamily:"inherit" }}/>
-          </div>
-          {!isMobile && (
-            <div style={{ position:"relative" }}>
-              <SearchIcon size={13} style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#C9A9B4" }}/>
-              <input value={codigoFiltro} onChange={e=>{setCodigoFiltro(e.target.value);setPagina(1);}} placeholder="Código referido"
-                style={{ paddingLeft:30,paddingRight:12,height:38,width:150,border:"1.5px solid #F5E1E7",borderRadius:12,fontSize:12,color:"#4A2A38",outline:"none",fontFamily:"inherit" }}/>
-            </div>
-          )}
-          <select value={ordenar} onChange={e=>setOrdenar(e.target.value)}
-            style={{ height:38,border:"1.5px solid #F5E1E7",borderRadius:12,padding:"0 12px",fontSize:12,color:"#4A2A38",background:"#fff",outline:"none",fontFamily:"inherit" }}>
-            <option value="recientes">Recientes</option>
-            <option value="progreso">Progreso</option>
-            <option value="nombre">Nombre</option>
-          </select>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display:"flex",gap:4,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2 }}>
-          {tabs.map(t=>(
-            <button key={t.id} onClick={()=>{setTabActivo(t.id);setPagina(1);}}
-              style={{ display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:10,border:"none",cursor:"pointer",fontSize:isMobile?11:12,fontWeight:tabActivo===t.id?700:500,whiteSpace:"nowrap",fontFamily:"inherit",transition:"all .12s",
-                color:tabActivo===t.id?"#A0435F":"#9C8790",
-                borderBottom:tabActivo===t.id?"2px solid #A0435F":"2px solid transparent",
-                background:"transparent",
-              }}>
-              {t.label}
-              <span style={{ fontSize:10,padding:"1px 6px",borderRadius:99,fontWeight:700,background:tabActivo===t.id?"#FCE8EE":"#FBF4F6",color:tabActivo===t.id?"#A0435F":"#9C8790" }}>{t.count}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Tabla / Cards */}
-        <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-          {loading ? (
-            <div style={{ padding:"48px 24px",display:"flex",justifyContent:"center" }}>
-              <div style={{ width:32,height:32,border:"2px solid #C77D93",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
-              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            </div>
-          ) : paginados.length===0 ? (
-            <p style={{ padding:"48px 24px",textAlign:"center",fontSize:13,color:"#9C8790" }}>No se encontraron usuarios.</p>
-          ) : isMobile ? (
-            <div style={{ display:"flex",flexDirection:"column" }}>
-              {paginados.map((u,i)=>{
-                const secActivas = SECCIONES.filter(s=>u[s.key]);
-                return (
-                  <div key={u.id} style={{ padding:"14px 16px",borderBottom:i<paginados.length-1?"1px solid #FBEEF1":"none" }}>
-                    <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:10 }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:38,height:38,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #C77D93",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#A0435F",fontSize:12,fontWeight:700 }}>{u.nombre?.[0]}</span>}
-                        </div>
-                        <div style={{ minWidth:0 }}>
-                          <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
-                          <p style={{ fontSize:11,color:"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
+          <div style={{ background: "#fff", borderRadius: 18, border: `1px solid ${T.border}`, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: T.softFill, textAlign: "left", fontSize: 11, letterSpacing: ".05em", textTransform: "uppercase", color: T.textSoft }}>
+                  <th style={{ padding: "11px 16px" }}>Usuario</th>
+                  <th style={{ padding: "11px 12px" }}>Teléfono</th>
+                  <th style={{ padding: "11px 12px" }}>Rol</th>
+                  <th style={{ padding: "11px 12px" }}>Estado</th>
+                  <th style={{ padding: "11px 12px" }}>Registro</th>
+                  <th style={{ padding: "11px 16px", textAlign: "right" }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map((u) => (
+                  <tr key={u.id} style={{ borderTop: `1px solid ${T.softFill}`, opacity: activa(u) ? 1 : .65 }}>
+                    <td style={{ padding: "11px 16px" }}>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
+                        <Avatar u={u} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700 }}>{nombreDe(u)}{yo != null && Number(u.id) === Number(yo) && <span style={{ fontSize: 11, color: T.textSoft, fontWeight: 600 }}> · tú</span>}</div>
+                          <div style={{ fontSize: 12, color: T.textSoft }}>{u.email}</div>
                         </div>
                       </div>
-                      <span style={{ fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:99,flexShrink:0,
-                        background:u.tiene_acceso?"#E6F9F0":!u.sesiones_completadas?"#FBF4F6":"#FFF4EC",
-                        color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#A0435F":"#E8853B",
-                      }}>
-                        {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
-                      </span>
-                    </div>
-                    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
-                      <div style={{ flex:1 }}>
-                        <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
-                          <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#A0435F,#C77D93)",borderRadius:99 }}/>
-                          </div>
-                          <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
-                        </div>
-                        <p style={{ fontSize:10,color:"#C9A9B4",margin:0 }}>{u.sesiones_completadas||0}/8 sesiones</p>
-                      </div>
-                      <div style={{ display:"flex",gap:4 }}>
-                        {secActivas.slice(0,4).map(sec=>{
-                          const Icon=sec.icon;
-                          return <div key={sec.key} style={{ width:22,height:22,borderRadius:7,background:sec.bg,display:"flex",alignItems:"center",justifyContent:"center" }} title={sec.label}><Icon size={11} style={{ color:sec.color }}/></div>;
-                        })}
-                        {secActivas.length>4&&<span style={{ fontSize:10,color:"#9C8790",fontWeight:700 }}>+{secActivas.length-4}</span>}
-                      </div>
-                    </div>
-                    <div style={{ display:"flex",gap:6 }}>
-                      <button onClick={()=>setModalVer(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
-                        <EyeIcon size={12}/>Ver
-                      </button>
-                      <button onClick={()=>setModalEditar(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #F5E1E7",background:"#fff",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
-                        <PencilIcon size={12}/>Editar
-                      </button>
-                      <button onClick={()=>setModalCambiarRol(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #FCE8EE",background:"#FBF4F6",fontSize:11,fontWeight:600,color:"#A0435F",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
-                        <ShieldIcon size={12}/>Rol
-                      </button>
-                      <button onClick={()=>setModalAccesos(u)} style={{ flex:1,padding:"7px",borderRadius:10,border:"1.5px solid #E6F9F0",background:"#E6F9F0",fontSize:11,fontWeight:600,color:"#12A46B",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4 }}>
-                        <ShieldIcon size={12}/>Accesos
-                      </button>
-                      {u.rol==="usuaria" && !!u.tiene_acceso && (
-                        <button onClick={()=>setModalTransferir(u)} aria-label="Transferir cupo" style={{ padding:"7px 10px",borderRadius:10,border:"1.5px solid #FFF4EC",background:"#FFF4EC",color:"#E8853B",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <TransferIcon size={12}/>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <>
-              <div style={{ padding:"10px 16px",borderBottom:"1px solid #FCE8EE",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12 }}>
-                {["Usuario","Rol","Estado","Progreso","Código","Pago","Accesos","Acciones"].map((h,i)=>(
-                  <p key={i} style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".6px",color:"#9C8790",margin:0 }}>{h}</p>
+                    </td>
+                    <td style={{ padding: "11px 12px", color: u.telefono ? T.text : T.softText }}>{u.telefono || "—"}</td>
+                    <td style={{ padding: "11px 12px" }}><PildoraRol rol={u.rol} /></td>
+                    <td style={{ padding: "11px 12px" }}><PildoraEstado u={u} /></td>
+                    <td style={{ padding: "11px 12px", color: T.textSoft, whiteSpace: "nowrap" }}>{fecha(u.created_at)}</td>
+                    <td style={{ padding: "11px 16px" }}>{acciones(u)}</td>
+                  </tr>
                 ))}
-              </div>
-              <div>
-                {paginados.map((u,i)=>{
-                  const secActivas=SECCIONES.filter(s=>u[s.key]);
-                  return (
-                    <div key={u.id} style={{ padding:"12px 16px",borderBottom:i<paginados.length-1?"1px solid #FBEEF1":"none",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr 1fr 1fr 100px",gap:12,alignItems:"center" }}>
-                      <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-                        <div style={{ width:34,height:34,borderRadius:"50%",background:"#FCE8EE",border:"2px solid #C77D93",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                          {u.foto_url?<img src={u.foto_url} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>:<span style={{ color:"#A0435F",fontSize:11,fontWeight:700 }}>{u.nombre?.[0]}</span>}
-                        </div>
-                        <div style={{ minWidth:0 }}>
-                          <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.nombre} {u.apellido}</p>
-                          <p style={{ fontSize:10,color:"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{u.email}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.rol==="admin"?"#FDECEC":u.rol==="asociada"?"#FCE8EE":u.rol === "agencia" ? "#FFF4EC" :"#FCE8EE",color:u.rol==="admin"?"#991b1b":u.rol==="asociada"?"#7D2F47": u.rol === "agencia" ? "#a16207" :"#1e40af" }}>
-                          {u.rol==="admin"?"Admin":u.rol==="asociada"?"Asociada":u.rol==="agencia"?"Agencia":"Candidata"}
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:99,whiteSpace:"nowrap",background:u.tiene_acceso?"#E6F9F0":!u.sesiones_completadas?"#FBF4F6":"#FFF4EC",color:u.tiene_acceso?"#12A46B":!u.sesiones_completadas?"#A0435F":"#E8853B" }}>
-                          {u.tiene_acceso?"✓ Acceso":!u.sesiones_completadas?"Inactivo":"Gratis"}
-                        </span>
-                      </div>
-                      <div>
-                        <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:3 }}>
-                          <div style={{ flex:1,height:5,background:"#F5E1E7",borderRadius:99,overflow:"hidden" }}>
-                            <div style={{ height:"100%",width:`${u.porcentaje||0}%`,background:"linear-gradient(90deg,#A0435F,#C77D93)",borderRadius:99 }}/>
-                          </div>
-                          <span style={{ fontSize:10,color:"#9C8790",flexShrink:0 }}>{u.porcentaje||0}%</span>
-                        </div>
-                        <p style={{ fontSize:9,color:"#C9A9B4",margin:0 }}>{u.sesiones_completadas||0}/8 ses.</p>
-                      </div>
-                      <div>
-                        {u.codigo_referido
-                          ? <span style={{ fontSize:11,fontWeight:700,color:"#A0435F" }}>{u.codigo_referido}</span>
-                          : u.codigo_promo_usado
-                          ? <span style={{ fontSize:11,fontWeight:700,color:"#A0435F",display:"inline-flex",alignItems:"center",gap:4 }}><TagIcon size={11}/>{u.codigo_promo_usado}</span>
-                          : <span style={{ fontSize:10,color:"#C9A9B4" }}>—</span>}
-                      </div>
-                      <div>
-                        {u.tiene_acceso?(
-                          <div style={{ display:"flex",alignItems:"center",gap:4 }}>
-                            <div>
-                              <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{u.monto_pagado!=null?formatoMoneda(u.monto_pagado, u.moneda_pago):"Sin venta"}</p>
-                              <span style={{ fontSize:9,background:"#E6F9F0",color:"#12A46B",fontWeight:700,padding:"1px 6px",borderRadius:99 }}>Pagado</span>
-                            </div>
-                          </div>
-                        ):<span style={{ fontSize:10,color:"#C9A9B4" }}>—</span>}
-                      </div>
-                      <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
-                        {secActivas.length===0?<span style={{ fontSize:10,color:"#C9A9B4" }}>Ninguno</span>:secActivas.slice(0,3).map(sec=>{
-                          const Icon=sec.icon;
-                          return <div key={sec.key} style={{ width:20,height:20,borderRadius:6,background:sec.bg,display:"flex",alignItems:"center",justifyContent:"center" }} title={sec.label}><Icon size={10} style={{ color:sec.color }}/></div>;
-                        })}
-                        {secActivas.length>3&&<span style={{ fontSize:10,color:"#9C8790",fontWeight:700 }}>+{secActivas.length-3}</span>}
-                      </div>
-                      <div style={{ display:"flex",gap:4 }}>
-                        <button type="button" onClick={()=>setModalVer(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <EyeIcon size={12} style={{ color:"#A0435F" }}/>
-                        </button>
-                        <button type="button" onClick={()=>setModalEditar(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <PencilIcon size={12} style={{ color:"#A0435F" }}/>
-                        </button>
-                        <button type="button" onClick={()=>setModalCambiarRol(u)} style={{ width:28,height:28,borderRadius:8,background:"#FCE8EE",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <ShieldIcon size={12} style={{ color:"#A0435F" }}/>
-                        </button>
-                        <button type="button" onClick={()=>setModalAccesos(u)} style={{ width:28,height:28,borderRadius:8,background:"#E6F9F0",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                          <ShieldIcon size={12} style={{ color:"#12A46B" }}/>
-                        </button>
-                        {u.rol==="usuaria" && !!u.tiene_acceso && (
-                          <button type="button" onClick={()=>setModalTransferir(u)} title="Transferir cupo" aria-label="Transferir cupo" style={{ width:28,height:28,borderRadius:8,background:"#FFF4EC",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                            <TransferIcon size={12} style={{ color:"#E8853B" }}/>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Paginación */}
-          <div style={{ padding:"12px 16px",borderTop:"1px solid #FCE8EE",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8 }}>
-            <p style={{ fontSize:11,color:"#9C8790",margin:0 }}>
-              {Math.min((pagina-1)*POR_PAGINA+1,filtrados.length)}–{Math.min(pagina*POR_PAGINA,filtrados.length)} de {filtrados.length}
-            </p>
-            <div style={{ display:"flex",gap:4 }}>
-              <button onClick={()=>setPagina(p=>Math.max(1,p-1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>‹</button>
-              {Array.from({length:Math.min(totalPags,3)},(_,i)=>i+1).map(p=>(
-                <button key={p} onClick={()=>setPagina(p)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:p===pagina?"#A0435F":"#fff",color:p===pagina?"#fff":"#9C8790" }}>{p}</button>
-              ))}
-              {totalPags>3&&<><span style={{ fontSize:11,color:"#9C8790",display:"flex",alignItems:"center" }}>...</span><button onClick={()=>setPagina(totalPags)} style={{ width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",fontSize:11,color:"#9C8790",background:"#fff" }}>{totalPags}</button></>}
-              <button onClick={()=>setPagina(p=>Math.min(totalPags,p+1))} style={{ width:28,height:28,borderRadius:8,border:"1px solid #F5E1E7",background:"#fff",cursor:"pointer",fontSize:12,color:"#9C8790" }}>›</button>
-            </div>
+              </tbody>
+            </table>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* PANEL LATERAL */}
-      {!isMobile && (
-        <div style={{ width:280,flexShrink:0,display:"flex",flexDirection:"column",gap:14 }}>
-          <div style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <div style={{ padding:"14px 16px",borderBottom:"1px solid #FCE8EE" }}>
-              <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Actividad reciente</p>
-            </div>
-            <div>
-              {actividad.length===0
-                ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px" }}>Sin actividad aún.</p>
-                : actividad.slice(0,5).map((a,i)=>(
-                  <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:10,padding:"12px 16px",borderBottom:i<4?"1px solid #FBEEF1":"none" }}>
-                    <div style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,background:a.tipo==="pago"?"#E6F9F0":a.tipo==="registro"?"#FCE8EE":"#FFF4EC" }}>
-                      {a.tipo==="pago"?<CreditCardIcon size={13}/>:a.tipo==="registro"?<UserIcon size={13}/>:<BarChart2Icon size={13}/>}
-                    </div>
-                    <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontSize:11,fontWeight:600,color:"#4A2A38",margin:0,lineHeight:1.3 }}>{a.titulo}</p>
-                      <p style={{ fontSize:10,color:"#9C8790",margin:"2px 0 0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{a.descripcion}</p>
-                    </div>
-                    <span style={{ fontSize:9,color:"#9C8790",flexShrink:0 }}>{a.tiempo}</span>
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-
-          <div style={{ background:"#fff",border:"1px solid #F5E1E7",borderRadius:20,overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            <div style={{ padding:"14px 16px",borderBottom:"1px solid #FCE8EE" }}>
-              <p style={{ fontSize:13,fontWeight:700,color:"#4A2A38",margin:0 }}>Top referidoras</p>
-            </div>
-            <div style={{ padding:"0 16px" }}>
-              {topRef.length===0
-                ? <p style={{ textAlign:"center",fontSize:12,color:"#9C8790",padding:"24px 0" }}>Sin datos aún.</p>
-                : topRef.slice(0,3).map((r,i)=>(
-                  <div key={i} style={{ padding:"12px 0",borderBottom:i<2?"1px solid #FBEEF1":"none" }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
-                      <span style={{ fontSize:14 }}>{i===0?"🥇":i===1?"🥈":"🥉"}</span>
-                      <div style={{ width:32,height:32,borderRadius:"50%",background:"#FCE8EE",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                        <span style={{ color:"#A0435F",fontSize:11,fontWeight:700 }}>{r.nombre?.[0]}</span>
-                      </div>
-                      <div style={{ minWidth:0 }}>
-                        <p style={{ fontSize:12,fontWeight:700,color:"#4A2A38",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{r.nombre}</p>
-                        <p style={{ fontSize:10,color:"#A0435F",margin:0 }}>@{r.codigo?.toLowerCase()}</p>
-                      </div>
-                    </div>
-                    <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6 }}>
-                      {[{label:"Registradas",val:r.registradas},{label:"Pagaron",val:r.pagaron},{label:"Pendiente",val:`$${r.pendiente}`}].map((st,j)=>(
-                        <div key={j} style={{ background:"#FBF4F6",borderRadius:10,padding:"6px 8px",textAlign:"center" }}>
-                          <p style={{ fontSize:11,fontWeight:700,color:"#4A2A38",margin:0 }}>{st.val}</p>
-                          <p style={{ fontSize:9,color:"#9C8790",margin:0 }}>{st.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
+      {paginas > 1 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5, color: T.textSoft }}>
+          <span>{(pagina - 1) * POR_PAGINA + 1}–{Math.min(pagina * POR_PAGINA, filtrados.length)} de {filtrados.length}</span>
+          <div style={{ display: "flex", gap: 6 }}>
+            {Array.from({ length: paginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} type="button" onClick={() => setPagina(n)} aria-current={pagina === n ? "page" : undefined}
+                style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${pagina === n ? T.primary : T.border}`, background: pagina === n ? T.primary : "#fff", color: pagina === n ? "#fff" : T.ink, fontWeight: 700, cursor: "pointer", fontFamily: T.font }}>{n}</button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Modales */}
-      {modalVer         && <ModalVer u={modalVer} onClose={()=>setModalVer(null)}/>}
-      {modalTransferir  && <ModalTransferir u={modalTransferir} onClose={()=>setModalTransferir(null)}/>}
-      {modalEditar      && <ModalEditar u={modalEditar} onClose={()=>setModalEditar(null)} onSave={guardarEdicion}/>}
-      {modalNuevo       && <ModalNuevo onClose={()=>setModalNuevo(false)} onSave={crearUsuario}/>}
-      {modalCambiarRol  && <ModalCambiarRol u={modalCambiarRol} onClose={()=>setModalCambiarRol(null)} onCambiar={handleCambiarRol} cargando={cargandoRol}/>}
-      {modalAccesos     && <ModalAccesos u={modalAccesos} onClose={()=>setModalAccesos(null)} onToggle={toggleSeccion}/>}
-
-      {modalPago && (
-        <ModalPago
-          usuaria={modalPago}
-          titulo="Confirmar pago"
-          subtitulo="¿Cuánto pagó"
-          gradiente="linear-gradient(90deg,#A0435F,#C77D93)"
-          onClose={()=>setModalPago(null)}
-          onConfirmar={async(monto)=>{ await confirmarToggle(modalPago.id, true, monto); }}
-        />
-      )}
-
+      {modal?.tipo === "nuevo" && <ModalNuevo onCerrar={() => setModal(null)} onCreado={cargar} />}
+      {modal?.tipo === "editar" && <ModalEditar u={modal.u} onCerrar={() => setModal(null)} onGuardado={cerrarYRecargar} />}
+      {modal?.tipo === "rol" && <ModalRol u={modal.u} onCerrar={() => setModal(null)} onGuardado={cerrarYRecargar} />}
+      {modal?.tipo === "secciones" && <ModalSecciones u={modal.u} onCerrar={() => setModal(null)}
+        onCambio={(id, key, valor) => setUsuarios((us) => us.map((x) => (x.id === id ? { ...x, [key]: valor ? 1 : 0 } : x)))} />}
+      {modal?.tipo === "restablecer" && <ModalRestablecer u={modal.u} onCerrar={() => setModal(null)} />}
+      {modal?.tipo === "estado" && <ModalEstado u={modal.u} onCerrar={() => setModal(null)} onGuardado={cerrarYRecargar} />}
     </div>
   );
 }

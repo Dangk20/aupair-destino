@@ -4,7 +4,9 @@
 // roles: lo que distingue a una asociada de un admin es a qué entra, no cómo
 // se ve.
 
+import { Suspense } from "react";
 import { Users, Calendar, Settings, HandCoins } from "lucide-react";
+import ChatFlotante from "@/components/chat/ChatFlotante";
 import { MobileProvider } from "@/context/MobileContext";
 import PanelLayout from "@/components/panel/PanelLayout";
 
@@ -22,6 +24,10 @@ export default function AsociadaLayout({ children }) {
       <PanelLayout modulos={MODULOS} rol="Asesora" inicio="/asociada">
         {children}
       </PanelLayout>
+      {/* Habla con las candidatas de su cupón (Daniel, 17 oct). */}
+      <Suspense fallback={null}>
+        <ChatFlotante rol="asociada" />
+      </Suspense>
     </MobileProvider>
   );
 }

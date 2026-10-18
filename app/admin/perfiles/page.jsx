@@ -5,9 +5,12 @@
 // (components/panel/TableroEtapas) con sus vistas Tablero y Lista, más buscar,
 // filtrar por etapa y exportar. Reemplaza a la lista heredada, que calculaba
 // estados propios («Completo», «Lista para agencia»…) que no eran las etapas.
-// El admin mueve las etapas de la agencia; las demás se deciden en la ficha.
+// El admin arrastra cualquier tarjeta (change `tablero-arrastre-total`):
+// entre etapas de la agencia se mueve; hacia una etapa calculada, soltar abre
+// la MISMA decisión de la ficha (aprobar, No califica, revertir) o explica por
+// qué no aplica. Nunca se cambia una etapa calculada sin su decisión.
 import { useEffect, useMemo, useState } from "react";
-import { Search, Download } from "lucide-react";
+import { Search, Download, X } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 import { ETAPAS, SALIDAS, ETAPAS_AGENCIA, etapaPorId } from "@/lib/etapas-candidata";
@@ -33,10 +36,44 @@ export default function CandidatasPage() {
   const [aviso, setAviso] = useState(null);
   const decir = (msg, tipo = "ok") => { setAviso({ msg, tipo }); setTimeout(() => setAviso(null), 3000); };
 
+  const [soltada, setSoltada] = useState(null); // { c, destino, tipo }
+  const [agencias, setAgencias] = useState([]);
+
+  const cargar = () => fetch("/api/admin/tablero").then(r => r.json())
+    .then(d => setCandidatas(d.candidatas || [])).catch(() => setCandidatas([]));
   useEffect(() => {
-    fetch("/api/admin/tablero").then(r => r.json())
-      .then(d => setCandidatas(d.candidatas || [])).catch(() => setCandidatas([]));
+    cargar();
+    fetch("/api/admin/agencias").then(r => r.json()).then(d => setAgencias(d.agencias || [])).catch(() => {});
   }, []);
+
+  /** Qué significa soltar `c` en `destino`. */
+  const soltar = (c, destino) => {
+    const deAgencia = ETAPAS_AGENCIA.includes(c.etapa);
+    if (deAgencia && ETAPAS_AGENCIA.includes(destino)) return mover(c.id, destino);
+    if (destino === "evaluacion")   return setSoltada({ c, destino, tipo: "aprobar" });
+    if (destino === "no_califica")  return setSoltada({ c, destino, tipo: "no_califica" });
+    if (destino === "correcciones") return setSoltada({ c, destino, tipo: "correcciones" });
+    if (destino === "revision" || destino === "diligenciando") {
+      if (c.etapa === "evaluacion" || c.etapa === "no_califica") return setSoltada({ c, destino, tipo: "revertir" });
+      if (deAgencia) return setSoltada({ c, destino, tipo: "info", texto: "Ya avanzó con la agencia. Para cerrar su proceso, muévela a «No continúa»." });
+      return setSoltada({ c, destino, tipo: "info", texto: "«En revisión» la marca la candidata al enviar la Parte 1 de su perfil, y «Diligenciando» es mientras no la envía. No se cambian a mano." });
+    }
+    return setSoltada({ c, destino, tipo: "info", texto: "Primero apruébala: arrástrala a «Evaluación de la agencia» y elige su agencia." });
+  };
+
+  /** La decisión de la ficha, desde el tablero. */
+  const decidir = async (cuerpo) => {
+    const { c } = soltada;
+    const res = await fetch(`/api/admin/perfiles/${c.id}/decision`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) return d.error || "No se pudo registrar la decisión";
+    setSoltada(null);
+    decir(d.mensaje || "Listo");
+    await cargar();
+    return null;
+  };
 
   const mover = async (id, nueva) => {
     // Optimista: la tarjeta se mueve ya; si el servidor dice que no, vuelve.
@@ -70,7 +107,7 @@ export default function CandidatasPage() {
         <div>
           <div style={{ fontSize: isMobile ? 21 : 26, fontWeight: 700, lineHeight: 1.1 }}>Candidatas</div>
           <div style={{ fontSize: 13.5, color: T.textSoft, marginTop: 3 }}>
-            Cada candidata en su etapa. Desde «Evaluación de la agencia» se mueven arrastrando o desde la columna Etapa; las anteriores se deciden en la ficha.
+            Cada candidata en su etapa. Arrastra una tarjeta para moverla o para decidir: a «Evaluación de la agencia» la apruebas, a «No califica» la descartas.
           </div>
         </div>
         <button type="button" onClick={() => exportar(filtradas)} disabled={!filtradas.length}
@@ -96,7 +133,95 @@ export default function CandidatasPage() {
 
       {candidatas === null
         ? <div style={{ fontSize: 13, color: T.textSoft }}>Cargando…</div>
-        : <TableroEtapas candidatas={filtradas} movibles={ETAPAS_AGENCIA} onMover={mover} hrefFicha={(id) => `/admin/perfiles/${id}`} />}
+        : <TableroEtapas candidatas={filtradas} movibles={ETAPAS_AGENCIA} onMover={mover} onSoltar={soltar} hrefFicha={(id) => `/admin/perfiles/${id}`} />}
+
+      {soltada && <DecisionAlSoltar s={soltada} agencias={agencias} onDecidir={decidir} onCerrar={() => setSoltada(null)} />}
+    </div>
+  );
+}
+
+/**
+ * La ventana que abre soltar una tarjeta en una etapa calculada. Usa la misma
+ * API de decisión que la ficha, con sus mismas validaciones (Parte 1 completa
+ * para aprobar, motivo para No califica).
+ */
+function DecisionAlSoltar({ s, agencias, onDecidir, onCerrar }) {
+  const [agenciaId, setAgenciaId] = useState(agencias.length === 1 ? String(agencias[0].id) : "");
+  const [motivo, setMotivo] = useState("");
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const { c, destino, tipo } = s;
+  const nombre = c.nombre || "la candidata";
+
+  const enviar = async (cuerpo) => {
+    setOcupado(true); setError(null);
+    const e = await onDecidir(cuerpo);
+    setOcupado(false);
+    if (e) setError(e);
+  };
+
+  const titulo = {
+    aprobar: `Aprobar a ${nombre}`,
+    no_califica: `${nombre} no califica`,
+    correcciones: `Pedir correcciones a ${nombre}`,
+    revertir: `Revertir la decisión sobre ${nombre}`,
+    info: `No se puede mover a «${etapaPorId(destino)?.label}»`,
+  }[tipo];
+
+  const boton = (texto, onClick, deshabilitado = false, peligro = false) => (
+    <button type="button" onClick={onClick} disabled={ocupado || deshabilitado}
+      style={{ border: "none", borderRadius: 10, padding: "10px 16px", fontFamily: T.font, fontWeight: 700, fontSize: 13, cursor: "pointer",
+               background: peligro ? T.danger : T.primary, color: "#fff", opacity: ocupado || deshabilitado ? .55 : 1 }}>
+      {ocupado ? "Guardando…" : texto}
+    </button>
+  );
+  const campo = { width: "100%", border: `1.5px solid ${T.border}`, borderRadius: 10, fontSize: 13, color: T.text, background: "#fff", fontFamily: T.font, boxSizing: "border-box", padding: "9px 12px", outline: "none" };
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={titulo} onClick={onCerrar}
+      style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(38,35,92,.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 440, background: "#fff", borderRadius: 18, padding: 22, fontFamily: T.font, color: T.text, boxShadow: "0 20px 50px rgba(58,37,48,.25)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.3 }}>{titulo}</div>
+          <button type="button" onClick={onCerrar} aria-label="Cerrar" style={{ border: "none", background: "transparent", cursor: "pointer", color: T.textSoft }}><X size={18} /></button>
+        </div>
+
+        {tipo === "aprobar" && (
+          <>
+            <p style={{ fontSize: 13, color: T.textSoft, margin: "8px 0 14px", lineHeight: 1.5 }}>Queda aprobada y la enviamos a la agencia que elijas. Le llega el correo de aprobación.</p>
+            <select value={agenciaId} onChange={(e) => setAgenciaId(e.target.value)} aria-label="Agencia" style={{ ...campo, cursor: "pointer" }}>
+              <option value="">Elige la agencia…</option>
+              {agencias.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            </select>
+          </>
+        )}
+        {tipo === "no_califica" && (
+          <>
+            <p style={{ fontSize: 13, color: T.textSoft, margin: "8px 0 14px", lineHeight: 1.5 }}>El motivo queda en el historial interno: la candidata no lo ve.</p>
+            <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} placeholder="Motivo" aria-label="Motivo" style={{ ...campo, resize: "vertical" }} />
+          </>
+        )}
+        {tipo === "correcciones" && (
+          <p style={{ fontSize: 13, color: T.textSoft, margin: "8px 0 0", lineHeight: 1.5 }}>Las correcciones se piden como observaciones, junto al dato o documento que hay que corregir. Escríbelas en su ficha y pasará sola a «Con correcciones».</p>
+        )}
+        {tipo === "revertir" && (
+          <p style={{ fontSize: 13, color: T.textSoft, margin: "8px 0 0", lineHeight: 1.5 }}>
+            {c.etapa === "no_califica" ? "Vuelve a quedar sin decisión, en la etapa que le corresponda por sus datos." : "Se deshace la aprobación y sale de la agencia. Vuelve a la etapa que le corresponda por sus datos."} Queda en su historial.
+          </p>
+        )}
+        {tipo === "info" && <p style={{ fontSize: 13, color: T.textSoft, margin: "8px 0 0", lineHeight: 1.5 }}>{s.texto}</p>}
+
+        {error && <p role="alert" style={{ marginTop: 12, fontSize: 12.5, color: T.danger, fontWeight: 600 }}>{error}</p>}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
+          {tipo !== "info" && <button type="button" onClick={onCerrar} style={{ border: `1.5px solid ${T.border}`, background: "#fff", borderRadius: 10, padding: "10px 16px", fontFamily: T.font, fontWeight: 600, fontSize: 13, cursor: "pointer", color: T.ink }}>Cancelar</button>}
+          {tipo === "aprobar" && boton("Aprobar y enviar", () => enviar({ accion: "aprobar", agencia_id: Number(agenciaId) }), !agenciaId)}
+          {tipo === "no_califica" && boton("Marcar No califica", () => enviar({ accion: "no_califica", motivo }), !motivo.trim(), true)}
+          {tipo === "revertir" && boton("Revertir decisión", () => enviar({ accion: "revertir" }))}
+          {tipo === "correcciones" && <a href={`/admin/perfiles/${c.id}`} style={{ borderRadius: 10, padding: "10px 16px", fontWeight: 700, fontSize: 13, background: T.primary, color: "#fff", textDecoration: "none" }}>Ir a su ficha</a>}
+          {tipo === "info" && boton("Entendido", onCerrar)}
+        </div>
+      </div>
     </div>
   );
 }

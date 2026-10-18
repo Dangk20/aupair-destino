@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
-import { proximaReunion } from "@/lib/reuniones";
+import { proximasReuniones } from "@/lib/reuniones";
 import { proximoPasoCandidata } from "@/lib/proximo-paso";
 import { useContacto, enlaceAgendar } from "@/components/dashboard/useContacto";
 
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       setUser(me?.user||null);
       setSesData(ses);
       setProceso(proc);
-      setReunion(proximaReunion(reu?.reuniones||[]));
+      setReunion(proximasReuniones(reu?.reuniones||[]));
       setDocs(docsData||{docs:[],docs_requeridos:[]});
       if(me?.user&&!me.user.vio_bienvenida) setBienvenida(true);
       setLoading(false);
@@ -192,11 +192,16 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ background:T.lilac, borderRadius:18, padding:18 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:9, color:T.primary, fontWeight:700, fontSize:13, marginBottom:6 }}><Calendar size={15}/> Tu próxima reunión</div>
+            <div style={{ display:"flex", alignItems:"center", gap:9, color:T.primary, fontWeight:700, fontSize:13, marginBottom:6 }}><Calendar size={15}/> {reunion?.length > 1 ? "Tus próximas reuniones" : "Tu próxima reunión"}</div>
             <div style={{ fontSize:12.5, color:T.textSoft, lineHeight:1.45 }}>
-              {reunion ? `${reunion.fecha} · ${reunion.hora}` : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}
+              {reunion?.length ? reunion.map((r) => (
+                <div key={r.id} style={{ background:"#fff", borderRadius:12, padding:"9px 11px", marginTop:6 }}>
+                  <div style={{ fontSize:12.5, fontWeight:700, color:T.ink }}>{r.fecha.charAt(0).toUpperCase() + r.fecha.slice(1)}</div>
+                  <div style={{ fontSize:11.5, color:T.textSoft }}>{r.hora}{r.con ? ` · con ${r.con}` : ""}</div>
+                </div>
+              )) : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}
             </div>
-            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>Agendar reunión</a>
+            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>{reunion?.length ? "Agendar otra reunión" : "Agendar reunión"}</a>
           </div>
         </aside>
       )}

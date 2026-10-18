@@ -1,58 +1,43 @@
-// app/api/admin/usuarias/[id]/route.js
+// app/api/admin/usuarias/[id]/route.js — Editar los datos de una cuenta.
+//
+// Sólo nombre, apellido, correo y teléfono (change usuarios-administracion).
+// Antes aceptaba también `tiene_acceso` y `perfil_habilitado`: encender el
+// acceso pagado es de Ventas, y las secciones van por toggle-acceso.
 import { NextResponse } from "next/server";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { correoValido } from "@/lib/usuarios-admin";
 
 export async function PUT(req, { params }) {
   const guard = requiereAdmin(req);
   if (guard.error) return guard.error;
-  const session = guard.session;
 
   try {
-    // ── FIX: await params (obligatorio en Next.js 16) ──────────────────────
     const { id } = await params;
-    const body = await req.json();
+    const b = await req.json().catch(() => ({}));
+    const sets = [], valores = [];
 
-    // ── Solo actualizar los campos que vienen en el body ───────────────────
-    // Así si solo envías { tiene_acceso: true }, no toca nombre/email/etc.
-    const CAMPOS_PERMITIDOS = {
-      tiene_acceso:      v => [v ? 1 : 0],
-      perfil_habilitado: v => [v ? 1 : 0],
-      nombre:            v => [v],
-      apellido:          v => [v],
-      email:             v => [v],
-    };
-
-    const sets   = [];
-    const values = [];
-
-    for (const [campo, transform] of Object.entries(CAMPOS_PERMITIDOS)) {
-      if (body[campo] !== undefined) {
-        sets.push(`${campo} = ?`);
-        values.push(...transform(body[campo]));
-      }
+    if (b.nombre !== undefined) {
+      if (!String(b.nombre).trim()) return NextResponse.json({ error: "El nombre no puede quedar vacío." }, { status: 400 });
+      sets.push("nombre = ?"); valores.push(String(b.nombre).trim());
     }
-
-    if (sets.length === 0) {
-      return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
+    if (b.apellido !== undefined) { sets.push("apellido = ?"); valores.push(String(b.apellido).trim()); }
+    if (b.telefono !== undefined) { sets.push("telefono = ?"); valores.push(String(b.telefono).trim() || null); }
+    if (b.email !== undefined) {
+      const email = String(b.email).trim().toLowerCase();
+      if (!correoValido(email)) return NextResponse.json({ error: "Escribe un correo válido." }, { status: 400 });
+      const [[otro]] = await dbAupair.query("SELECT id FROM usuarios WHERE email = ? AND id <> ?", [email, id]);
+      if (otro) return NextResponse.json({ error: "Ese correo ya es de otra cuenta." }, { status: 409 });
+      sets.push("email = ?"); valores.push(email);
     }
+    if (!sets.length) return NextResponse.json({ error: "Nada que actualizar." }, { status: 400 });
 
-    values.push(id);
-    await dbAupair.query(
-      `UPDATE usuarios SET ${sets.join(", ")} WHERE id = ?`,
-      values
-    );
-
-    // Devolver los valores actualizados para que el frontend los aplique al estado
-    const [[updated]] = await dbAupair.query(
-      "SELECT id, tiene_acceso, perfil_habilitado, nombre, apellido, email FROM usuarios WHERE id = ?",
-      [id]
-    );
-
-    return NextResponse.json({ ok: true, usuario: updated });
-
+    valores.push(id);
+    const [r] = await dbAupair.query(`UPDATE usuarios SET ${sets.join(", ")} WHERE id = ?`, valores);
+    if (!r.affectedRows) return NextResponse.json({ error: "Usuario no encontrado." }, { status: 404 });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[PUT /api/admin/usuarias/[id]]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo actualizar." }, { status: 500 });
   }
 }

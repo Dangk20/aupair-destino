@@ -14,8 +14,10 @@
 // en el avatar = mensajes sin leer.
 //
 // Mover: arrastrar la tarjeta (HTML5 nativo, sin librería) o el menú ⋯ de la
-// tarjeta o la fila. Sólo entre etapas de la agencia: las demás se calculan
-// de los datos y se deciden en la ficha.
+// tarjeta o la fila. Sin `onSoltar`, sólo entre etapas de la agencia. Con
+// `onSoltar` (el admin, change `tablero-arrastre-total`) toda tarjeta se
+// arrastra a toda columna y quien usa el tablero decide qué significa soltar:
+// mover, o abrir la decisión que produce una etapa calculada.
 //
 // `soloLectura` (la asociada, change `candidatas-por-cupon`): sin vista
 // rápida, sin ficha y sin contacto; cada candidata lleva el cupón por el que
@@ -135,14 +137,14 @@ const PildoraCupon = ({ c }) => (
   </span>
 );
 
-function Tarjeta({ c, movible, movibles, onMover, onAbrir, onArrastrar, soloLectura }) {
+function Tarjeta({ c, movible, arrastrable = movible, movibles, onMover, onAbrir, onArrastrar, soloLectura }) {
 
   const fila  = { display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: T.neutral, minWidth: 0 };
   const corto = { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
   const vacio = (t) => <em style={{ color: T.softText, fontStyle: "normal" }}>{t}</em>;
 
   return (
-    <div draggable={movible} {...(!soloLectura && { onClick: () => onAbrir(c), role: "button", tabIndex: 0, "aria-label": `Abrir a ${c.nombre}`,
+    <div draggable={arrastrable} {...(!soloLectura && { onClick: () => onAbrir(c), role: "button", tabIndex: 0, "aria-label": `Abrir a ${c.nombre}`,
       onKeyDown: (e) => { if (e.key === "Enter") onAbrir(c); } })}
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(c.id)); onArrastrar(c.id); }}
       style={{ position: "relative", background: "#fff", borderRadius: 14, padding: 14, cursor: soloLectura ? "default" : "pointer",
@@ -272,7 +274,7 @@ function Lista({ candidatas, movibles, onMover, onAbrir, hrefFicha, conAgencia, 
   );
 }
 
-export default function TableroEtapas({ candidatas = [], movibles = [], onMover, hrefFicha, columnas = null, soloLectura = false }) {
+export default function TableroEtapas({ candidatas = [], movibles = [], onMover, onSoltar = null, hrefFicha, columnas = null, soloLectura = false }) {
   const [vista, setVista] = useState("tablero");
   const [abierta, setAbierta] = useState(null);
   // Lo que se abrió en esta visita ya no tiene punto (el servidor ya lo marcó leído).
@@ -305,12 +307,14 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
   const soltar = (etapa) => {
     const c = candidatas.find((x) => x.id === arrastrando);
     setEncima(null); setArrastrando(null);
-    if (c && c.etapa !== etapa && movibles.includes(c.etapa) && movibles.includes(etapa)) onMover(c.id, etapa);
+    if (!c || c.etapa === etapa) return;
+    if (onSoltar) onSoltar(c, etapa);
+    else if (movibles.includes(c.etapa) && movibles.includes(etapa)) onMover(c.id, etapa);
   };
 
   const columna = (e, salida = false) => {
     const tarjetas = candidatas.filter((c) => c.etapa === e.id);
-    const recibe = movibles.includes(e.id) && arrastrando != null;
+    const recibe = arrastrando != null && (onSoltar ? true : movibles.includes(e.id));
     return (
       <div key={e.id}
         onDragOver={(ev) => { if (recibe) { ev.preventDefault(); setEncima(e.id); } }}
@@ -329,7 +333,7 @@ export default function TableroEtapas({ candidatas = [], movibles = [], onMover,
           </span>
         </div>
         {tarjetas.map((c) => (
-          <Tarjeta key={c.id} c={conPunto(conAgencia ? c : { ...c, agencia: null })} movible={movibles.includes(c.etapa)} movibles={movibles}
+          <Tarjeta key={c.id} c={conPunto(conAgencia ? c : { ...c, agencia: null })} movible={movibles.includes(c.etapa)} arrastrable={onSoltar ? !soloLectura : movibles.includes(c.etapa)} movibles={movibles}
             onMover={onMover} onAbrir={setAbierta} onArrastrar={setArrastrando} soloLectura={soloLectura} />
         ))}
         {!tarjetas.length && <div style={{ fontSize: 11.5, color: T.softText, textAlign: "center", padding: "18px 0", border: `1.5px dashed ${T.border}`, borderRadius: 14 }}>Sin candidatas</div>}

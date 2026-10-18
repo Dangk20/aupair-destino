@@ -40,6 +40,10 @@ MIGRACIONES=(
   "011_moneda_cop|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='ventas' AND column_name='moneda'"
   "012_historial_referencia|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='historial_candidata' AND column_name='referencia'"
   "013_transferencias_cupo|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='transferencias_cupo'"
+  "014_cuenta_activa|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='usuarios' AND column_name='cuenta_activa'"
+  "015_agenda|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='reuniones' AND column_name='cupo_activo'"
+  "016_agenda_semanal|SELECT COUNT(*)=0 FROM information_schema.tables WHERE table_schema='destino_aupair' AND table_name='agenda_horario'"
+  "017_mensajes_asociada|SELECT COUNT(*)=0 FROM information_schema.columns WHERE table_schema='destino_aupair' AND table_name='conversacion_mensajes' AND column_name='autor_rol' AND column_type LIKE '%asociada%'"
 )
 
 # ── 1. Respaldo ──────────────────────────────────────────────────────────

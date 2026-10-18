@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
-import { proximaReunion } from "@/lib/reuniones";
+import { proximasReuniones } from "@/lib/reuniones";
 import { proximoPasoCandidata } from "@/lib/proximo-paso";
 import { useContacto, enlaceAgendar } from "@/components/dashboard/useContacto";
 import LineaDeTiempo from "@/components/perfil/LineaDeTiempo";
@@ -35,7 +35,7 @@ export default function MiDestinoPage() {
       safe(fetch("/api/dashboard/historial"),null),
     ]).then(([me,proc,reu,dd,hist])=>{
       setRecorrido(hist);
-      setUser(me?.user||null); setPasos(proc?.pasos||[]); setProceso(proc); setReunion(proximaReunion(reu?.reuniones||[]));
+      setUser(me?.user||null); setPasos(proc?.pasos||[]); setProceso(proc); setReunion(proximasReuniones(reu?.reuniones||[]));
       const total=(dd?.docs_requeridos||[]).length;
       const subidos=new Set((dd?.docs||[]).map(d=>d.tipo_doc));
       const count=(dd?.docs_requeridos||[]).filter(r=>subidos.has(r.tipo)).length;
@@ -157,13 +157,18 @@ export default function MiDestinoPage() {
 
           {/* asesora / reunión */}
           <div style={{ background:T.lilac,borderRadius:18,padding:18 }}>
-            <div style={{ display:"flex",alignItems:"center",gap:9,color:T.primary,fontWeight:700,fontSize:13,marginBottom:6 }}><Calendar size={15}/> Tu próxima reunión</div>
-            <div style={{ fontSize:12.5,color:T.textSoft,lineHeight:1.45 }}>{reunion ? `${reunion.fecha} · ${reunion.hora}` : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}</div>
-            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>Agendar reunión</a>
+            <div style={{ display:"flex",alignItems:"center",gap:9,color:T.primary,fontWeight:700,fontSize:13,marginBottom:6 }}><Calendar size={15}/> {reunion?.length > 1 ? "Tus próximas reuniones" : "Tu próxima reunión"}</div>
+            <div style={{ fontSize:12.5,color:T.textSoft,lineHeight:1.45 }}>{reunion?.length ? reunion.map((r) => (
+                <div key={r.id} style={{ background:"#fff", borderRadius:12, padding:"9px 11px", marginTop:6 }}>
+                  <div style={{ fontSize:12.5, fontWeight:700, color:T.ink }}>{r.fecha.charAt(0).toUpperCase() + r.fecha.slice(1)}</div>
+                  <div style={{ fontSize:11.5, color:T.textSoft }}>{r.hora}{r.con ? ` · con ${r.con}` : ""}</div>
+                </div>
+              )) : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}</div>
+            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>{reunion?.length ? "Agendar otra reunión" : "Agendar reunión"}</a>
           </div>
 
           {/* soporte */}
-          <button onClick={()=>router.push("/dashboard/mensajes")} style={{ background:"#fff",borderRadius:18,padding:16,boxShadow:T.shadow,border:"none",cursor:"pointer",fontFamily:T.font,display:"flex",alignItems:"center",gap:11,textAlign:"left" }}>
+          <button onClick={()=>window.dispatchEvent(new Event("dap:abrir-chat"))} style={{ background:"#fff",borderRadius:18,padding:16,boxShadow:T.shadow,border:"none",cursor:"pointer",fontFamily:T.font,display:"flex",alignItems:"center",gap:11,textAlign:"left" }}>
             <div style={{ width:34,height:34,borderRadius:10,background:T.softFill,color:T.primary,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}><MessageCircle size={17}/></div>
             <div>
               <div style={{ fontSize:13,fontWeight:700,color:T.text }}>¿Necesitas ayuda?</div>

@@ -1,8 +1,7 @@
 "use client";
 // Canales del programa para la candidata (GET /api/dashboard/contacto).
-// Mientras el calendario siga apagado, «Agendar reunión» se resuelve por el
-// WhatsApp del programa con un mensaje listo; si no hay número configurado,
-// cae al chat de la plataforma, que sí existe (change candidata-datos-reales).
+// El WhatsApp del programa y el enlace del grupo de la comunidad
+// (change candidata-datos-reales).
 import { useEffect, useState } from "react";
 
 export function useContacto() {
@@ -16,9 +15,11 @@ export function useContacto() {
   return contacto;
 }
 
-/** Enlace de «Agendar reunión»: WhatsApp con el mensaje listo, o el chat. */
-export function enlaceAgendar(whatsapp, nombre) {
-  if (!whatsapp) return { href: "/dashboard/mensajes", externo: false };
-  const texto = `Hola, soy ${nombre || "candidata de Destino Au Pair"}. Quiero agendar una reunión con mi asesora.`;
-  return { href: `https://wa.me/${whatsapp}?text=${encodeURIComponent(texto)}`, externo: true };
+/**
+ * Enlace de «Agendar reunión». Desde `agenda-rango-bloques` el calendario está
+ * encendido: siempre lleva ahí (y desde ahí, si no hay horarios, a WhatsApp).
+ * Se conserva la firma para no tocar a quien lo usa.
+ */
+export function enlaceAgendar() {
+  return { href: "/dashboard/reuniones", externo: false };
 }

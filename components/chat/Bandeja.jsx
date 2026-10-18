@@ -16,7 +16,7 @@ import { T } from "@/lib/tema";
 import { useMobile } from "@/context/MobileContext";
 import Conversacion from "@/components/chat/Conversacion";
 
-const cuando = (f) => {
+export const cuando = (f) => {
   if (!f) return "";
   const d = new Date(f);
   return d.toDateString() === new Date().toDateString()
@@ -25,13 +25,14 @@ const cuando = (f) => {
 };
 
 /** Cómo se llama la conversación para quien la ve. */
-function titulo(c, rol) {
-  if (rol === "usuaria") return c.tipo === "equipo" ? "Equipo Destino Au Pair" : c.agencia || "Tu agencia";
+export function titulo(c, rol) {
+  if (rol === "usuaria") return c.tipo === "equipo" ? "Equipo Destino Au Pair" : c.agencia || (c.tipo === "asociada" ? "Tu asesora" : "Tu agencia");
   return c.candidata || "Candidata";
 }
-function subtitulo(c, rol) {
-  if (rol === "usuaria") return c.tipo === "equipo" ? "Dudas sobre tu proceso" : "Tu agencia";
-  if (rol === "agencia") return null;
+export function subtitulo(c, rol) {
+  if (rol === "usuaria") return c.tipo === "equipo" ? "Dudas sobre tu proceso" : c.tipo === "asociada" ? "Tu asesora" : "Tu agencia";
+  if (rol === "agencia" || rol === "asociada") return null;
+  if (c.tipo === "asociada") return `Con ${c.agencia || "la asesora"} (asesora) · supervisión`;
   return c.tipo === "equipo" ? "Con el equipo" : `Con ${c.agencia || "la agencia"}${c.permisos?.entro ? "" : " · supervisión"}`;
 }
 

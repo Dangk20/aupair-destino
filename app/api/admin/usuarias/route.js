@@ -1,95 +1,74 @@
-// app/api/admin/usuarias/route.js
+// app/api/admin/usuarias/route.js — Usuarios: las cuentas (change usuarios-administracion)
+//
+// GET  sólo datos de la cuenta: quién es, su rol, si está activa y qué
+//      secciones tiene. Pagos, códigos y progreso viven en Ventas, Códigos
+//      promo y Candidatas. Antes cruzaba las tablas heredadas de referidos y
+//      repetía filas (por eso «Todos» no cuadraba con «Usuarios totales»).
+// POST crea una cuenta con su rol. La persona recibe un correo para crear su
+//      contraseña: el admin nunca la conoce.
+//
+// El PUT que encendía `tiene_acceso` directo se retiró: el acceso pagado sólo
+// se da por Ventas (lib/ventas-aupair.js).
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import dbAupair from "@/lib/db-aupair";
 import { requiereAdmin } from "@/lib/session-aupair";
+import { enviarInvitacionCuenta } from "@/lib/notificaciones-aupair";
+import { ROLES, linkDeContrasena, correoValido } from "@/lib/usuarios-admin";
 
 export async function GET(req) {
   const guard = requiereAdmin(req);
   if (guard.error) return guard.error;
-  const session = guard.session;
 
   try {
-    const [[{ totalSes }]] = await dbAupair.query(
-      "SELECT COUNT(*) AS totalSes FROM sesiones"
-    );
-    const total = Number(totalSes) || 1;
-
     const [usuarias] = await dbAupair.query(`
-      SELECT
-        u.id,
-        u.nombre,
-        u.apellido,
-        u.email,
-        u.foto_url,
-        u.ciudad,
-        u.pais,
-        u.rol,
-        u.tiene_acceso,
-        u.perfil_habilitado,
-        u.acceso_documentos,
-        u.acceso_recursos,
-        u.acceso_reuniones,
-        u.acceso_mensajes,
-        u.acceso_comunidad,
-        u.created_at,
-        u.codigo_referido,
-        u.codigo_promo_usado,
-        COUNT(p.id)                                        AS sesiones_completadas,
-        ROUND(COUNT(p.id) / ? * 100)                       AS porcentaje,
-        -- R9: el pago y la comisión salen de la venta confirmada, con su
-        -- moneda; ya no del libro heredado de referidos (referido_registros).
-        (SELECT v.monto  FROM ventas v WHERE v.usuario_id = u.id AND v.estado = 'confirmado' ORDER BY v.id DESC LIMIT 1) AS monto_pagado,
-        (SELECT v.moneda FROM ventas v WHERE v.usuario_id = u.id AND v.estado = 'confirmado' ORDER BY v.id DESC LIMIT 1) AS moneda_pago,
-        (SELECT c.monto_comision FROM comisiones c JOIN ventas v ON v.id = c.venta_id
-          WHERE v.usuario_id = u.id AND v.estado = 'confirmado' AND c.estado <> 'anulada'
-          ORDER BY v.id DESC LIMIT 1)                       AS comision_generada,
-        ref.nombre                                         AS referente_nombre,
-        ref.email                                          AS referente_email
-      FROM usuarios u
-      LEFT JOIN progreso_usuario p
-        ON p.id_usuario = u.id AND p.completada = TRUE
-      LEFT JOIN referido_registros rr
-        ON rr.usuario_id = u.id AND rr.pago_realizado = 1
-      LEFT JOIN referidos ref
-        ON ref.id = rr.referido_id
-      GROUP BY u.id, rr.monto_pagado, ref.porcentaje, ref.nombre, ref.email
-      ORDER BY u.created_at DESC
-    `, [total]);
-
-    return NextResponse.json({ usuarias, total_sesiones: total });
+      SELECT id, nombre, apellido, email, telefono, foto_url, ciudad, pais, rol,
+             cuenta_activa, tiene_acceso, perfil_habilitado,
+             acceso_documentos, acceso_recursos, acceso_reuniones, acceso_mensajes, acceso_comunidad,
+             created_at
+      FROM usuarios
+      ORDER BY created_at DESC, id DESC
+    `);
+    return NextResponse.json({ usuarias });
   } catch (err) {
     console.error("[GET /api/admin/usuarias]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "No se pudieron cargar los usuarios." }, { status: 500 });
   }
 }
 
-export async function PUT(req) {
+export async function POST(req) {
   const guard = requiereAdmin(req);
   if (guard.error) return guard.error;
-  const session = guard.session;
 
   try {
-    const body = await req.json();
-    const { id, campo, valor } = body;
+    const b = await req.json().catch(() => ({}));
+    const nombre   = String(b.nombre || "").trim();
+    const apellido = String(b.apellido || "").trim();
+    const email    = String(b.email || "").trim().toLowerCase();
+    const telefono = String(b.telefono || "").trim() || null;
+    const rol      = String(b.rol || "usuaria");
 
-    if (!id || !campo)
-      return NextResponse.json({ error: "id y campo son requeridos" }, { status: 400 });
+    if (!nombre) return NextResponse.json({ error: "Escribe el nombre." }, { status: 400 });
+    if (!correoValido(email)) return NextResponse.json({ error: "Escribe un correo válido." }, { status: 400 });
+    if (!ROLES.includes(rol)) return NextResponse.json({ error: "Rol no válido." }, { status: 400 });
 
-    const CAMPOS_PERMITIDOS = [
-      "tiene_acceso", "perfil_habilitado",
-      "acceso_documentos", "acceso_recursos",
-      "acceso_reuniones", "acceso_mensajes", "acceso_comunidad",
-    ];
-    if (!CAMPOS_PERMITIDOS.includes(campo))
-      return NextResponse.json({ error: "Campo no permitido" }, { status: 400 });
+    const [[existe]] = await dbAupair.query("SELECT id FROM usuarios WHERE email = ?", [email]);
+    if (existe) return NextResponse.json({ error: "Ya existe una cuenta con ese correo." }, { status: 409 });
 
-    await dbAupair.query(
-      `UPDATE usuarios SET ${campo} = ? WHERE id = ?`,
-      [valor ? 1 : 0, id]
+    // Una contraseña que nadie conoce: la persona pone la suya con el link.
+    const hash = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 10);
+    const [r] = await dbAupair.query(
+      `INSERT INTO usuarios (nombre, apellido, email, telefono, password, rol, cuenta_activa, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 1, NOW())`,
+      [nombre, apellido, email, telefono, hash, rol]
     );
-    return NextResponse.json({ ok: true });
+
+    const link = await linkDeContrasena(r.insertId, 72);
+    await enviarInvitacionCuenta({ email, nombre, link, rol });
+    return NextResponse.json({ ok: true, id: r.insertId, link });
   } catch (err) {
-    console.error("[PUT /api/admin/usuarias]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("[POST /api/admin/usuarias]", err);
+    return NextResponse.json({ error: "No se pudo crear la cuenta." }, { status: 500 });
   }
 }

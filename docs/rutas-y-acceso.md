@@ -40,8 +40,7 @@ Una excepción no declarada es un defecto, no una decisión.
 
 | Ruta | Roles | Motivo | Revisar en |
 |---|---|---|---|
-| `/api/admin/disponibilidad` | admin · asociada | La agenda de disponibilidad es compartida: la clienta y sus asesoras publican franjas sobre el mismo calendario. Cada una sólo puede editar o borrar las suyas (verificación de propiedad ya presente en PUT y DELETE). | Sprint 3, al construir el panel de la asociada |
-| `/api/admin/eventos` | admin · asociada | Mismo calendario, mismo motivo. | Sprint 3 |
+| `/api/admin/eventos` | admin · asociada | La clienta y sus asesoras publican eventos en el mismo calendario. (La disponibilidad dejó de ser compartida en `agenda-rango-bloques`: la publica el equipo admin.) | Taller de Asesoras |
 
 ## Rutas sin consumidor
 
@@ -51,7 +50,6 @@ explícita, no un olvido.
 
 | Ruta | Handlers | Nota |
 |---|---|---|
-| `/api/admin/reuniones` | GET, POST, PUT, DELETE | La página `/admin/reuniones` no la usa: trabaja con `asesoras`, `disponibilidad` y `eventos`. |
 | `/api/admin/toggle-perfil` | POST | Sin ninguna referencia en el repositorio. |
 | `/api/app/**` | 10 rutas, 15 handlers | Project Center. Su base de datos no existe en el servidor. **Se eliminan en el grupo 6.** |
 
@@ -59,7 +57,7 @@ explícita, no un olvido.
 > existe** en el repositorio — sólo quedan sus rutas de API en `app/api/app/`.
 > La tarea 6.2 se ajusta a esa realidad.
 
-Mientras `/api/admin/reuniones` y `/api/admin/toggle-perfil` sigan existiendo,
+Mientras `/api/admin/toggle-perfil` siga existiendo (`/api/admin/reuniones` se retiró en `agenda-rango-bloques`),
 se protegen como cualquier otra ruta de admin. No se retiran en este sprint:
 no estaban declarados en el proposal y retirarlos sin verificar producción es
 la clase de atajo que este sprint existe para evitar.
@@ -78,7 +76,7 @@ existió) se retiraron en `candidatas-por-cupon` (2026-10-13): `/asociada/stats`
 
 | Ruta | Error | Alcance |
 |---|---|---|
-| `/api/admin/reuniones` | `reuniones.fecha` no existe · además sin consumidor | Sprint 3 |
+| ~~`/api/admin/reuniones`~~ | Retirada en `agenda-rango-bloques` | — |
 
 ### La ruta en singular que no existía
 
@@ -120,7 +118,6 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | Ruta | Métodos | Estado | Consumidor |
 |---|---|---|---|
 | `/admin/agencias` | GET | ✅ | `/admin/perfiles/[id]` (elegir agencia al aprobar) — `etapas-candidata` |
-| `/admin/asesoras` | GET | ✅ | `/admin/reuniones` |
 | `/admin/asociadas` | GET, POST | ✅ | `/admin/asociadas`, `/admin/codigos-promo`; cuenta candidatas por cupón (`candidatas-por-cupon`) |
 | `/admin/asociadas/[id]` | GET, PUT, DELETE | ✅ | `/admin/asociadas/[id]`; sus candidatas por cupón |
 | `/admin/bd-estructura` | GET | ✅ | `/admin/bd-verificar` |
@@ -129,8 +126,10 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/comisiones/[id]/pagar` | POST | ✅ | `/admin/comisiones` |
 | `/admin/configuracion` | GET, PUT | ✅ | `/admin/configuracion` |
 | `/admin/confirmar-pago` | POST | ✅ | `/admin/pagos` |
-| `/admin/disponibilidad` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones` |
-| `/admin/eventos` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones`, `/dashboard/reuniones` |
+| `/admin/agenda` | GET, POST, PUT, DELETE | ✅ | `/admin/reuniones` — franjas con rango y bloque (`agenda-rango-bloques`) |
+| `/admin/agenda/reservas` | POST | ✅ | `/admin/reuniones` — el equipo agenda a una candidata en un cupo libre |
+| `/admin/agenda/reservas/[id]/cancelar` | POST | ✅ | `/admin/reuniones` — el equipo cancela una reserva |
+| `/admin/eventos` | GET, POST, PUT, DELETE | ✅ excepción | `/admin/reuniones` |
 | `/admin/pagos/movimientos` | GET | ✅ | `/admin/pagos` |
 | `/admin/pagos/stats` | GET | ✅ | `/admin`, `/admin/pagos` |
 | `/admin/perfiles/[id]` | GET, PUT | ✅ | `/admin/perfiles/[id]` |
@@ -146,21 +145,20 @@ Nivel objetivo: **rol admin**, salvo las excepciones declaradas arriba.
 | `/admin/referidos/[id]` | PUT, DELETE | ✅ | `/admin/referidos` |
 | `/admin/referidos/[id]/pagar` | POST | ✅ | `/admin/referidos` |
 | `/admin/referidos/inscripciones` | GET | ✅ | `/admin/referidos` |
-| `/admin/reuniones` | GET, POST, PUT, DELETE | ✅ | — sin consumidor |
 | `/admin/sesiones` | GET, POST, PUT, DELETE | ✅ | `/admin/sesiones` |
 | `/admin/stats` | GET | ✅ | `/admin`, `/admin/sesiones` |
-| `/admin/toggle-acceso` | POST, PUT | ✅ | `/admin/usuarias` |
+| `/admin/toggle-acceso` | POST | ✅ | `/admin/usuarias` — sólo secciones; el acceso pagado va por Ventas (`usuarios-administracion`) |
 | `/admin/toggle-perfil` | POST | ✅ | — sin consumidor |
-| `/admin/usuarias` | GET, PUT | ✅ | `/admin/usuarias`, `/admin/cambiar-roles` |
-| `/admin/usuarias/[id]` | PUT | ✅ | `/admin/usuarias` |
-| `/admin/usuarias/[id]/transferir` | GET, POST, DELETE | ✅ | `/admin/usuarias` — transferir el cupo (R11, change `transferir-cupo`) |
-| `/admin/usuarios/[id]/cambiar-rol` | PUT | ✅ | `/admin/cambiar-roles` |
-| `/admin/usuarios/actividad` | GET | ✅ | `/admin/usuarias` |
-| `/admin/usuarios/stats` | GET | ✅ | `/admin/usuarias` |
-| `/admin/usuarios/top-referentes` | GET | ✅ | `/admin/usuarias` |
+| `/admin/usuarias` | GET, POST | ✅ | `/admin/usuarias`, `/admin/ventas` — cuentas; POST crea con rol e invita por correo |
+| `/admin/usuarias/[id]` | PUT | ✅ | `/admin/usuarias` — nombre, apellido, correo, teléfono |
+| `/admin/usuarias/[id]/restablecer` | POST | ✅ | `/admin/usuarias` |
+| `/admin/usuarias/[id]/estado` | PUT | ✅ | `/admin/usuarias` — desactivar / reactivar |
+| `/admin/usuarias/[id]/transferir` | GET, POST, DELETE | ✅ | `/admin/ventas` — transferir el cupo (R11, change `transferir-cupo`) |
+| `/admin/usuarios/[id]/cambiar-rol` | PUT | ✅ | `/admin/usuarias` |
 | `/admin/ventas` | GET | ✅ | `/admin/ventas` |
 | `/admin/ventas/[id]/anular` | POST | ✅ | `/admin/ventas` |
 | `/admin/ventas/[id]/confirmar` | POST | ✅ | `/admin/ventas` |
+| `/admin/ventas/registrar` | POST | ✅ | `/admin/ventas` — pago recibido sin solicitud, vía `confirmarAccesoUsuario` |
 
 **Hueco cerrado en el barrido:** `GET /api/admin/eventos` no verificaba rol
 alguno — cualquier sesión válida, incluida la de una candidata, leía la agenda
@@ -213,7 +211,8 @@ verifica permiso hoy.
 | `/dashboard/bienvenida` | POST | sesión | ✅ |
 | `/dashboard/completar` | POST | sesión | ✅ — avance del curso, no es sección de pago |
 | `/dashboard/configuracion` | GET, PUT | sesión | ✅ |
-| `/dashboard/disponibilidad` | GET | sesión + `acceso_reuniones` | 🔴 |
+| `/dashboard/disponibilidad` | GET | sesión + `acceso_reuniones` | ✅ — cupos libres y futuros del equipo |
+| `/dashboard/eventos` | GET | sesión + `acceso_reuniones` | ✅ — eventos visibles que vienen (`agenda-rango-bloques`) |
 | `/dashboard/documento` | POST | sesión | 🟡 revisar — sube documentos desde el perfil; gatearlo con `acceso_documentos` podría bloquear el completado del perfil |
 | `/dashboard/documentos` | GET | sesión + `acceso_documentos` | 🔴 |
 | `/dashboard/documentos` | POST | sesión + `acceso_documentos` | ✅ — único que lo verifica hoy |
@@ -224,7 +223,7 @@ verifica permiso hoy.
 | `/dashboard/perfil/enviar` | POST | sesión | ✅ — marca una parte como enviada si está completa |
 | `/dashboard/historial` | GET | sesión | ✅ — el historial de la propia candidata, sin lo interno |
 | `/dashboard/proceso` | GET | sesión | ✅ — pasos derivados de las etapas (`etapas-candidata`); el PUT de override se retiró |
-| `/dashboard/reuniones` | GET, POST, DELETE | sesión + `acceso_reuniones` | 🔴 |
+| `/dashboard/reuniones` | GET, POST, DELETE | sesión + `acceso_reuniones` | ✅ — reserva y cancelación atómicas (`lib/agenda-aupair.js`) |
 | `/dashboard/sesiones` | GET | sesión | ✅ — contenido del curso |
 | `/dashboard/contacto` | GET | sesión | ✅ — WhatsApp del programa; el enlace del grupo sólo con `acceso_comunidad`, leído de la base (`candidata-datos-reales`) |
 
@@ -247,6 +246,16 @@ después de entrar. Lo ajeno → 404. La asociada no tiene conversaciones todav�
 | `/conversaciones` | POST | ✅ | ✅ `iniciar()`: la agencia, la suya; admin y candidata, la del equipo |
 | `/conversaciones/[id]/mensajes` | GET, POST | ✅ | ✅ `acceso()`; POST exige `permisos.escribir` |
 | `/conversaciones/[id]/entrar` | POST | ✅ | ✅ sólo admin, conversación de agencia |
+
+Retiradas en `agenda-rango-bloques` (oct 2026): `/admin/disponibilidad` (cupos sueltos de una
+sola cita por franja, sin transacción), `/admin/reuniones` (columnas inexistentes, sin consumidor) y
+`/admin/asesoras` (el selector de asesora; quien atiende es un admin del equipo). La agenda vive en
+`lib/agenda-aupair.js`.
+
+Retiradas en `usuarios-administracion` (oct 2026): `/admin/usuarios/{stats,actividad,top-referentes}`
+(tablas heredadas de referidos y cifras que no cuadraban), `PUT /admin/usuarias` y `PUT /admin/toggle-acceso`
+(encendían `tiene_acceso` o el libro heredado sin pasar por `lib/ventas-aupair.js`) y la pantalla
+`/admin/cambiar-roles`, duplicada de Usuarios.
 
 Retirada en `candidata-datos-reales` (oct 2026): `/dashboard/recursos`, que consultaba una tabla
 `recursos` inexistente y devolvía `[]` al fallar. La biblioteca de Recursos lee los

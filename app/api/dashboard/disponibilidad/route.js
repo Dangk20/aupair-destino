@@ -1,43 +1,17 @@
-// app/api/dashboard/disponibilidad/route.js
+// app/api/dashboard/disponibilidad/route.js — Los cupos que la candidata puede
+// reservar (change agenda-rango-bloques): libres, futuros en hora de Bogotá y
+// de la agenda del equipo. La regla vive en lib/agenda-aupair.js · cuposLibres.
+import { NextResponse } from "next/server";
 import { requierePermiso } from "@/lib/session-aupair";
-import db from "@/lib/db-aupair";
+import { cuposLibres } from "@/lib/agenda-aupair";
 
-// GET — cliente ve todos los slots disponibles (admin + todas las asociadas)
 export async function GET(req) {
   const guard = await requierePermiso(req, "reuniones");
   if (guard.error) return guard.error;
-  const session = guard.session;
-
-  const { searchParams } = new URL(req.url);
-  const mes   = searchParams.get("mes");
-  const year  = mes ? mes.split("-")[0] : new Date().getFullYear();
-  const month = mes ? mes.split("-")[1] : String(new Date().getMonth()+1).padStart(2,"0");
-
-  // Slots disponibles + slots ya reservados por ESTE usuario
-  const [slots] = await db.query(`
-    SELECT d.*,
-      a.nombre AS asesora_nombre, a.apellido AS asesora_apellido,
-      a.foto_url AS asesora_foto, a.rol AS asesora_rol
-    FROM disponibilidad d
-    JOIN usuarios a ON a.id = d.asesora_id
-    WHERE YEAR(d.fecha)=? AND MONTH(d.fecha)=?
-      AND (d.estado='disponible' OR d.reservado_por=?)
-      AND d.fecha >= CURDATE()
-    ORDER BY d.fecha, d.hora_inicio
-  `, [year, month, session.id]);
-
-  // Reunión ya agendada del usuario
-  const [miReunion] = await db.query(`
-    SELECT r.*, d.fecha, d.hora_inicio, d.hora_fin,
-      a.nombre AS asesora_nombre, a.apellido AS asesora_apellido, a.foto_url AS asesora_foto,
-      r.url_meet
-    FROM reuniones r
-    JOIN disponibilidad d ON d.id = r.disponibilidad_id
-    JOIN usuarios a ON a.id = d.asesora_id
-    WHERE r.usuario_id=? AND r.estado='confirmada' AND d.fecha >= CURDATE()
-    ORDER BY d.fecha, d.hora_inicio
-    LIMIT 1
-  `, [session.id]);
-
-  return Response.json({ slots, reunion: miReunion[0] || null });
+  try {
+    return NextResponse.json({ cupos: await cuposLibres() });
+  } catch (err) {
+    console.error("[GET /api/dashboard/disponibilidad]", err);
+    return NextResponse.json({ error: "No se pudo cargar la disponibilidad." }, { status: 500 });
+  }
 }

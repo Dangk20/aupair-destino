@@ -20,6 +20,12 @@
 - **Certificado**: aparece al terminar el curso (inicio y curso), usa el total real de sesiones, no se emite con 0 sesiones y su botón dice lo que hace («Guardar como PDF»).
 - **Indicadores**: sin `NaN`, y «Mi proceso» usa el mismo `proximoPaso` del servidor que el inicio.
 
+- **Chat flotante** (Daniel, 17 oct): «Mensajes» deja de ser una pestaña; una burbuja fija abajo a la derecha, en todas las pestañas, con los no leídos, abre un panel desde la derecha con las conversaciones y el chat (`components/chat/ChatFlotante`). `/dashboard/mensajes` y sus enlaces abren ese panel.
+- **Certificado**: la impresión salía en blanco (la regla de impresión apuntaba a una clase escapada que no coincidía); ahora imprime sólo el certificado, horizontal.
+
+- **Tres contactos en el chat** (Daniel, 17 oct): el equipo (aparece solo, con la bienvenida de `configuracion.mensaje_bienvenida`), la asociada dueña del cupón con que entró y, cuando pasa a una, su agencia (`asegurarContactos` en `lib/conversaciones-aupair`). La asociada tiene la burbuja en su panel y el admin la supervisa como a las agencias. Migración 017: `autor_rol` admite `asociada`.
+- **Varias reuniones** (Daniel, 17 oct): la candidata ya no queda bloqueada tras agendar; puede tener hasta 3 futuras, nunca dos a la misma hora. El calendario muestra «Próximas reuniones» y el inicio y Mi Destino las listan todas.
+
 ## Fuera de alcance
 
 - Notificaciones dentro de la plataforma (listado de avisos): funcionalidad nueva.

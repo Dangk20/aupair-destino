@@ -1,693 +1,398 @@
 "use client";
-// app/admin/reuniones/page.jsx
+// app/admin/reuniones/page.jsx — Agenda del equipo (change agenda-rango-bloques)
+//
+// Diseño según la referencia de Daniel (17 oct 2026): a la izquierda el mes
+// compacto con puntos en los días con algo (por ahí se navega: un día o, sin
+// elegir, lo que viene); a la derecha la agenda por día, con la hora grande,
+// la de fin debajo y una barra de color por tipo.
+//
+// La disponibilidad se configura por franjas: un día, un rango y la duración
+// de cada sesión. Los cupos los calcula el servidor (lib/agenda-aupair.js).
 
-import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import {
-  MessageSquare, Phone, Wrench, Bell, Pin, CheckCircle2, CalendarDays, Target,
-  ChevronLeft, ChevronRight, X, Plus, Trash2,
-  Video, Users, Calendar, Clock, Check, AlertCircle,
-  Repeat, Edit2,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2, Video, CalendarPlus, Users, Settings2 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
+import { T } from "@/lib/tema";
+import ModalEvento, { TIPO_CFG } from "@/components/admin/agenda/ModalEvento";
+import AdministrarAgenda, { EditarDia } from "@/components/admin/agenda/ModalHorario";
 
-/* ── Helpers ── */
-const DIAS  = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-function pad(n) { return String(n).padStart(2,"0"); }
-function fechaStr(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function fmtHora(t) { return t ? t.slice(0,5) : ""; }
-function fmtFecha(f) {
-  if (!f) return "";
-  const d = new Date(f+"T12:00:00");
-  return d.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-}
-function cleanFecha(f) {
-  if (!f) return "";
-  if (typeof f === "string") return f.split("T")[0];
-  if (f instanceof Date) return fechaStr(f);
-  return String(f).split("T")[0];
-}
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const COLOR = { libre: "#12A46B", reservada: T.primary, evento: "#E8853B" };
+
+const pad = (n) => String(n).padStart(2, "0");
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const deIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const sumar = (s, n) => { const d = deIso(s); d.setDate(d.getDate() + n); return iso(d); };
+const hoyBogota = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+const fechaLarga = (s) => { const t = deIso(s).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" }); return t[0].toUpperCase() + t.slice(1); };
+/** "9:00" y "a. m." por separado, para la hora grande de la agenda. */
+const partes = (t) => { const x = hora12(t); const i = x.search(/\s[ap]\./); return i < 0 ? { hm: x, suf: "" } : { hm: x.slice(0, i), suf: x.slice(i + 1) }; };
+const hora12 = (t) => { const [h, m] = t.split(":").map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" }); };
+const aMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const deMin = (n) => `${pad(Math.floor(n / 60))}:${pad(n % 60)}`;
 
 
-const TIPO_CFG = {
-  foro:           { color:"#A0435F", bg:"#FCE8EE", Icono:MessageSquare, label:"Foro"          },
-  llamada_grupal: { color:"#A0435F", bg:"#FCE8EE", Icono:Phone,         label:"Llamada grupal" },
-  taller:         { color:"#E8853B", bg:"#FFF4EC", Icono:Wrench,        label:"Taller"        },
-  importante:     { color:"#C0392B", bg:"#FDECEC", Icono:Bell,          label:"Importante"    },
-  otro:           { color:"#6B7280", bg:"#F3F4F6", Icono:Pin,           label:"Otro"          },
-};
+const campo = { width: "100%", height: 40, border: `1.5px solid ${T.border}`, borderRadius: 10, fontSize: 13, color: T.text, background: "#fff", outline: "none", fontFamily: T.font, boxSizing: "border-box", padding: "0 12px" };
+const Etiqueta = ({ children }) => <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".05em", color: T.textSoft, margin: "12px 0 5px", textTransform: "uppercase" }}>{children}</div>;
 
-const IC = { width:"100%", border:"1.5px solid #F5E1E7", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#4A2A38", background:"#fff", outline:"none", fontFamily:"inherit", boxSizing:"border-box" };
-const LC = { fontSize:11, fontWeight:700, color:"#6B7280", textTransform:"uppercase", letterSpacing:".6px", display:"block", marginBottom:5 };
-
-/* ── Modal crear slot ── */
-function ModalSlot({ onClose, onGuardar, loading, asesoras }) {
-  const hoy = fechaStr(new Date());
-  const [form, setForm] = useState({
-    fecha: hoy, hora_inicio:"09:00", hora_fin:"10:00",
-    url_meet:"", notas:"", repetir_semanas:0, asesora_id:"",
-  });
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
-
+function Modal({ titulo, subtitulo, onCerrar, children, pie, ancho = 460 }) {
   return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16 }}
-      onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:460,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,.15)",maxHeight:"90vh",overflowY:"auto" }}>
-        <div style={{ height:4,background:"linear-gradient(90deg,#7D2F47,#A0435F)",borderRadius:99,marginBottom:20 }}/>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18 }}>
-          <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:0 }}>Crear horario disponible</h2>
-          <button onClick={onClose} style={{ background:"#F3F4F6",border:"none",borderRadius:99,width:30,height:30,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <X size={14} style={{ color:"#6B7280" }}/>
-          </button>
+    <div role="dialog" aria-modal="true" aria-label={titulo} onClick={onCerrar}
+      style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(58,37,48,.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: ancho, maxHeight: "92vh", overflowY: "auto", background: "#fff", borderRadius: 18, padding: 22, fontFamily: T.font, color: T.text, boxShadow: "0 20px 50px rgba(58,37,48,.25)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 6 }}>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>{titulo}</div>
+            {subtitulo && <div style={{ fontSize: 12.5, color: T.textSoft, marginTop: 2 }}>{subtitulo}</div>}
+          </div>
+          <button type="button" onClick={onCerrar} aria-label="Cerrar" style={{ border: "none", background: T.lilac, width: 30, height: 30, borderRadius: "50%", cursor: "pointer", color: T.primary, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><X size={15} /></button>
         </div>
-
-        <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-          <div>
-            <label style={LC}>Fecha *</label>
-            <input type="date" value={form.fecha} onChange={e=>set("fecha",e.target.value)} style={IC} min={hoy}/>
-          </div>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            <div>
-              <label style={LC}>Hora inicio *</label>
-              <input type="time" value={form.hora_inicio} onChange={e=>set("hora_inicio",e.target.value)} style={IC}/>
-            </div>
-            <div>
-              <label style={LC}>Hora fin *</label>
-              <input type="time" value={form.hora_fin} onChange={e=>set("hora_fin",e.target.value)} style={IC}/>
-            </div>
-          </div>
-          {asesoras.length>0 && (
-            <div>
-              <label style={LC}>Asesora (si aplica)</label>
-              <select value={form.asesora_id} onChange={e=>set("asesora_id",e.target.value)} style={IC}>
-                <option value="">Yo misma (Jenni)</option>
-                {asesoras.map(a=><option key={a.id} value={a.id}>{a.nombre} {a.apellido}</option>)}
-              </select>
-            </div>
-          )}
-          <div>
-            <label style={LC}>Link de Meet (opcional)</label>
-            <input type="url" value={form.url_meet} onChange={e=>set("url_meet",e.target.value)} style={IC} placeholder="https://meet.google.com/..."/>
-          </div>
-          <div>
-            <label style={LC}>Notas internas (opcional)</label>
-            <textarea value={form.notas} onChange={e=>set("notas",e.target.value)} rows={2} style={{ ...IC,resize:"none" }} placeholder="Ej: Solo para usuarias en fase de evaluación"/>
-          </div>
-          <div>
-            <label style={LC}>Repetir semanalmente</label>
-            <select value={form.repetir_semanas} onChange={e=>set("repetir_semanas",Number(e.target.value))} style={IC}>
-              <option value={0}>No repetir</option>
-              <option value={1}>1 semana más</option>
-              <option value={2}>2 semanas más</option>
-              <option value={3}>3 semanas más</option>
-              <option value={4}>4 semanas más</option>
-            </select>
-            {form.repetir_semanas>0 && (
-              <p style={{ fontSize:11,color:"#A0435F",margin:"5px 0 0" }}>
-                ✓ Se crearán {form.repetir_semanas+1} slots (hoy + {form.repetir_semanas} semanas)
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display:"flex",gap:10,marginTop:20 }}>
-          <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #E5E7EB",background:"#fff",color:"#6B7280",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-            Cancelar
-          </button>
-          <button onClick={()=>onGuardar(form)} disabled={loading||!form.fecha||!form.hora_inicio||!form.hora_fin}
-            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#7D2F47,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:(loading||!form.fecha)?0.6:1 }}>
-            {loading?"Creando...":"✓ Crear horario"}
-          </button>
-        </div>
+        {children}
+        {pie && <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>{pie}</div>}
       </div>
     </div>
   );
 }
 
-/* ── Modal crear evento ── */
-function ModalEvento({ onClose, onGuardar, loading, editando }) {
-  const hoy = fechaStr(new Date());
-  const [form, setForm] = useState(editando || {
-    titulo:"", descripcion:"", tipo:"foro", fecha: hoy,
-    hora_inicio:"", hora_fin:"", url_meet:"", color:"#A0435F", visible:1,
-  });
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+const Boton = ({ children, onClick, disabled, tipo = "primario" }) => (
+  <button type="button" onClick={onClick} disabled={disabled}
+    style={{ border: tipo === "secundario" ? `1.5px solid ${T.border}` : "none", borderRadius: 10, padding: "10px 16px", fontFamily: T.font, fontWeight: 700, fontSize: 13, cursor: disabled ? "default" : "pointer",
+             background: tipo === "secundario" ? "#fff" : tipo === "peligro" ? T.danger : T.primary, color: tipo === "secundario" ? T.ink : "#fff", opacity: disabled ? .55 : 1 }}>
+    {children}
+  </button>
+);
+
+function ModalReserva({ cupo, franja, onCerrar, onCancelada }) {
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const cancelarla = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch(`/api/admin/agenda/reservas/${cupo.reunion_id}/cancelar`, { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo cancelar.");
+    onCancelada("Reserva cancelada · le avisamos a la candidata");
+  };
+  return (
+    <Modal titulo={cupo.candidata} subtitulo={`${fechaLarga(franja.fecha)} · ${hora12(cupo.hora_inicio)} – ${hora12(cupo.hora_fin)}`} onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cerrar</Boton><Boton tipo="peligro" onClick={cancelarla} disabled={ocupado}>{ocupado ? "Cancelando…" : "Cancelar reserva"}</Boton></>}>
+      <div style={{ fontSize: 13, lineHeight: 1.6, marginTop: 8 }}>
+        <div><b>Correo:</b> {cupo.candidata_email}</div>
+        <div><b>Atiende:</b> {franja.dueno_nombre}</div>
+        {franja.url_meet && <div><b>Enlace:</b> <a href={franja.url_meet} target="_blank" rel="noreferrer" style={{ color: T.primary }}>{franja.url_meet}</a></div>}
+        {cupo.notas_cliente && <div style={{ marginTop: 8, background: T.softFill, borderRadius: 10, padding: 10 }}><b>Lo que quiere resolver:</b> {cupo.notas_cliente}</div>}
+      </div>
+      <p style={{ fontSize: 12, color: T.textSoft, margin: "12px 0 0" }}>Si la cancelas, el horario vuelve a quedar libre y ella recibe un correo para elegir otro.</p>
+      {error && <p role="alert" style={{ fontSize: 12.5, color: T.danger, fontWeight: 600, margin: "10px 0 0" }}>{error}</p>}
+    </Modal>
+  );
+}
+
+/** El equipo agenda a una candidata en un cupo libre, desde su panel. */
+function ModalAgendar({ cupo, franja, onCerrar, onAgendado }) {
+  const [candidatas, setCandidatas] = useState(null);
+  const [buscar, setBuscar] = useState("");
+  const [elegida, setElegida] = useState(null);
+  const [notas, setNotas] = useState("");
+  const [error, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  useEffect(() => {
+    fetch("/api/admin/usuarias").then((r) => r.json())
+      .then((d) => setCandidatas((d.usuarias || []).filter((u) => (u.rol === "usuaria" || u.rol === "usuario") && Number(u.cuenta_activa) !== 0)))
+      .catch(() => setCandidatas([]));
+  }, []);
+  const q = buscar.trim().toLowerCase();
+  const visibles = (candidatas || []).filter((u) => !q || `${u.nombre} ${u.apellido} ${u.email}`.toLowerCase().includes(q)).slice(0, 8);
+  const agendar = async () => {
+    setOcupado(true); setError(null);
+    const res = await fetch("/api/admin/agenda/reservas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cupo_id: cupo.id, usuario_id: elegida.id, notas }) });
+    const d = await res.json().catch(() => ({}));
+    setOcupado(false);
+    if (!res.ok) return setError(d.error || "No se pudo agendar.");
+    onAgendado(`Reunión agendada con ${elegida.nombre} · le llega la confirmación al correo`);
+  };
+  return (
+    <Modal titulo="Agendar a una candidata" subtitulo={`${fechaLarga(franja.fecha)} · ${hora12(cupo.hora_inicio)} – ${hora12(cupo.hora_fin)} · con ${franja.dueno_nombre}`} onCerrar={onCerrar}
+      pie={<><Boton tipo="secundario" onClick={onCerrar}>Cancelar</Boton><Boton onClick={agendar} disabled={ocupado || !elegida}>{ocupado ? "Agendando…" : "Agendar"}</Boton></>}>
+      {!elegida ? (
+        <>
+          <Etiqueta>Candidata</Etiqueta>
+          <input autoFocus value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar por nombre o correo…" style={campo} />
+          <div style={{ display: "grid", gap: 2, marginTop: 6, maxHeight: 260, overflowY: "auto" }}>
+            {candidatas === null && <div style={{ fontSize: 12.5, color: T.textSoft, padding: 8 }}>Cargando…</div>}
+            {candidatas && !visibles.length && <div style={{ fontSize: 12.5, color: T.textSoft, padding: 8 }}>Ninguna candidata coincide.</div>}
+            {visibles.map((u) => (
+              <button key={u.id} type="button" onClick={() => setElegida(u)} style={{ textAlign: "left", border: "none", background: "transparent", borderRadius: 10, padding: "8px 10px", cursor: "pointer", fontFamily: T.font }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: T.ink }}>{u.nombre} {u.apellido}</div>
+                <div style={{ fontSize: 12, color: T.textSoft }}>{u.email}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: T.softFill, borderRadius: 12, padding: "10px 12px", marginTop: 10 }}>
+            <div><div style={{ fontSize: 13.5, fontWeight: 700 }}>{elegida.nombre} {elegida.apellido}</div><div style={{ fontSize: 12, color: T.textSoft }}>{elegida.email}</div></div>
+            <button type="button" onClick={() => setElegida(null)} style={{ border: "none", background: "transparent", color: T.primary, fontWeight: 700, fontSize: 12.5, cursor: "pointer", fontFamily: T.font }}>Cambiar</button>
+          </div>
+          <Etiqueta>Tema de la reunión (opcional)</Etiqueta>
+          <input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ej.: revisar sus documentos" style={campo} />
+        </>
+      )}
+      {error && <p role="alert" style={{ fontSize: 12.5, color: T.danger, fontWeight: 600, margin: "12px 0 0" }}>{error}</p>}
+    </Modal>
+  );
+}
+
+export default function AgendaAdminPage() {
+  const { isMobile } = useMobile();
+  const hoy = hoyBogota();
+  const [mes, setMes] = useState(hoy.slice(0, 7));
+  // El día que se ve: hoy por omisión; se cambia tocando el calendario.
+  const [seleccion, setSeleccion] = useState(hoy);
+  const [horarios, setHorarios] = useState([]);
+  const [excepciones, setExcepciones] = useState([]);
+  const [datos, setDatos] = useState({}); // mes → { franjas, eventos }
+  const [equipo, setEquipo] = useState([]);
+  const [yo, setYo] = useState(null);
+  const [modal, setModal] = useState(null);
+  const [aviso, setAviso] = useState(null);
+  const decir = (msg, tipo = "ok") => { setAviso({ msg, tipo }); setTimeout(() => setAviso(null), 3200); };
+
+  const cargarMes = async (m) => {
+    const [a, e] = await Promise.all([
+      fetch(`/api/admin/agenda?mes=${m}`).then((r) => r.json()).catch(() => ({})),
+      fetch(`/api/admin/eventos?mes=${m}`).then((r) => r.json()).catch(() => ({})),
+    ]);
+    if (a.equipo) setEquipo(a.equipo);
+    if (a.horarios) setHorarios(a.horarios);
+    if (a.excepciones) setExcepciones((x) => [...x.filter((e) => !e.fecha.startsWith(m)), ...a.excepciones]);
+    const eventos = (e.eventos || []).map((x) => ({ ...x, fecha: String(x.fecha).slice(0, 10), hora_inicio: x.hora_inicio?.slice(0, 5) || "", hora_fin: x.hora_fin?.slice(0, 5) || "" }));
+    setDatos((d) => ({ ...d, [m]: { franjas: a.franjas || [], eventos } }));
+  };
+
+  // El rango elegido puede cruzar dos meses: se cargan los que toca.
+  const rango = useMemo(() => ({ desde: seleccion, hasta: sumar(seleccion, 1) }), [seleccion]);
+  const mesesNecesarios = useMemo(() => [...new Set([mes, rango.desde.slice(0, 7), sumar(rango.hasta, -1).slice(0, 7)])], [mes, rango]);
+  const recargar = () => mesesNecesarios.forEach(cargarMes);
+
+  useEffect(() => { mesesNecesarios.filter((m) => !datos[m]).forEach(cargarMes); }, [mesesNecesarios]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetch("/api/auth/me").then((r) => r.json()).then((d) => setYo(d.user?.id ?? null)).catch(() => {}); }, []);
+
+  const todo = useMemo(() => {
+    const franjas = [], eventos = [];
+    Object.values(datos).forEach((d) => { franjas.push(...d.franjas); eventos.push(...d.eventos); });
+    return { franjas, eventos };
+  }, [datos]);
+
+  // Puntos del calendario por día.
+  const puntos = useMemo(() => {
+    const p = {};
+    todo.franjas.forEach((f) => {
+      const x = (p[f.fecha] ||= {});
+      if (f.cupos.some((c) => c.estado === "disponible")) x.libre = true;
+      if (f.cupos.some((c) => c.estado === "reservada")) x.reservada = true;
+    });
+    todo.eventos.forEach((e) => { (p[e.fecha] ||= {}).evento = true; });
+    return p;
+  }, [todo]);
+
+  // La agenda del rango, por día.
+  const dias = useMemo(() => {
+    const out = [];
+    for (let f = rango.desde; f < rango.hasta; f = sumar(f, 1)) {
+      const franjas = todo.franjas.filter((x) => x.fecha === f);
+      const eventos = todo.eventos.filter((x) => x.fecha === f);
+      out.push({ fecha: f, franjas, eventos });
+    }
+    return out;
+  }, [todo, rango, seleccion]);
+
+  const [y, m] = mes.split("-").map(Number);
+  const celdas = useMemo(() => {
+    const primero = new Date(y, m - 1, 1);
+    const vacias = (primero.getDay() + 6) % 7;
+    const total = new Date(y, m, 0).getDate();
+    return [...Array(vacias).fill(null), ...Array.from({ length: total }, (_, i) => `${mes}-${pad(i + 1)}`)];
+  }, [mes, y, m]);
+  const moverMes = (n) => { const d = new Date(y, m - 1 + n, 1); setMes(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`); };
+
+  // ¿El día visto está ajustado a mano para quien abre la agenda (o cualquiera del equipo)?
+  const ajustado = excepciones.some((e) => e.fecha === seleccion && (!yo || Number(e.dueno_id) === Number(yo)));
+  const delMes = datos[mes]?.franjas || [];
+  const libres = delMes.reduce((s, f) => s + f.cupos.filter((c) => c.estado === "disponible").length, 0);
+  const reservadas = delMes.reduce((s, f) => s + f.cupos.filter((c) => c.estado === "reservada").length, 0);
+
+
+  const borrarEvento = async (ev) => {
+    const res = await fetch(`/api/admin/eventos?id=${ev.id}`, { method: "DELETE" });
+    if (!res.ok) return decir("No se pudo borrar el evento.", "error");
+    setModal(null); decir("Evento borrado"); recargar();
+  };
+  const guardarEvento = async (form) => {
+    const editando = modal?.evento;
+    const res = await fetch("/api/admin/eventos", { method: editando ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editando ? { ...form, id: editando.id } : form) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) return decir(d.error || "No se pudo guardar el evento.", "error");
+    setModal(null); decir(editando ? "Evento actualizado" : "Evento creado"); recargar();
+  };
+  const listo = (msg) => { setModal(null); decir(msg); recargar(); };
+
+
+  const Item = ({ ini, fin, color, etiqueta, titulo, onClick, apagado }) => (
+    <button type="button" onClick={onClick} disabled={!onClick}
+      style={{ display: "flex", gap: 14, alignItems: "stretch", width: "100%", textAlign: "left", border: "none", background: "transparent", padding: "8px 6px", borderRadius: 10, cursor: onClick ? "pointer" : "default", fontFamily: T.font, opacity: apagado ? .55 : 1 }}>
+      <div style={{ width: 74, flexShrink: 0 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.ink, lineHeight: 1.1, whiteSpace: "nowrap" }}>
+          {/^\d{2}:\d{2}$/.test(ini) ? <>{partes(ini).hm}<span style={{ fontSize: 10.5, fontWeight: 700, color: T.textSoft, marginLeft: 3 }}>{partes(ini).suf}</span></> : ini}
+        </div>
+        <div style={{ fontSize: 11.5, color: T.textSoft, marginTop: 2 }}>{fin}</div>
+      </div>
+      <div style={{ width: 3, borderRadius: 3, background: color, flexShrink: 0 }} />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 11.5, color: T.textSoft, fontWeight: 600 }}>{etiqueta}</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{titulo}</div>
+      </div>
+    </button>
+  );
 
   return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(30,16,51,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:16 }}
-      onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:460,padding:24,boxShadow:"0 20px 60px rgba(0,0,0,.15)",maxHeight:"90vh",overflowY:"auto" }}>
-        <div style={{ height:4,background:"linear-gradient(90deg,#A0435F,#A0435F)",borderRadius:99,marginBottom:20 }}/>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18 }}>
-          <h2 style={{ fontFamily:"Georgia,serif",fontSize:17,fontWeight:700,color:"#4A2A38",margin:0 }}>
-            {editando?"Editar evento":"Crear evento"}
-          </h2>
-          <button onClick={onClose} style={{ background:"#F3F4F6",border:"none",borderRadius:99,width:30,height:30,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <X size={14} style={{ color:"#6B7280" }}/>
-          </button>
+    <div style={{ fontFamily: T.font, color: T.text, padding: isMobile ? "16px 16px 90px" : "28px 30px", maxWidth: 1180, width: "100%", margin: "0 auto", boxSizing: "border-box" }}>
+      {aviso && <div style={{ position: "fixed", top: 20, right: 20, zIndex: 2000, background: aviso.tipo === "error" ? T.danger : T.ink, color: "#fff", padding: "12px 20px", borderRadius: 14, fontSize: 13, fontWeight: 600, maxWidth: 380 }}>{aviso.msg}</div>}
+
+      <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: isMobile ? 21 : 26, fontWeight: 700, lineHeight: 1.1 }}>Agenda</div>
+          <div style={{ fontSize: 13.5, color: T.textSoft, marginTop: 3 }}>Tu horario semanal abre los cupos solo; las candidatas los reservan para resolver sus dudas.</div>
+        </div>
+        <button type="button" onClick={() => setModal({ tipo: "administrar" })}
+          style={{ display: "inline-flex", alignItems: "center", gap: 7, border: "none", background: T.primary, color: "#fff", borderRadius: 12, padding: "10px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: T.font }}>
+          <Settings2 size={16} /> Administrar agenda
+        </button>
+      </div>
+
+      {/* En computador el alto lo da el mes: el día se desplaza por dentro, sin alargar la caja. */}
+      <div style={{ display: "flex", gap: 0, flexDirection: isMobile ? "column" : "row", background: "#fff", borderRadius: 22, border: `1px solid ${T.border}`, overflow: "hidden", boxShadow: "0 6px 24px rgba(58,37,48,.06)" }}>
+        {/* ── Mes compacto ── */}
+        <div style={{ width: isMobile ? "100%" : 360, flexShrink: 0, padding: 22, background: T.softFill, boxSizing: "border-box" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 10, background: "#fff", textAlign: "center", boxShadow: "0 1px 3px rgba(58,37,48,.08)", flexShrink: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.textSoft, textTransform: "uppercase", paddingTop: 4 }}>{MESES[Number(hoy.slice(5, 7)) - 1].slice(0, 3)}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.primary, lineHeight: 1 }}>{Number(hoy.slice(8))}</div>
+            </div>
+            <div style={{ flex: 1, fontSize: 19, fontWeight: 800, color: T.ink }}>{MESES[m - 1]} {y}</div>
+            <button type="button" onClick={() => moverMes(-1)} aria-label="Mes anterior" style={{ border: "none", background: "transparent", cursor: "pointer", color: T.ink }}><ChevronLeft size={20} /></button>
+            <button type="button" onClick={() => moverMes(1)} aria-label="Mes siguiente" style={{ border: "none", background: "transparent", cursor: "pointer", color: T.ink }}><ChevronRight size={20} /></button>
+          </div>
+
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginTop: 16, rowGap: 4 }}>
+            {DIAS.map((d) => <div key={d} style={{ textAlign: "center", fontSize: 11, color: T.textSoft, fontWeight: 600, paddingBottom: 6 }}>{d}</div>)}
+            {celdas.map((f, i) => {
+              if (!f) return <div key={`v${i}`} />;
+              const p = puntos[f] || {};
+              const elegido = f === seleccion;
+              const esHoy = f === hoy, pasado = f < hoy;
+              return (
+                <button key={f} type="button" onClick={() => setSeleccion(f)}
+                  style={{ border: "none", background: "transparent", cursor: "pointer", padding: "3px 0", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: T.font }}>
+                  <span style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700,
+                                 background: elegido ? T.primary : esHoy ? "#E8853B" : "transparent",
+                                 color: elegido || esHoy ? "#fff" : pasado ? T.softText : T.ink }}>
+                    {Number(f.slice(8))}
+                  </span>
+                  <span style={{ display: "flex", gap: 2, height: 5, marginTop: 2 }}>
+                    {p.libre && <i style={{ width: 4, height: 4, borderRadius: "50%", background: COLOR.libre }} />}
+                    {p.reservada && <i style={{ width: 4, height: 4, borderRadius: "50%", background: COLOR.reservada }} />}
+                    {p.evento && <i style={{ width: 4, height: 4, borderRadius: "50%", background: COLOR.evento }} />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", gap: 14, marginTop: 18, paddingTop: 14, borderTop: `1px solid ${T.border}`, fontSize: 12, color: T.textSoft, flexWrap: "wrap" }}>
+            <span><b style={{ color: COLOR.libre }}>{libres}</b> libres</span>
+            <span><b style={{ color: COLOR.reservada }}>{reservadas}</b> reservadas</span>
+            <span><b style={{ color: COLOR.evento }}>{(datos[mes]?.eventos || []).length}</b> eventos</span>
+          </div>
         </div>
 
-        <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-          <div>
-            <label style={LC}>Tipo de evento *</label>
-            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
-              {Object.entries(TIPO_CFG).map(([k,v])=>(
-                <button key={k} onClick={()=>{ set("tipo",k); set("color",v.color); }}
-                  style={{ display:"flex",alignItems:"center",gap:8,padding:"9px 12px",borderRadius:12,border:`1.5px solid ${form.tipo===k?v.color:"#E5E7EB"}`,background:form.tipo===k?v.bg:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .1s" }}>
-                  <span style={{ fontSize:16 }}><v.Icono size={15}/></span>
-                  <span style={{ fontSize:12,fontWeight:form.tipo===k?700:500,color:form.tipo===k?v.color:"#6B7280" }}>{v.label}</span>
-                </button>
+        {/* ── La agenda ── */}
+        <div style={{ flex: 1, minWidth: 0, position: "relative", minHeight: isMobile ? 0 : 420 }}>
+        <div style={isMobile ? {} : { position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "22px 22px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: T.ink }}>
+              {fechaLarga(seleccion)}
+              {ajustado && <span title="Este día no sigue el horario semanal" style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, color: "#B4631F", background: "#FFF4EC", padding: "3px 8px", borderRadius: 7, verticalAlign: "middle" }}>Ajustado</span>}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={() => setModal({ tipo: "evento" })} title="Nuevo evento" aria-label="Nuevo evento"
+                style={{ height: 34, borderRadius: 99, border: `1.5px solid ${T.border}`, background: "#fff", color: T.ink, padding: "0 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: T.font, display: "flex", alignItems: "center", gap: 5 }}>
+                <CalendarPlus size={14} /> Evento
+              </button>
+              <button type="button" onClick={() => setModal({ tipo: "dia" })} disabled={seleccion < hoy} title={seleccion < hoy ? "Ese día ya pasó" : "Editar este día"} aria-label="Editar este día"
+                style={{ width: 34, height: 34, borderRadius: "50%", border: "none", background: T.primary, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Plus size={17} />
+              </button>
+            </div>
+          </div>
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 22px 22px" }}>
+          {dias.map((d) => (
+            <div key={d.fecha} style={{ marginTop: 16 }}>
+              {!d.franjas.length && !d.eventos.length && (
+                <div style={{ textAlign: "center", padding: "34px 10px", color: T.textSoft, fontSize: 13 }}>
+                  {ajustado ? "Este día está marcado como no disponible." : "Sin horarios este día."}
+                  {d.fecha >= hoy && <div><button type="button" onClick={() => setModal({ tipo: "dia" })} style={{ marginTop: 12, border: "none", background: T.lilac, color: T.primary, borderRadius: 10, padding: "9px 14px", fontWeight: 700, cursor: "pointer", fontFamily: T.font }}>Agregar horarios este día</button></div>}
+                </div>
+              )}
+
+              {d.eventos.map((ev) => {
+                const cfg = TIPO_CFG[ev.tipo] || TIPO_CFG.otro;
+                return <Item key={`e${ev.id}`} ini={ev.hora_inicio || "Todo el día"} fin={ev.hora_fin ? hora12(ev.hora_fin) : ""} color={COLOR.evento}
+                  etiqueta={`${cfg.label}${Number(ev.visible) ? "" : " · oculto"}`} titulo={ev.titulo} onClick={() => setModal({ tipo: "evento", evento: ev })} />;
+              })}
+
+              {d.franjas.map((f) => (
+                <div key={f.id} style={{ marginTop: 6, border: `1px solid ${T.softFill}`, borderRadius: 14, padding: "6px 6px 4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "2px 6px 4px" }}>
+                    <div style={{ fontSize: 11.5, color: T.textSoft, fontWeight: 600, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span>{hora12(f.hora_inicio)} – {hora12(f.hora_fin)} · {f.cupos.length} de {f.duracion_min} min</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Users size={12} /> {f.dueno_nombre}</span>
+                      {f.url_meet && <a href={f.url_meet} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: T.primary }}><Video size={12} /> Enlace</a>}
+                    </div>
+                  </div>
+                  {f.cupos.map((c) => c.estado === "reservada"
+                    ? <Item key={c.id} ini={c.hora_inicio} fin={hora12(c.hora_fin)} color={COLOR.reservada} etiqueta="Reservada" titulo={c.candidata || "Candidata"} onClick={c.reunion_id ? () => setModal({ tipo: "reserva", cupo: c, franja: f }) : null} />
+                    : <Item key={c.id} ini={c.hora_inicio} fin={hora12(c.hora_fin)} color={COLOR.libre} etiqueta="Disponible" titulo={`Sesión libre · ${f.duracion_min} min`} onClick={f.fecha >= hoy ? () => setModal({ tipo: "agendar", cupo: c, franja: f }) : null} />)}
+                </div>
               ))}
             </div>
-          </div>
-          <div>
-            <label style={LC}>Título *</label>
-            <input type="text" value={form.titulo} onChange={e=>set("titulo",e.target.value)} style={IC} placeholder="Ej: Foro de preguntas frecuentes"/>
-          </div>
-          <div>
-            <label style={LC}>Descripción</label>
-            <textarea value={form.descripcion} onChange={e=>set("descripcion",e.target.value)} rows={3} style={{ ...IC,resize:"none" }} placeholder="Detalles del evento..."/>
-          </div>
-          <div>
-            <label style={LC}>Fecha *</label>
-            <input type="date" value={form.fecha} onChange={e=>set("fecha",e.target.value)} style={IC}/>
-          </div>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
-            <div>
-              <label style={LC}>Hora inicio</label>
-              <input type="time" value={form.hora_inicio} onChange={e=>set("hora_inicio",e.target.value)} style={IC}/>
-            </div>
-            <div>
-              <label style={LC}>Hora fin</label>
-              <input type="time" value={form.hora_fin} onChange={e=>set("hora_fin",e.target.value)} style={IC}/>
-            </div>
-          </div>
-          <div>
-            <label style={LC}>Link de Meet (opcional)</label>
-            <input type="url" value={form.url_meet} onChange={e=>set("url_meet",e.target.value)} style={IC} placeholder="https://meet.google.com/..."/>
-          </div>
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderTop:"1px solid #FCE8EE" }}>
-            <div>
-              <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0 }}>Visible para todas las usuarias</p>
-              <p style={{ fontSize:11,color:"#9C8790",margin:0 }}>Aparece en el calendario de todas</p>
-            </div>
-            <div onClick={()=>set("visible",form.visible?0:1)}
-              style={{ width:44,height:24,borderRadius:99,background:form.visible?"#A0435F":"#E5E7EB",cursor:"pointer",position:"relative",transition:"background .2s",flexShrink:0 }}>
-              <div style={{ width:18,height:18,borderRadius:"50%",background:"#fff",position:"absolute",top:3,left:form.visible?23:3,transition:"left .2s",boxShadow:"0 1px 4px rgba(0,0,0,.15)" }}/>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display:"flex",gap:10,marginTop:20 }}>
-          <button onClick={onClose} style={{ flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #E5E7EB",background:"#fff",color:"#6B7280",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
-            Cancelar
-          </button>
-          <button onClick={()=>onGuardar(form)} disabled={loading||!form.titulo||!form.fecha}
-            style={{ flex:2,padding:"11px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#A0435F,#A0435F)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",opacity:(loading||!form.titulo)?0.6:1 }}>
-            {loading?"Guardando...":`✓ ${editando?"Guardar cambios":"Crear evento"}`}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════
-   MAIN PAGE
-══════════════════════════════════════════ */
-export default function AdminReunionesPage() {
-  const router = useRouter();
-  const { isMobile } = useMobile();
-  const [slots,      setSlots]      = useState([]);
-  const [eventos,    setEventos]    = useState([]);
-  const [asesoras,   setAsesoras]   = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [toast,      setToast]      = useState(null);
-  const [vista,      setVista]      = useState("calendario"); // calendario | lista
-  const [tab,        setTab]        = useState("slots");      // slots | eventos
-
-  const hoy = new Date();
-  const [mesActual, setMesActual] = useState({ y:hoy.getFullYear(), m:hoy.getMonth() });
-  const [diaSelec,  setDiaSelec]  = useState(null);
-
-  const [showModalSlot,   setShowModalSlot]   = useState(false);
-  const [showModalEvento, setShowModalEvento] = useState(false);
-  const [editandoEvento,  setEditandoEvento]  = useState(null);
-  const [loadingSlot,     setLoadingSlot]     = useState(false);
-  const [loadingEvento,   setLoadingEvento]   = useState(false);
-  const [deletingId,      setDeletingId]      = useState(null);
-
-  const mesStr = `${mesActual.y}-${pad(mesActual.m+1)}`;
-
-  const showToast = (msg, tipo="ok") => { setToast({msg,tipo}); setTimeout(()=>setToast(null),3000); };
-
-  const cargar = async() => {
-    const safe=(p,fb=null)=>p.then(r=>r.json().catch(()=>fb)).catch(()=>fb);
-    const [sData, eData, aData] = await Promise.all([
-      safe(fetch(`/api/admin/disponibilidad?mes=${mesStr}`), {slots:[]}),
-      safe(fetch(`/api/admin/eventos?mes=${mesStr}`),        {eventos:[]}),
-      safe(fetch("/api/admin/asesoras"), {usuarias:[]}),
-    ]);
-    setSlots(sData?.slots||[]);
-    setEventos(eData?.eventos||[]);
-    setAsesoras(aData?.usuarias||[]);
-    setLoading(false);
-  };
-
-  useEffect(() => { cargar(); }, [mesStr]);
-
-  const navMes = (dir) => {
-    setMesActual(prev => {
-      let m=prev.m+dir, y=prev.y;
-      if (m>11){m=0;y++;} if(m<0){m=11;y--;}
-      return {y,m};
-    });
-    setDiaSelec(null);
-  };
-
-  /* ── Mapa días ── */
-const diasMapa = useMemo(() => {
-  const mapa = {};
-  slots.forEach(s => {
-    const f = cleanFecha(s.fecha);
-    if (!mapa[f]) mapa[f]={slots:[],eventos:[]};
-    mapa[f].slots.push(s);
-  });
-  eventos.forEach(e => {
-    const f = cleanFecha(e.fecha);
-    if (!mapa[f]) mapa[f]={slots:[],eventos:[]};
-    mapa[f].eventos.push(e);
-  });
-  return mapa;
-}, [slots, eventos]);
-
-  const celdas = useMemo(() => {
-    const primero = new Date(mesActual.y,mesActual.m,1);
-    const ultimo  = new Date(mesActual.y,mesActual.m+1,0);
-    const arr = [];
-    for (let i=0;i<primero.getDay();i++) arr.push(null);
-    for (let d=1;d<=ultimo.getDate();d++) arr.push(new Date(mesActual.y,mesActual.m,d));
-    return arr;
-  }, [mesActual]);
-
-  /* ── CRUD Slots ── */
-  const crearSlot = async(form) => {
-    setLoadingSlot(true);
-    const res = await fetch("/api/admin/disponibilidad",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-    const data = await res.json();
-    if (res.ok) { showToast(`✓ ${data.creados} horario(s) creado(s)`); setShowModalSlot(false); await cargar(); }
-    else showToast(data.error||"Error al crear","error");
-    setLoadingSlot(false);
-  };
-
-  const eliminarSlot = async(id) => {
-    if (!confirm("¿Eliminar este horario?")) return;
-    setDeletingId(id);
-    const res = await fetch(`/api/admin/disponibilidad?id=${id}`,{method:"DELETE"});
-    if (res.ok) { showToast("Horario eliminado"); await cargar(); }
-    else { const d=await res.json(); showToast(d.error||"Error","error"); }
-    setDeletingId(null);
-  };
-
-  /* ── CRUD Eventos ── */
-  const guardarEvento = async(form) => {
-    setLoadingEvento(true);
-    const method = editandoEvento?"PUT":"POST";
-    const body   = editandoEvento?{...form,id:editandoEvento.id}:form;
-    const res = await fetch("/api/admin/eventos",{method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    const data = await res.json();
-    if (res.ok) {
-      showToast(editandoEvento?"✓ Evento actualizado":"✓ Evento creado");
-      setShowModalEvento(false); setEditandoEvento(null);
-      await cargar();
-    } else showToast(data.error||"Error","error");
-    setLoadingEvento(false);
-  };
-
-  const eliminarEvento = async(id) => {
-    if (!confirm("¿Eliminar este evento?")) return;
-    setDeletingId(id);
-    const res = await fetch(`/api/admin/eventos?id=${id}`,{method:"DELETE"});
-    if (res.ok) { showToast("Evento eliminado"); await cargar(); }
-    else { const d=await res.json(); showToast(d.error||"Error","error"); }
-    setDeletingId(null);
-  };
-
-  const hoyStr = fechaStr(hoy);
-  const diaInfo = diaSelec?(diasMapa[fechaStr(diaSelec)]||{slots:[],eventos:[]}):null;
-
-  /* ── Estadísticas rápidas ── */
-  const totalDisp    = slots.filter(s=>s.estado==="disponible").length;
-  const totalReserv  = slots.filter(s=>s.estado==="reservada").length;
-  const totalEventos = eventos.length;
-
-  if (loading) return (
-    <div style={{ minHeight:"100vh",background:"#FBF4F6",display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:36,height:36,border:"3px solid #C77D93",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
-  return (
-    <div style={{ minHeight:"100vh",background:"#FBF4F6",fontFamily:"system-ui,-apple-system,sans-serif" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-
-      {toast && <div style={{ position:"fixed",top:20,right:20,zIndex:200,background:toast.tipo==="error"?"#C0392B":"#4A2A38",color:"#fff",padding:"12px 20px",borderRadius:14,fontSize:13,fontWeight:600,boxShadow:"0 8px 24px rgba(0,0,0,.15)" }}>{toast.msg}</div>}
-      {showModalSlot && <ModalSlot onClose={()=>setShowModalSlot(false)} onGuardar={crearSlot} loading={loadingSlot} asesoras={asesoras}/>}
-      {showModalEvento && <ModalEvento onClose={()=>{setShowModalEvento(false);setEditandoEvento(null);}} onGuardar={guardarEvento} loading={loadingEvento} editando={editandoEvento}/>}
-
-      {/* HEADER */}
-      <div style={{ background:"#4A2A38",padding:isMobile?"14px 16px":"16px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap" }}>
-        <div>
-          <h1 style={{ fontFamily:"Georgia,serif",fontSize:isMobile?17:20,fontWeight:700,color:"#fff",margin:0 }}>Reuniones y Eventos</h1>
-          {!isMobile&&<p style={{ fontSize:12,color:"rgba(255,255,255,.6)",margin:"2px 0 0" }}>Gestiona horarios disponibles y eventos generales</p>}
-        </div>
-        <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
-          <button onClick={()=>setShowModalSlot(true)}
-            style={{ display:"flex",alignItems:"center",gap:5,background:"#12A46B",color:"#fff",fontSize:isMobile?11:12,fontWeight:700,padding:isMobile?"8px 12px":"9px 16px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
-            <Plus size={13}/> {isMobile?"Horario":"Horario disponible"}
-          </button>
-          <button onClick={()=>{setEditandoEvento(null);setShowModalEvento(true);}}
-            style={{ display:"flex",alignItems:"center",gap:5,background:"#A0435F",color:"#fff",fontSize:isMobile?11:12,fontWeight:700,padding:isMobile?"8px 12px":"9px 16px",borderRadius:12,border:"none",cursor:"pointer",fontFamily:"inherit" }}>
-            <Plus size={13}/> Evento
-          </button>
-        </div>
-      </div>
-
-      <div style={{ maxWidth:1400,margin:"0 auto",padding:isMobile?"14px 16px 40px":"20px 24px 40px" }}>
-
-        {/* Stats */}
-        <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:12,marginBottom:16 }}>
-          {[
-            { n:totalDisp,   label:"Horarios disponibles", color:"#12A46B", bg:"#E6F9F0", Icono:CheckCircle2 },
-            { n:totalReserv, label:"Reuniones agendadas",  color:"#7D2F47", bg:"#FCE8EE", Icono:CalendarDays },
-            { n:totalEventos,label:"Eventos este mes",     color:"#A0435F", bg:"#FBF4F6", Icono:Target },
-          ].map((s,i)=>(
-            <div key={i} style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:isMobile?"12px 14px":"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-              <div style={{ width:isMobile?36:44,height:isMobile?36:44,borderRadius:12,background:s.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?16:20,flexShrink:0 }}><s.Icono size={15}/></div>
-              <div>
-                <p style={{ fontFamily:"Georgia,serif",fontSize:isMobile?22:28,fontWeight:700,color:s.color,margin:0,lineHeight:1 }}>{s.n}</p>
-                <p style={{ fontSize:isMobile?10:12,color:"#9C8790",margin:0 }}>{s.label}</p>
-              </div>
-            </div>
           ))}
+          </div>
         </div>
-
-        <div style={{ display:"flex",gap:20,flexDirection:isMobile?"column":"row" }}>
-          {/* CALENDARIO */}
-          <div style={{ flex:1,minWidth:0 }}>
-            <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)",marginBottom:16 }}>
-              {/* Header mes */}
-              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 24px",borderBottom:"1px solid #FCE8EE",background:"#FBF4F6" }}>
-                <button onClick={()=>navMes(-1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  <ChevronLeft size={16} style={{ color:"#6B7280" }}/>
-                </button>
-                <h2 style={{ fontFamily:"Georgia,serif",fontSize:18,fontWeight:700,color:"#4A2A38",margin:0 }}>
-                  {MESES[mesActual.m]} {mesActual.y}
-                </h2>
-                <button onClick={()=>navMes(1)} style={{ width:34,height:34,borderRadius:99,border:"1.5px solid #F5E1E7",background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  <ChevronRight size={16} style={{ color:"#6B7280" }}/>
-                </button>
-              </div>
-              {/* Días semana */}
-              <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",borderBottom:"1px solid #FCE8EE",background:"#FBF4F6" }}>
-                {DIAS.map(d=><div key={d} style={{ padding:"8px 0",textAlign:"center",fontSize:11,fontWeight:700,color:"#9C8790",textTransform:"uppercase" }}>{d}</div>)}
-              </div>
-              {/* Celdas */}
-              <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)" }}>
-                {celdas.map((dia,i) => {
-                  if (!dia) return <div key={`e${i}`} style={{ minHeight:80,borderRight:"1px solid #FCE8EE",borderBottom:"1px solid #FCE8EE" }}/>;
-                  const fStr = fechaStr(dia);
-                  const info = diasMapa[fStr]||{};
-                  const esHoy = fStr===hoyStr;
-                  const esSel = diaSelec&&fechaStr(diaSelec)===fStr;
-                  const slotsDisp = (info.slots||[]).filter(s=>s.estado==="disponible").length;
-                  const slotsRes  = (info.slots||[]).filter(s=>s.estado==="reservada").length;
-                  const numEventos = (info.eventos||[]).length;
-
-                  return (
-                    <div key={fStr} onClick={()=>setDiaSelec(dia)}
-                      style={{ minHeight:80,borderRight:"1px solid #FCE8EE",borderBottom:"1px solid #FCE8EE",padding:"6px",cursor:"pointer",transition:"background .1s",
-                        background:esSel?"#FBF4F6":esHoy?"#FCE8EE":"#fff",
-                      }}>
-                      <div style={{ display:"flex",justifyContent:"center",marginBottom:4 }}>
-                        <span style={{ width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:esHoy?700:500,
-                          background:esHoy?"#A0435F":esSel?"#A0435F":"transparent",
-                          color:esHoy||esSel?"#fff":"#4A2A38",
-                        }}>{dia.getDate()}</span>
-                      </div>
-                      <div style={{ display:"flex",flexDirection:"column",gap:2 }}>
-                        {slotsDisp>0 && <div style={{ fontSize:9,fontWeight:700,background:"#E6F9F0",color:"#12A46B",borderRadius:6,padding:"1px 5px",textAlign:"center" }}>✅ {slotsDisp} disp.</div>}
-                        {slotsRes>0  && <div style={{ fontSize:9,fontWeight:700,background:"#FCE8EE",color:"#7D2F47",borderRadius:6,padding:"1px 5px",textAlign:"center" }}>📅 {slotsRes} reserv.</div>}
-                        {numEventos>0 && <div style={{ fontSize:9,fontWeight:700,background:"#FFF4EC",color:"#E8853B",borderRadius:6,padding:"1px 5px",textAlign:"center" }}>🎯 {numEventos} evento{numEventos>1?"s":""}</div>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Panel día seleccionado */}
-            {diaSelec && diaInfo && (
-              <div style={{ background:"#fff",borderRadius:20,border:"1px solid #F5E1E7",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-                <div style={{ padding:"14px 20px",borderBottom:"1px solid #FCE8EE",display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FBF4F6" }}>
-                  <h3 style={{ fontFamily:"Georgia,serif",fontSize:14,fontWeight:700,color:"#4A2A38",margin:0 }}>{fmtFecha(fechaStr(diaSelec))}</h3>
-                  <div style={{ display:"flex",gap:8 }}>
-                    <button onClick={()=>setShowModalSlot(true)}
-                      style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,fontWeight:700,color:"#fff",background:"#12A46B",border:"none",padding:"6px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                      <Plus size={11}/> Horario
-                    </button>
-                    <button onClick={()=>setShowModalEvento(true)}
-                      style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,fontWeight:700,color:"#fff",background:"#A0435F",border:"none",padding:"6px 12px",borderRadius:8,cursor:"pointer",fontFamily:"inherit" }}>
-                      <Plus size={11}/> Evento
-                    </button>
-                    <button onClick={()=>setDiaSelec(null)} style={{ background:"#F3F4F6",border:"none",borderRadius:99,width:28,height:28,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                      <X size={13} style={{ color:"#6B7280" }}/>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Slots del día */}
-                {(diaInfo.slots||[]).length>0 && (
-                  <div style={{ padding:"14px 20px",borderBottom:(diaInfo.eventos||[]).length?"1px solid #FCE8EE":"none" }}>
-                    <p style={{ fontSize:11,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Horarios disponibles</p>
-                    <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      {diaInfo.slots.map(s=>(
-                        <div key={s.id} style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:14,border:"1px solid #F5E1E7",background:s.estado==="reservada"?"#FBF4F6":"#F3F4F6" }}>
-                          <div style={{ width:8,height:8,borderRadius:"50%",background:s.estado==="disponible"?"#12A46B":s.estado==="reservada"?"#7D2F47":"#C9A9B4",flexShrink:0 }}/>
-                          <div style={{ flex:1,minWidth:0 }}>
-                            <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap" }}>
-                              <p style={{ fontSize:13,fontWeight:600,color:"#4A2A38",margin:0 }}>
-                                {fmtHora(s.hora_inicio)} — {fmtHora(s.hora_fin)}
-                              </p>
-                              <span style={{ fontSize:10,fontWeight:700,background:s.estado==="disponible"?"#E6F9F0":s.estado==="reservada"?"#FCE8EE":"#F3F4F6",color:s.estado==="disponible"?"#12A46B":s.estado==="reservada"?"#7D2F47":"#6B7280",padding:"2px 8px",borderRadius:99 }}>
-                                {s.estado==="disponible"?"Disponible":s.estado==="reservada"?"Reservada":"Cancelada"}
-                              </span>
-                            </div>
-                            <p style={{ fontSize:11,color:"#9C8790",margin:"2px 0 0" }}>
-                              {s.asesora_nombre} {s.asesora_apellido}
-                              {s.estado==="reservada"&&s.cliente_nombre && ` · ${s.cliente_nombre} ${s.cliente_apellido}`}
-                            </p>
-                          </div>
-                          {s.estado!=="reservada" && (
-                            <button onClick={()=>eliminarSlot(s.id)} disabled={deletingId===s.id}
-                              style={{ width:30,height:30,borderRadius:9,border:"1px solid #FDECEC",background:"#FDECEC",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                              {deletingId===s.id?<div style={{ width:12,height:12,border:"2px solid #C0392B40",borderTopColor:"#C0392B",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>:<Trash2 size={12} style={{ color:"#C0392B" }}/>}
-                            </button>
-                          )}
-                          {s.estado==="reservada"&&s.cliente_email && (
-                            <a href={`mailto:${s.cliente_email}`} style={{ fontSize:11,fontWeight:600,color:"#A0435F",textDecoration:"none",border:"1px solid #FCE8EE",padding:"5px 10px",borderRadius:8,flexShrink:0 }}>
-                              Contactar
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Eventos del día */}
-                {(diaInfo.eventos||[]).length>0 && (
-                  <div style={{ padding:"14px 20px" }}>
-                    <p style={{ fontSize:11,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".5px",margin:"0 0 10px" }}>Eventos</p>
-                    <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      {diaInfo.eventos.map(e=>{
-                        const cfg=TIPO_CFG[e.tipo]||TIPO_CFG.otro;
-                        return (
-                          <div key={e.id} style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:14,border:`1px solid ${cfg.color}30`,background:cfg.bg }}>
-                            <span style={{ fontSize:18,flexShrink:0 }}><cfg.Icono size={15}/></span>
-                            <div style={{ flex:1,minWidth:0 }}>
-                              <p style={{ fontSize:13,fontWeight:600,color:cfg.color,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
-                              <p style={{ fontSize:11,color:cfg.color,opacity:.8,margin:0 }}>
-                                {fmtHora(e.hora_inicio)}{e.hora_fin?` — ${fmtHora(e.hora_fin)}`:""} · {cfg.label} · {e.visible?"Visible para todas":"Solo admin"}
-                              </p>
-                            </div>
-                            <div style={{ display:"flex",gap:6 }}>
-                              <button onClick={()=>{setEditandoEvento(e);setShowModalEvento(true);}}
-                                style={{ width:30,height:30,borderRadius:9,border:`1px solid ${cfg.color}40`,background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                                <Edit2 size={12} style={{ color:cfg.color }}/>
-                              </button>
-                              <button onClick={()=>eliminarEvento(e.id)} disabled={deletingId===e.id}
-                                style={{ width:30,height:30,borderRadius:9,border:"1px solid #FDECEC",background:"#FDECEC",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                                {deletingId===e.id?<div style={{ width:12,height:12,border:"2px solid #C0392B40",borderTopColor:"#C0392B",borderRadius:"50%",animation:"spin 1s linear infinite" }}/>:<Trash2 size={12} style={{ color:"#C0392B" }}/>}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {!diaInfo.slots?.length && !diaInfo.eventos?.length && (
-                  <div style={{ padding:"24px 20px",textAlign:"center" }}>
-                    <p style={{ fontSize:13,color:"#9C8790",margin:0 }}>Sin horarios ni eventos este día.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* PANEL LATERAL */}
-          <div style={{ width:isMobile?"100%":320,flexShrink:0,display:"flex",flexDirection:"column",gap:14 }}>
-
-            {/* Tabs */}
-            <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",overflow:"hidden" }}>
-              <div style={{ display:"flex",borderBottom:"1px solid #FCE8EE" }}>
-                {[{id:"slots",label:"Horarios",n:slots.length},{id:"eventos",label:"Eventos",n:eventos.length}].map(t=>(
-                  <button key={t.id} onClick={()=>setTab(t.id)}
-                    style={{ flex:1,padding:"12px",border:"none",background:"none",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"inherit",
-                      color:tab===t.id?"#A0435F":"#6B7280",
-                      borderBottom:tab===t.id?"2px solid #A0435F":"2px solid transparent",
-                    }}>
-                    {t.label} ({t.n})
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ padding:16,maxHeight:500,overflowY:"auto" }}>
-                {/* Lista slots */}
-                {tab==="slots" && (
-                  slots.length===0 ? (
-                    <div style={{ textAlign:"center",padding:"24px 0" }}>
-                      <p style={{ fontSize:13,color:"#9C8790",margin:0 }}>Sin horarios este mes.</p>
-                      <button onClick={()=>setShowModalSlot(true)}
-                        style={{ marginTop:10,fontSize:12,fontWeight:600,color:"#12A46B",background:"#E6F9F0",border:"none",padding:"8px 16px",borderRadius:10,cursor:"pointer",fontFamily:"inherit" }}>
-                        + Crear horario
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      {slots.map(s=>(
-                        <div key={s.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,border:"1px solid #F5E1E7",background:s.estado==="reservada"?"#FBF4F6":"#F3F4F6" }}>
-                          <div style={{ width:7,height:7,borderRadius:"50%",background:s.estado==="disponible"?"#12A46B":s.estado==="reservada"?"#7D2F47":"#C9A9B4",flexShrink:0 }}/>
-                          <div style={{ flex:1,minWidth:0 }}>
-                            <p style={{ fontSize:12,fontWeight:600,color:"#4A2A38",margin:0 }}>
-                              {new Date(cleanFecha(s.fecha)+"T12:00:00").toLocaleDateString("es-CO",{day:"numeric",month:"short"})}
-                            </p>
-                            <p style={{ fontSize:11,color:"#9C8790",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
-                              {s.asesora_nombre} {s.asesora_apellido}
-                              {s.estado==="reservada"&&s.cliente_nombre ? ` · ${s.cliente_nombre}` : ""}
-                            </p>
-                          </div>
-                          {s.estado!=="reservada" && (
-                            <button onClick={()=>eliminarSlot(s.id)} disabled={deletingId===s.id}
-                              style={{ background:"none",border:"none",cursor:"pointer",color:"#C0392B",padding:4,flexShrink:0 }}>
-                              <Trash2 size={13}/>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )
-                )}
-
-                {/* Lista eventos */}
-                {tab==="eventos" && (
-                  eventos.length===0 ? (
-                    <div style={{ textAlign:"center",padding:"24px 0" }}>
-                      <p style={{ fontSize:13,color:"#9C8790",margin:0 }}>Sin eventos este mes.</p>
-                      <button onClick={()=>setShowModalEvento(true)}
-                        style={{ marginTop:10,fontSize:12,fontWeight:600,color:"#A0435F",background:"#FCE8EE",border:"none",padding:"8px 16px",borderRadius:10,cursor:"pointer",fontFamily:"inherit" }}>
-                        + Crear evento
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                      {eventos.map(e=>{
-                        const cfg=TIPO_CFG[e.tipo]||TIPO_CFG.otro;
-                        return (
-                          <div key={e.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,border:`1px solid ${cfg.color}25`,background:cfg.bg }}>
-                            <span style={{ fontSize:16,flexShrink:0 }}><cfg.Icono size={15}/></span>
-                            <div style={{ flex:1,minWidth:0 }}>
-                              <p style={{ fontSize:12,fontWeight:600,color:cfg.color,margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{e.titulo}</p>
-                              <p style={{ fontSize:11,color:cfg.color,opacity:.8,margin:0 }}>
-                                {new Date(cleanFecha(e.fecha)+"T12:00:00").toLocaleDateString("es-CO",{day:"numeric",month:"short"})}
-                                {e.hora_inicio?` · ${fmtHora(e.hora_inicio)}`:""}
-                              </p>
-                            </div>
-                            <div style={{ display:"flex",gap:4 }}>
-                              <button onClick={()=>{setEditandoEvento(e);setShowModalEvento(true);}}
-                                style={{ background:"rgba(255,255,255,.7)",border:"none",cursor:"pointer",borderRadius:7,padding:5,color:cfg.color }}>
-                                <Edit2 size={11}/>
-                              </button>
-                              <button onClick={()=>eliminarEvento(e.id)} disabled={deletingId===e.id}
-                                style={{ background:"rgba(255,255,255,.7)",border:"none",cursor:"pointer",borderRadius:7,padding:5,color:"#C0392B" }}>
-                                <Trash2 size={11}/>
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Leyenda */}
-            <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:16 }}>
-              <p style={{ fontSize:12,fontWeight:700,color:"#4A2A38",margin:"0 0 10px" }}>Leyenda del calendario</p>
-              <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-                {[
-                  { color:"#12A46B", label:"Horario disponible" },
-                  { color:"#7D2F47", label:"Horario reservado" },
-                  { color:"#E8853B", label:"Taller / Evento" },
-                ].map((l,i)=>(
-                  <div key={i} style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:10,height:10,borderRadius:3,background:l.color,flexShrink:0 }}/>
-                    <span style={{ fontSize:12,color:"#6B7280" }}>{l.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Acceso rápido */}
-            <div style={{ background:"#fff",borderRadius:16,border:"1px solid #F5E1E7",padding:16 }}>
-              <p style={{ fontSize:12,fontWeight:700,color:"#4A2A38",margin:"0 0 10px" }}>Acciones rápidas</p>
-              <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-                <button onClick={()=>setShowModalSlot(true)}
-                  style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #E6F9F0",background:"#E6F9F0",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-                  <CheckCircle2 size={15} style={{ color:"#12A46B" }}/>
-                  <div>
-                    <p style={{ fontSize:12,fontWeight:600,color:"#12A46B",margin:0 }}>Agregar horario disponible</p>
-                    <p style={{ fontSize:10,color:"#12A46B",margin:0 }}>Las usuarias podrán reservarlo</p>
-                  </div>
-                </button>
-                <button onClick={()=>{setEditandoEvento(null);setShowModalEvento(true);}}
-                  style={{ display:"flex",alignItems:"center",gap:8,padding:"10px 14px",borderRadius:12,border:"1.5px solid #c4b5fd",background:"#FBF4F6",cursor:"pointer",fontFamily:"inherit",textAlign:"left" }}>
-                  <Target size={15} style={{ color:"#A0435F" }}/>
-                  <div>
-                    <p style={{ fontSize:12,fontWeight:600,color:"#7D2F47",margin:0 }}>Crear evento general</p>
-                    <p style={{ fontSize:10,color:"#A0435F",margin:0 }}>Foro, taller, llamada grupal...</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
+      {modal?.tipo === "administrar" && <AdministrarAgenda equipo={equipo} yo={yo} horarios={horarios} onCerrar={() => setModal(null)} onGuardado={listo} />}
+      {modal?.tipo === "dia" && <EditarDia fecha={seleccion} equipo={equipo} yo={yo} horarios={horarios} franjasDelDia={todo.franjas.filter((f) => f.fecha === seleccion)} ajustado={ajustado} onCerrar={() => setModal(null)} onGuardado={listo} />}
+      {modal?.tipo === "agendar" && <ModalAgendar cupo={modal.cupo} franja={modal.franja} onCerrar={() => setModal(null)} onAgendado={listo} />}
+      {modal?.tipo === "reserva" && <ModalReserva cupo={modal.cupo} franja={modal.franja} onCerrar={() => setModal(null)} onCancelada={listo} />}
+      {modal?.tipo === "evento" && (
+        <>
+          <ModalEvento onClose={() => setModal(null)} onGuardar={guardarEvento} loading={false} editando={modal.evento || null} />
+          {modal.evento && (
+            <button type="button" onClick={() => borrarEvento(modal.evento)}
+              style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 1600, border: "none", background: T.danger, color: "#fff", borderRadius: 99, padding: "10px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: T.font, display: "flex", gap: 6, alignItems: "center" }}>
+              <Trash2 size={14} /> Borrar este evento
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }
