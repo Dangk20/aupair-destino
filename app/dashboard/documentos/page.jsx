@@ -6,7 +6,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell, Check, CheckCircle2, Lock, Upload, Eye, ArrowRight, AlertCircle, GraduationCap, BookMarked, IdCard, Camera, HeartPulse, ShieldCheck, ScrollText, Stethoscope, Mail, Award, Languages, Baby, FileText, Paperclip, Image as ImageIcon, X,
+  Check, CheckCircle2, Lock, Upload, Eye, ArrowRight, AlertCircle, GraduationCap, BookMarked, IdCard, Camera, HeartPulse, ShieldCheck, ScrollText, Stethoscope, Mail, Award, Languages, Baby, FileText, Paperclip, Image as ImageIcon, X,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
@@ -140,9 +140,6 @@ export default function DocumentosPage() {
           <div style={{ fontSize:isMobile?21:26,fontWeight:700,color:T.text,lineHeight:1.1 }}>Tu documentación</div>
           <div style={{ fontSize:13.5,color:T.textSoft,marginTop:3 }}>La llave para presentarte ante la agencia</div>
         </div>
-        <button style={{ width:42,height:42,borderRadius:12,background:"#fff",border:"none",display:"flex",alignItems:"center",justifyContent:"center",color:T.primary,cursor:"pointer",position:"relative",flexShrink:0 }}>
-          <Bell size={19}/><span style={{ position:"absolute",top:11,right:12,width:7,height:7,borderRadius:"50%",background:T.primary3 }}/>
-        </button>
       </div>
 
       {/* progreso */}

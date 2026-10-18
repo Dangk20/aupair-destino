@@ -8,6 +8,7 @@ import Link from "next/link";
 import {
   Bell, User, Shield, Globe, HelpCircle, Settings, ChevronRight, Eye, EyeOff, Check, AlertTriangle, Lock, MessageCircle, Calendar, FolderOpen, GraduationCap, X,
 } from "lucide-react";
+import { useContacto, enlaceAgendar } from "@/components/dashboard/useContacto";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 
@@ -62,12 +63,14 @@ const TABS = [
 export default function ConfiguracionPage() {
   const router = useRouter();
   const { isMobile } = useMobile();
+  const contacto = useContacto();
 
   const [config,  setConfig]  = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [tab,     setTab]     = useState("cuenta");
   const [toast,   setToast]   = useState(null);
+  const agendar = enlaceAgendar(contacto.whatsapp, config?.nombre);
 
   const [passActual,setPassActual]=useState(""); const [passNuevo,setPassNuevo]=useState(""); const [passConfirm,setPassConfirm]=useState("");
   const [showPA,setShowPA]=useState(false); const [showPN,setShowPN]=useState(false); const [showPC,setShowPC]=useState(false);
@@ -299,7 +302,7 @@ export default function ConfiguracionPage() {
                 <p style={{ fontSize:12,color:T.textSoft,margin:"0 0 14px" }}>¿Necesitas ayuda? Estamos aquí para ti.</p>
                 {[
                   { icon:MessageCircle,titulo:"Escribir a soporte",desc:"Te responderemos a la brevedad.",link:"/dashboard/mensajes",label:"Ir a mensajes" },
-                  { icon:Calendar,titulo:"Agendar una reunión",desc:"Sesión con tu asesora para resolver dudas.",link:"/dashboard/reuniones",label:"Agendar" },
+                  { icon:Calendar,titulo:"Agendar una reunión",desc:"Sesión con tu asesora para resolver dudas.",link:agendar.href,externo:agendar.externo,label:"Agendar" },
                   { icon:FolderOpen,titulo:"Centro de recursos",desc:"Guías, videos y documentos de ayuda.",link:"/dashboard/recursos",label:"Ver recursos" },
                   { icon:GraduationCap,titulo:"Ver el curso",desc:"Continúa con tus lecciones del programa.",link:"/dashboard/curso",label:"Ir al curso" },
                 ].map((a,i,arr)=>{ const Ic=a.icon; return (
@@ -311,7 +314,7 @@ export default function ConfiguracionPage() {
                         {!isMobile&&<p style={{ fontSize:11,color:T.textSoft,margin:0 }}>{a.desc}</p>}
                       </div>
                     </div>
-                    <Link href={a.link} style={{ display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:10,border:`1.5px solid ${T.border}`,background:"#fff",color:T.primary,fontSize:12,fontWeight:600,textDecoration:"none",flexShrink:0 }}>{a.label} <ChevronRight size={12}/></Link>
+                    <Link href={a.link} target={a.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:10,border:`1.5px solid ${T.border}`,background:"#fff",color:T.primary,fontSize:12,fontWeight:600,textDecoration:"none",flexShrink:0 }}>{a.label} <ChevronRight size={12}/></Link>
                   </div>
                 ); })}
                 <div style={{ marginTop:20,background:T.lilac,borderRadius:14,padding:"14px 16px" }}>

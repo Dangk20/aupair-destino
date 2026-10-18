@@ -78,7 +78,7 @@ mysql -h tu-host -u root -p tu-database
 ✅ documentos_usuario
 ✅ mensajes
 ✅ proceso_usuario
-✅ recursos
+✖ recursos — nunca existió en la base; los recursos viven en `sesion_recursos`
 ✅ sesion_recursos
 ```
 

@@ -5,48 +5,24 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
-  Bell, Check, Play, Lock, ArrowRight, CheckCircle2, PlayCircle, FileText, Download,
+  Check, Play, Lock, ArrowRight, CheckCircle2, PlayCircle, Award,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
+import { ListaRecursos } from "@/components/dashboard/ListaRecursos";
 
 /* ── Recursos descargables de la clase (R7) ──
    Los trae GET /api/dashboard/sesiones con cada sesión desbloqueada. La
    descarga va por la ruta autenticada, que entrega el archivo como adjunto. */
-const TIPO_RECURSO = { pdf:"PDF", docx:"Word", otro:"Archivo" };
-const tamano = (kb) => !kb ? "" : kb >= 1024 ? `${(kb/1024).toFixed(1)} MB` : `${kb} KB`;
-
 function RecursosDeLaClase({ recursos }) {
   if (!recursos?.length) return null;
   return (
     <>
       <div style={{ height:1, background:T.border, margin:"16px 0" }}/>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:".08em", color:T.textSoft, marginBottom:10 }}>RECURSOS DE ESTA CLASE</div>
-      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-        {recursos.map(r => {
-          const ok = r.disponible !== false;
-          return (
-            <div key={r.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:T.softFill, opacity:ok?1:.6 }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:"#fff", color:T.primary, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                <FileText size={17}/>
-              </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13.5, fontWeight:600, color:T.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.nombre}</div>
-                <div style={{ fontSize:11.5, color:T.textSoft }}>
-                  {ok ? [TIPO_RECURSO[r.tipo] || "Archivo", tamano(r.tamano_kb)].filter(Boolean).join(" · ") : "No disponible"}
-                </div>
-              </div>
-              {ok && (
-                <a href={r.url} download aria-label={`Descargar ${r.nombre}`}
-                  style={{ display:"inline-flex", alignItems:"center", gap:6, background:T.primary, color:"#fff", borderRadius:10, padding:"8px 12px", fontSize:12.5, fontWeight:700, textDecoration:"none", flexShrink:0 }}>
-                  <Download size={14}/> Descargar
-                </a>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <ListaRecursos recursos={recursos}/>
     </>
   );
 }
@@ -160,9 +136,6 @@ export default function CursoPage() {
             <Check size={14}/> 100% gratis, siempre. Sin pagos para ver los videos.
           </div>
         </div>
-        <button style={{ width:42, height:42, borderRadius:12, background:"#fff", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:T.primary, cursor:"pointer", position:"relative", flexShrink:0 }}>
-          <Bell size={19}/><span style={{ position:"absolute", top:11, right:12, width:7, height:7, borderRadius:"50%", background:T.primary3 }}/>
-        </button>
       </div>
 
       {/* dos columnas */}
@@ -222,6 +195,12 @@ export default function CursoPage() {
               <div style={{ height:"100%", width:`${porcentaje}%`, background:"linear-gradient(90deg,#A0435F,#C77D93)", borderRadius:20, transition:"width .5s" }}/>
             </div>
             <div style={{ fontSize:12, color:T.textSoft, marginTop:7 }}>{completadas} de {total} clases completadas</div>
+            {/* El certificado existía, pero ninguna pantalla llevaba a él (candidata-datos-reales). */}
+            {total > 0 && completadas >= total && (
+              <Link href="/dashboard/certificado" style={{ marginTop:12, display:"flex", alignItems:"center", justifyContent:"center", gap:7, background:T.primary, color:"#fff", borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>
+                <Award size={15}/> Ver mi certificado
+              </Link>
+            )}
           </div>
 
           <div style={{ maxHeight:isMobile?"none":560, overflowY:"auto" }}>

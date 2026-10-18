@@ -201,7 +201,7 @@ Retiradas en `panel-agencia`: `/agencia/[id]`, `/agencia/candidatas`,
 `/agencia/perfiles`, `/agencia/perfiles/[id]` (el flujo heredado sin modelo de
 asignación que describe la sección de propiedad, más abajo).
 
-## `/api/dashboard/**` — 15 rutas, 22 handlers
+## `/api/dashboard/**` — 15 rutas, 22 handlers (14 y 21 tras retirar `/dashboard/recursos`; +1 `/dashboard/contacto`)
 
 Nivel objetivo: **sesión**, más el **permiso** de la sección que se paga.
 Aquí está el grueso del trabajo pendiente: de 22 handlers, **uno solo**
@@ -224,9 +224,9 @@ verifica permiso hoy.
 | `/dashboard/perfil/enviar` | POST | sesión | ✅ — marca una parte como enviada si está completa |
 | `/dashboard/historial` | GET | sesión | ✅ — el historial de la propia candidata, sin lo interno |
 | `/dashboard/proceso` | GET | sesión | ✅ — pasos derivados de las etapas (`etapas-candidata`); el PUT de override se retiró |
-| `/dashboard/recursos` | GET | sesión + `acceso_recursos` | 🔴 |
 | `/dashboard/reuniones` | GET, POST, DELETE | sesión + `acceso_reuniones` | 🔴 |
 | `/dashboard/sesiones` | GET | sesión | ✅ — contenido del curso |
+| `/dashboard/contacto` | GET | sesión | ✅ — WhatsApp del programa; el enlace del grupo sólo con `acceso_comunidad`, leído de la base (`candidata-datos-reales`) |
 
 **No hay ninguna ruta de `acceso_comunidad`.** La comunidad se resuelve hoy en
 el cliente (`app/dashboard/comunidad/page.jsx`) sin llamar a la API. El
@@ -247,6 +247,10 @@ después de entrar. Lo ajeno → 404. La asociada no tiene conversaciones todav�
 | `/conversaciones` | POST | ✅ | ✅ `iniciar()`: la agencia, la suya; admin y candidata, la del equipo |
 | `/conversaciones/[id]/mensajes` | GET, POST | ✅ | ✅ `acceso()`; POST exige `permisos.escribir` |
 | `/conversaciones/[id]/entrar` | POST | ✅ | ✅ sólo admin, conversación de agencia |
+
+Retirada en `candidata-datos-reales` (oct 2026): `/dashboard/recursos`, que consultaba una tabla
+`recursos` inexistente y devolvía `[]` al fallar. La biblioteca de Recursos lee los
+recursos por sesión de `/dashboard/sesiones` (`sesion_recursos`).
 
 Retiradas en `chat-candidata`: `/admin/mensajes` y `/dashboard/mensajes`
 (sólo modelaban candidata ↔ equipo sobre la tabla `mensajes`).

@@ -38,7 +38,8 @@ export async function GET(req) {
 
     const completadas = sesiones.filter((s) => s.estado === "completed").length;
     const total = sesiones.length;
-    const porcentaje = Math.round((completadas / total) * 100);
+    // Sin sesiones el progreso es 0, no NaN.
+    const porcentaje = total > 0 ? Math.round((completadas / total) * 100) : 0;
 
     return NextResponse.json({ sesiones, completadas, total, porcentaje });
   } catch (err) {

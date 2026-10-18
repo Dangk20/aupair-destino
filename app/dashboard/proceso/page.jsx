@@ -5,10 +5,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
+import { Check, Star, Globe, Award, ArrowRight, FileText, Calendar, MessageCircle } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 import { proximaReunion } from "@/lib/reuniones";
+import { proximoPasoCandidata } from "@/lib/proximo-paso";
+import { useContacto, enlaceAgendar } from "@/components/dashboard/useContacto";
 import LineaDeTiempo from "@/components/perfil/LineaDeTiempo";
 import { etapaPorId } from "@/lib/etapas-candidata";
 
@@ -16,7 +18,8 @@ import { etapaPorId } from "@/lib/etapas-candidata";
 export default function MiDestinoPage() {
   const router = useRouter();
   const { isMobile } = useMobile();
-  const [user,setUser]=useState(null); const [pasos,setPasos]=useState([]);
+  const contacto = useContacto();
+  const [user,setUser]=useState(null); const [pasos,setPasos]=useState([]); const [proceso,setProceso]=useState(null);
   const [reunion,setReunion]=useState(null); const [docs,setDocs]=useState({count:0,total:0});
   const [loading,setLoading]=useState(true);
   // Etapa, agencia e historial: la línea de tiempo compartida con la ficha.
@@ -32,7 +35,7 @@ export default function MiDestinoPage() {
       safe(fetch("/api/dashboard/historial"),null),
     ]).then(([me,proc,reu,dd,hist])=>{
       setRecorrido(hist);
-      setUser(me?.user||null); setPasos(proc?.pasos||[]); setReunion(proximaReunion(reu?.reuniones||[]));
+      setUser(me?.user||null); setPasos(proc?.pasos||[]); setProceso(proc); setReunion(proximaReunion(reu?.reuniones||[]));
       const total=(dd?.docs_requeridos||[]).length;
       const subidos=new Set((dd?.docs||[]).map(d=>d.tipo_doc));
       const count=(dd?.docs_requeridos||[]).filter(r=>subidos.has(r.tipo)).length;
@@ -55,10 +58,15 @@ export default function MiDestinoPage() {
   const tieneAcceso = !!user?.tiene_acceso;
 
   // Próximo paso (dinámico)
-  let prox;
-  if (!tieneAcceso)                     prox = { title:"Activa tu acompañamiento", desc:"Es el paso que te presenta ante una agencia aliada.", cta:"Activar", href:"/pago" };
-  else if (docs.count < docs.total)     prox = { title:"Carga tu documentación", desc:`Te faltan ${docs.total-docs.count} documentos para presentar tu perfil.`, cta:"Ir a documentos", href:"/dashboard/documentos" };
-  else                                  prox = { title:"Perfil en revisión", desc:"Nuestro equipo revisa tu perfil (1–3 días hábiles).", cta:null };
+  // La misma regla que el inicio (lib/proximo-paso.js).
+  const prox = proximoPasoCandidata({
+    cursoCompleto: !!proceso?.curso_completo,
+    tieneAcceso,
+    perfilListo: pasos.find(p=>p.id==="perfil")?.status==="completado",
+    docsListos: docs.total>0 && docs.count>=docs.total,
+    proceso,
+  });
+  const agendar = enlaceAgendar(contacto.whatsapp, user?.nombre);
 
   return (
     <div style={{ fontFamily:T.font,color:T.text,padding:isMobile?"16px 16px 90px":"28px 30px",display:"flex",gap:22,flexDirection:isMobile?"column":"row",maxWidth:1180,margin:"0 auto",width:"100%" }}>
@@ -72,9 +80,6 @@ export default function MiDestinoPage() {
             <div style={{ fontSize:isMobile?21:26,fontWeight:700,color:T.text,lineHeight:1.1 }}>Mi Destino</div>
             <div style={{ fontSize:13.5,color:T.textSoft,marginTop:3 }}>Tu pasaporte al sueño de ser au pair</div>
           </div>
-          <button style={{ width:42,height:42,borderRadius:12,background:"#fff",border:"none",display:"flex",alignItems:"center",justifyContent:"center",color:T.primary,cursor:"pointer",position:"relative",flexShrink:0 }}>
-            <Bell size={19}/><span style={{ position:"absolute",top:11,right:12,width:7,height:7,borderRadius:"50%",background:T.primary3 }}/>
-          </button>
         </div>
 
         {/* PASAPORTE */}
@@ -154,7 +159,7 @@ export default function MiDestinoPage() {
           <div style={{ background:T.lilac,borderRadius:18,padding:18 }}>
             <div style={{ display:"flex",alignItems:"center",gap:9,color:T.primary,fontWeight:700,fontSize:13,marginBottom:6 }}><Calendar size={15}/> Tu próxima reunión</div>
             <div style={{ fontSize:12.5,color:T.textSoft,lineHeight:1.45 }}>{reunion ? `${reunion.fecha} · ${reunion.hora}` : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}</div>
-            <Link href="/dashboard/reuniones" style={{ display:"block",textAlign:"center",marginTop:12,background:"#fff",color:T.primary,borderRadius:12,padding:11,fontWeight:700,fontSize:13,textDecoration:"none" }}>Agendar reunión</Link>
+            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>Agendar reunión</a>
           </div>
 
           {/* soporte */}

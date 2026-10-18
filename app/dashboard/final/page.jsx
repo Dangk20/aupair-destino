@@ -50,7 +50,7 @@ export default function PantallaFinalPage() {
             <span className="italic text-[#a0435f]">{user?.nombre}!</span>
           </h1>
           <p className="text-[15px] text-[#9C8790] leading-relaxed max-w-md mx-auto">
-            Completaste las 8 sesiones del programa. Estás lista para dar el siguiente paso en tu camino au pair.
+            Completaste todas las sesiones del programa. Estás lista para dar el siguiente paso en tu camino au pair.
           </p>
         </div>
 

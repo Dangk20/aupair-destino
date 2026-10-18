@@ -5,15 +5,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Bell, Check, Star, ArrowRight, Globe, MessageCircle, Calendar, Sparkles,
+  Check, Star, ArrowRight, Globe, MessageCircle, Calendar, Sparkles, Award,
 } from "lucide-react";
 import { useMobile } from "@/context/MobileContext";
 import { T } from "@/lib/tema";
 import { proximaReunion } from "@/lib/reuniones";
+import { proximoPasoCandidata } from "@/lib/proximo-paso";
+import { useContacto, enlaceAgendar } from "@/components/dashboard/useContacto";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isMobile } = useMobile();
+  const contacto = useContacto();
 
   const [user,       setUser]       = useState(null);
   const [sesData,    setSesData]    = useState(null);
@@ -80,16 +83,8 @@ export default function DashboardPage() {
 
   // Hero: próximo paso REAL. Prioridad de acciones de la candidata; si ya hizo
   // todo lo suyo, usa el proximoPaso del proceso (que incluye "esperar / en revisión").
-  let hero;
-  if (!cursoCompleto)      hero = { kicker:"TU PRÓXIMO PASO", title:"Continúa tu formación", desc:"Mira tus videos: te preparan para todo lo que viene. Son 100% gratis.", cta:"Continuar mi curso", href:"/dashboard/curso" };
-  else if (!tieneAcceso)   hero = { kicker:"TU PRÓXIMO PASO", title:"Terminaste tu formación. Ahora prepárate para conocer a tu agencia.", desc:"Activa tu acompañamiento para que una agencia aliada revise tu perfil y te acepte.", cta:"Activar mi acompañamiento", href:"/pago" };
-  else if (!perfilListo)   hero = { kicker:"TU PRÓXIMO PASO", title:"Cuéntanos de ti", desc:"Completa tu perfil (ambas partes) para que podamos presentarte ante una agencia.", cta:"Completar mi perfil", href:"/dashboard/perfil" };
-  else if (!docsListos)    hero = { kicker:"TU PRÓXIMO PASO", title:"Carga tu documentación", desc:"Sube tus documentos para que presentemos tu perfil a una agencia aliada.", cta:"Ir a mis documentos", href:"/dashboard/documentos" };
-  else if (proceso?.proximoPaso) {
-    const esperando = /revisando|revisi/i.test(proceso.proximoPaso.titulo||"");
-    hero = { kicker: esperando?"EN PROCESO":"TU PRÓXIMO PASO", title: proceso.proximoPaso.titulo, desc: proceso.proximoPaso.detalle, cta: esperando?null:proceso.proximoPaso.label_boton, href: proceso.proximoPaso.link };
-  }
-  else                     hero = { kicker:"EN PROCESO", title:"Estamos revisando tu perfil", desc:"Nuestro equipo lo revisa y te avisará aquí y por correo (1–3 días hábiles).", cta:null, href:"/dashboard/proceso" };
+  const hero = proximoPasoCandidata({ cursoCompleto, tieneAcceso, perfilListo, docsListos, proceso });
+  const agendar = enlaceAgendar(contacto.whatsapp, user?.nombre);
 
   if (loading) return (
     <div style={{ minHeight:"60vh", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:T.font }}>
@@ -115,10 +110,6 @@ export default function DashboardPage() {
             <div style={{ fontSize:isMobile?21:26, fontWeight:700, color:T.text, lineHeight:1.1 }}>Hola, {user?.nombre}</div>
             <div style={{ fontSize:13.5, color:T.textSoft, marginTop:3 }}>Cada paso te acerca a tu aventura</div>
           </div>
-          <button style={{ width:42, height:42, borderRadius:12, background:"#fff", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:T.primary, cursor:"pointer", position:"relative", flexShrink:0 }}>
-            <Bell size={19}/>
-            <span style={{ position:"absolute", top:11, right:12, width:7, height:7, borderRadius:"50%", background:T.primary3 }}/>
-          </button>
         </div>
 
         {/* HERO — próximo paso */}
@@ -193,6 +184,11 @@ export default function DashboardPage() {
                 </div>
               );
             })}
+            {cursoCompleto && total > 0 && (
+              <Link href="/dashboard/certificado" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, marginTop:10, background:T.lilac, color:T.primary, borderRadius:12, padding:10, fontWeight:700, fontSize:12.5, textDecoration:"none" }}>
+                <Award size={14}/> Ver mi certificado
+              </Link>
+            )}
           </div>
 
           <div style={{ background:T.lilac, borderRadius:18, padding:18 }}>
@@ -200,7 +196,7 @@ export default function DashboardPage() {
             <div style={{ fontSize:12.5, color:T.textSoft, lineHeight:1.45 }}>
               {reunion ? `${reunion.fecha} · ${reunion.hora}` : "Aún no tienes una agendada. Reserva una llamada con tu asesora."}
             </div>
-            <Link href="/dashboard/reuniones" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>Agendar reunión</Link>
+            <a href={agendar.href} target={agendar.externo?"_blank":undefined} rel="noopener noreferrer" style={{ display:"block", textAlign:"center", marginTop:12, background:"#fff", color:T.primary, borderRadius:12, padding:11, fontWeight:700, fontSize:13, textDecoration:"none" }}>Agendar reunión</a>
           </div>
         </aside>
       )}

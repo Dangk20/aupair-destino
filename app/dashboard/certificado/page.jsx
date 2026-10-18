@@ -10,6 +10,7 @@ export default function CertificadoPage() {
   const [user,            setUser]            = useState(null);
   const [loading,         setLoading]         = useState(true);
   const [fechaCompletado, setFechaCompletado] = useState("");
+  const [total,           setTotal]           = useState(0);
 
   useEffect(() => {
     fetch("/api/dashboard/sesiones")
@@ -19,7 +20,9 @@ export default function CertificadoPage() {
       })
       .then((d) => {
         if (!d) return;
-        if (d.completadas < d.total) { router.push("/dashboard"); return; }
+        // Sin sesiones no hay curso que certificar (antes 0 de 0 pasaba).
+        if (!d.total || d.completadas < d.total) { router.push("/dashboard"); return; }
+        setTotal(d.total);
 
         const ultimaSesion = d.sesiones
           ?.filter(s => s.fecha_completado)
@@ -54,7 +57,7 @@ export default function CertificadoPage() {
           onClick={() => window.print()}
           className="flex items-center gap-2 bg-[#a0435f] hover:bg-[#7D2F47] text-white text-[13px] font-medium px-5 py-2.5 rounded-xl transition">
           <DownloadIcon size={14}/>
-          Descargar certificado
+          Guardar como PDF
         </button>
       </div>
 
@@ -75,7 +78,7 @@ export default function CertificadoPage() {
           </p>
           <div className="bg-[#FBF4F6] border border-[#F5E1E7] rounded-2xl px-8 py-5 inline-block mb-8">
             <p className="font-serif text-[22px] font-bold text-[#3A2530]">Destino Au Pair</p>
-            <p className="text-[12px] text-[#9C8790] mt-1">Programa completo de preparación au pair · 8 sesiones</p>
+            <p className="text-[12px] text-[#9C8790] mt-1">Programa completo de preparación au pair · {total} {total === 1 ? "sesión" : "sesiones"}</p>
           </div>
           <div className="flex items-center justify-center gap-2 mb-10">
             <CheckCircleIcon size={14} className="text-[#a0435f]"/>

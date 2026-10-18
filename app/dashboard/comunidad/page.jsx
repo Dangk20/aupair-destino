@@ -7,10 +7,12 @@ import {
   Lock, MessagesSquare, Handshake, Lightbulb, ClipboardList, PartyPopper,
 } from "lucide-react";
 import { useAccessGate, GateLoading, GateScreen } from "@/components/dashboard/AccessGate";
+import { useContacto } from "@/components/dashboard/useContacto";
 
 export default function ComunidadPage() {
   const router = useRouter();
   const gate = useAccessGate("comunidad");
+  const contacto = useContacto();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -117,10 +119,17 @@ export default function ComunidadPage() {
                 Grupo de WhatsApp
               </h2>
               <p className="text-[13px] text-[#9C8790] mb-6 leading-relaxed max-w-xs mx-auto">
-                Más de 500 chicas latinoamericanas compartiendo experiencias, consejos y apoyo en su camino Au Pair.
+                Chicas latinoamericanas compartiendo experiencias, consejos y apoyo en su camino Au Pair.
               </p>
+              {/* El enlace sale de configuracion.comunidad_whatsapp; sin él no hay
+                  botón (antes llevaba a «TU-LINK-AQUI»). */}
+              {!contacto.comunidad ? (
+                <p className="text-[13px] font-medium text-[#a0435f]">
+                  {contacto.listo ? "Muy pronto te compartiremos aquí el enlace del grupo." : "Cargando…"}
+                </p>
+              ) : (
               <a
-                href="https://chat.whatsapp.com/TU-LINK-AQUI"
+                href={contacto.comunidad}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1fba58] text-white font-medium text-[14px] px-8 py-3.5 rounded-2xl transition shadow-lg shadow-[#25D366]/20 w-full justify-center"
@@ -130,6 +139,7 @@ export default function ComunidadPage() {
                 </svg>
                 Unirme al grupo
               </a>
+              )}
             </div>
 
             {/* Card qué encontrarás */}
