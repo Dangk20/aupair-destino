@@ -1,0 +1,2 @@
+# Archivos ignorados por git que Orca COPIA a cada worktree nuevo (solo rutas literales).
+.env.local

@@ -1,0 +1,8 @@
+# Deja listo cada worktree nuevo (https://orca.dev/docs/model/worktrees).
+# Carpetas compartidas con la copia principal: las dependencias se instalan allá.
+worktree:
+  sharedDirectories:
+    - node_modules
+scripts:
+  setup: |
+    node scripts/orca/preparar-worktree.cjs
