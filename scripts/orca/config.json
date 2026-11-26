@@ -1,0 +1,8 @@
+{
+  "horario": "*/30 7-19 * * 1-5",
+  "zonaHoraria": "America/Bogota",
+  "variablePuerto": null,
+  "puertoPrincipal": 3000,
+  "puertoMin": 3001,
+  "puertoMax": 3099
+}

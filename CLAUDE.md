@@ -146,3 +146,12 @@ Utilidades del admin: `/admin/bd-verificar` (inspector del esquema en vivo) y
 - SQL crudo parametrizado. Nada de concatenar valores en la consulta.
 - Antes de dar algo por terminado: `npm run build` y `node scripts/pruebas-humo.mjs`.
   (`npm run lint` está roto de antes: llama a `next lint`, retirado en Next 16.)
+
+## Tablero de Orca
+Aplica solo dentro de Orca (`ORCA_WORKTREE_ID`). El tablero se mueve solo: los hooks de `.claude/settings.json` pasan la tarjeta a In review cuando
+le toca a la persona y a In progress cuando el agente trabaja; `scripts/orca/cerrar-tarjetas.cjs` la pasa a Done cuando la rama ya está integrada.
+- No muevas tu tarjeta a mano; solo regrésala de `completed` si hay trabajo nuevo. La copia principal no se mueve.
+- En cada hito (causa confirmada, arreglo, validación, bloqueo, listo para PR) escribe qué pasó y qué sigue:
+  `orca worktree set --worktree active --comment "<qué pasó, dónde; siguiente paso>"`. Lee antes el actual (`orca worktree current --json`) para no
+  borrar lo que escribió una persona. Nunca credenciales ni datos personales.
+- Lo hace la sesión principal, no los subagentes. Si el comando falla, sigue trabajando.

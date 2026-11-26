@@ -1,0 +1,90 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Elicitation": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "ElicitationResult": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$ORCA_WORKTREE_ID\" ] && [ -f \"$CLAUDE_PROJECT_DIR/.orca-espera\" ] && node \"$CLAUDE_PROJECT_DIR/scripts/orca/tarjeta-segun-turno.cjs\" || true",
+            "timeout": 20,
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
